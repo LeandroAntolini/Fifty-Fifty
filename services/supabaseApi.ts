@@ -275,6 +275,30 @@ export const deleteCliente = async (clienteId: string) => {
     }
 };
 
+// --- CORRETORES ---
+
+export const updateCorretor = async (corretorId: string, corretorData: Partial<Omit<Corretor, 'ID_Corretor' | 'Email' | 'CRECI'>>): Promise<void> => {
+    const updateData = {
+        nome: corretorData.Nome,
+        telefone: corretorData.Telefone,
+        cidade: corretorData.Cidade,
+        estado: corretorData.Estado,
+    };
+
+    // Remove undefined properties so they are not updated
+    Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+
+    const { error } = await supabase
+        .from('corretores')
+        .update(updateData)
+        .eq('id', corretorId);
+
+    if (error) {
+        console.error('Error updating corretor:', error);
+        throw error;
+    }
+};
+
 
 // --- PUBLIC GETTERS (for augmenting data on frontend) ---
 

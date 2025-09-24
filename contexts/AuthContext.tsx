@@ -1,6 +1,8 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 import { User, Corretor } from '../types';
 import { supabase } from '../src/integrations/supabase/client';
+import * as api from '../services/api';
 
 interface AuthContextType {
   user: User | null;
@@ -8,6 +10,7 @@ interface AuthContextType {
   login: (email: string, pass: string) => Promise<void>;
   register: (corretorData: Omit<Corretor, 'ID_Corretor' | 'Email'> & {Email: string, password: string}) => Promise<void>;
   logout: () => void;
+  updateProfile: (profileData: Partial<Omit<Corretor, 'ID_Corretor' | 'Email' | 'CRECI'>>) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -16,47 +19,54 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchCorretorProfile = async (sessionUser: SupabaseUser): Promise<User | null> => {
+    const { data: corretorData, error } = await supabase
+      .from('corretores')
+      .select('*')
+      .eq('id', sessionUser.id)
+      .single();
+
+    if (corretorData) {
+      const corretorInfo: Corretor = {
+        ID_Corretor: corretorData.id,
+        Nome: corretorData.nome,
+        CRECI: corretorData.creci,
+        Telefone: corretorData.telefone,
+        Email: sessionUser.email!,
+        Cidade: corretorData.cidade,
+        Estado: corretorData.estado,
+      };
+      const fullUser = {
+        id: sessionUser.id,
+        email: sessionUser.email!,
+        corretorInfo: corretorInfo,
+      };
+      setUser(fullUser);
+      return fullUser;
+    } else if (error) {
+      console.error('Error fetching corretor profile:', error);
+    }
+    return null;
+  }
+
   useEffect(() => {
+    const checkSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            await fetchCorretorProfile(session.user);
+        }
+        setLoading(false);
+    };
+    checkSession();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session) {
-        const { data: corretorData, error } = await supabase
-          .from('corretores')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        if (corretorData) {
-          const corretorInfo: Corretor = {
-            ID_Corretor: corretorData.id,
-            Nome: corretorData.nome,
-            CRECI: corretorData.creci,
-            Telefone: corretorData.telefone,
-            Email: session.user.email!,
-            Cidade: corretorData.cidade,
-            Estado: corretorData.estado,
-          };
-
-          setUser({
-            id: session.user.id,
-            email: session.user.email!,
-            corretorInfo: corretorInfo,
-          });
-        } else if (error) {
-          console.error('Error fetching corretor profile:', error);
-        }
+        await fetchCorretorProfile(session.user);
       } else {
         setUser(null);
       }
       setLoading(false);
     });
-
-    const checkSession = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            setLoading(false);
-        }
-    };
-    checkSession();
 
     return () => {
       subscription.unsubscribe();
@@ -91,8 +101,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
   };
 
+  const updateProfile = async (profileData: Partial<Omit<Corretor, 'ID_Corretor' | 'Email' | 'CRECI'>>) => {
+    if (!user) throw new Error("User not authenticated");
+    
+    await api.updateCorretor(user.id, profileData);
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+        await fetchCorretorProfile(session.user);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

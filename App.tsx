@@ -12,6 +12,7 @@ import MatchesPage from './pages/MatchesPage';
 import ParceriasPage from './pages/ParceriasPage';
 import ChatPage from './pages/ChatPage';
 import MetricasPage from './pages/MetricasPage';
+import ProfilePage from './pages/ProfilePage';
 
 const App: React.FC = () => {
   return (
@@ -37,6 +38,7 @@ const App: React.FC = () => {
             <Route path="matches/:matchId/chat" element={<ChatPage />} />
             <Route path="parcerias" element={<ParceriasPage />} />
             <Route path="metricas" element={<MetricasPage />} />
+            <Route path="profile" element={<ProfilePage />} />
           </Route>
         </Routes>
       </HashRouter>

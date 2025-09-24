@@ -11,6 +11,7 @@ const ParceriasIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" h
 const TrophyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>;
 const LogOutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
 const ChevronLeftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>;
+const ProfileIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="10" r="3"></circle><path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"></path></svg>;
 
 
 const pageTitles: { [key: string]: string } = {
@@ -19,6 +20,7 @@ const pageTitles: { [key: string]: string } = {
   '/matches': 'Matches',
   '/parcerias': 'Parcerias',
   '/metricas': 'Ranking e Métricas',
+  '/profile': 'Meu Perfil',
 };
 
 const MainLayout: React.FC = () => {
@@ -34,7 +36,7 @@ const MainLayout: React.FC = () => {
   const getTitle = () => {
     if (isChatPage) return "Chat da Parceria";
     const path = location.pathname;
-    return pageTitles[path] || 'Meus Imóveis';
+    return pageTitles[path] || 'Meu Perfil';
   };
 
   const handleFabClick = () => {
@@ -56,9 +58,14 @@ const MainLayout: React.FC = () => {
           </button>
         ) : <div className="w-6"></div>}
         <h1 className="text-xl font-bold">{getTitle()}</h1>
-        <button onClick={logout} className="text-white hover:text-secondary">
-          <LogOutIcon/>
-        </button>
+        <div className="flex items-center space-x-4">
+            <NavLink to="/profile" className="text-white hover:text-secondary">
+                <ProfileIcon />
+            </NavLink>
+            <button onClick={logout} className="text-white hover:text-secondary">
+              <LogOutIcon/>
+            </button>
+        </div>
       </header>
       
       <main className="flex-grow overflow-y-auto p-4 pb-20">

@@ -119,7 +119,7 @@ const ImoveisPage: React.FC = () => {
       fetchImoveis();
     } catch (error) {
       console.error("Failed to save imovel", error);
-      toast.error("Falha ao salvar imóvel. Tente novamente.");
+      toast.error((error as Error).message || "Falha ao salvar imóvel. Tente novamente.");
     }
   };
   

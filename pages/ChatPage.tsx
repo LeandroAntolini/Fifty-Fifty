@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { Message, Match, ReadStatus, MatchStatus } from '../types';
+import { Message, Match, MatchStatus } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
 import { Button } from '../components/ui/Button';
 import toast from 'react-hot-toast';
+import { supabase } from '../src/integrations/supabase/client';
 
 const ChatPage: React.FC = () => {
   const { matchId } = useParams<{ matchId: string }>();
@@ -47,6 +48,42 @@ const ChatPage: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Real-time subscription
+  useEffect(() => {
+    if (!matchId) return;
+
+    const channel = supabase
+      .channel(`chat:${matchId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `id_match=eq.${matchId}` },
+        (payload) => {
+          const newMessage = payload.new as any;
+          const formattedMessage: Message = {
+            ID_Message: newMessage.id,
+            ID_Match: newMessage.id_match,
+            ID_Parceria: null,
+            From_Corretor_ID: newMessage.from_corretor_id,
+            To_Corretor_ID: newMessage.to_corretor_id,
+            Timestamp: newMessage.created_at,
+            Message_Text: newMessage.message_text,
+            Read_Status: newMessage.read_status,
+          };
+          setMessages((prevMessages) => {
+            if (prevMessages.some(msg => msg.ID_Message === formattedMessage.ID_Message)) {
+              return prevMessages;
+            }
+            return [...prevMessages, formattedMessage];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [matchId]);
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !user || !matchId || !matchDetails) return;
@@ -63,24 +100,15 @@ const ChatPage: React.FC = () => {
       Message_Text: newMessage,
     };
     
-    const tempId = `temp_${Date.now()}`;
-    const optimisticMessage: Message = {
-        ...messageData,
-        ID_Message: tempId,
-        From_Corretor_ID: user.corretorInfo.ID_Corretor,
-        Timestamp: new Date().toISOString(),
-        Read_Status: ReadStatus.NaoLido,
-    };
-    setMessages(prev => [...prev, optimisticMessage]);
     setNewMessage('');
 
     try {
-        const sentMessage = await api.sendMessage(messageData);
-        setMessages(prev => prev.map(msg => msg.ID_Message === tempId ? sentMessage : msg));
+        await api.sendMessage(messageData);
     } catch (error) {
         console.error("Failed to send message", error);
         toast.error("Falha ao enviar mensagem.");
-        setMessages(prev => prev.filter(msg => msg.ID_Message !== tempId));
+        // Re-set the message in the input if sending fails
+        setNewMessage(messageData.Message_Text);
     }
   };
 
@@ -140,7 +168,7 @@ const ChatPage: React.FC = () => {
             className="flex-grow p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-primary-focus"
           />
           <button type="submit" className="bg-primary text-white rounded-full p-3 flex-shrink-0">
-             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
           </button>
         </form>
       </div>

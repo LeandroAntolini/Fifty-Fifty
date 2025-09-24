@@ -15,6 +15,7 @@ import MetricasPage from './pages/MetricasPage';
 import ProfilePage from './pages/ProfilePage';
 import ToastProvider from './components/ToastProvider';
 import { NotificationProvider } from './contexts/NotificationContext';
+import AllChatsPage from './pages/AllChatsPage';
 
 const App: React.FC = () => {
   return (
@@ -41,6 +42,7 @@ const App: React.FC = () => {
             <Route path="clientes" element={<ClientesPage />} />
             <Route path="matches" element={<MatchesPage />} />
             <Route path="matches/:matchId/chat" element={<ChatPage />} />
+            <Route path="chats" element={<AllChatsPage />} />
             <Route path="parcerias" element={<ParceriasPage />} />
             <Route path="metricas" element={<MetricasPage />} />
             <Route path="profile" element={<ProfilePage />} />

@@ -523,6 +523,19 @@ export const createParceriaFromMatch = async (match: Match): Promise<Parceria> =
     return mapSupabaseParceriaToParceria(data);
 };
 
+// --- CHATS ---
+export const getActiveChatsByCorretor = async (corretorId: string) => {
+    const { data, error } = await supabase.rpc('get_active_chats_for_corretor', {
+        p_corretor_id: corretorId,
+    });
+
+    if (error) {
+        console.error('Error fetching active chats:', error);
+        throw error;
+    }
+    return data;
+};
+
 
 // --- METRICAS ---
 export const getMetricas = async (): Promise<Metric[]> => {

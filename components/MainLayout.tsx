@@ -13,6 +13,7 @@ const TrophyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" heig
 const LogOutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
 const ChevronLeftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>;
 const ProfileIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="10" r="3"></circle><path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"></path></svg>;
+const MessageSquareIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>;
 
 
 const pageTitles: { [key: string]: string } = {
@@ -22,6 +23,7 @@ const pageTitles: { [key: string]: string } = {
   '/parcerias': 'Parcerias',
   '/metricas': 'Ranking e Métricas',
   '/profile': 'Meu Perfil',
+  '/chats': 'Conversas',
 };
 
 const MainLayout: React.FC = () => {
@@ -31,12 +33,13 @@ const MainLayout: React.FC = () => {
   const { openImovelModal, openClienteModal, isImovelModalOpen, isClienteModalOpen } = useUI();
   const { notificationCount } = useNotifications();
   
-  const isChatPage = location.pathname.includes('/chat');
+  const isSpecificChatPage = /^\/matches\/.+\/chat$/.test(location.pathname);
+  const isAllChatsPage = location.pathname === '/chats';
   const showFabForImoveis = location.pathname === '/imoveis' || location.pathname === '/';
   const showFabForClientes = location.pathname === '/clientes';
   
   const getTitle = () => {
-    if (isChatPage) return "Chat da Parceria";
+    if (isSpecificChatPage) return "Chat da Parceria";
     const path = location.pathname;
     return pageTitles[path] || 'Meu Perfil';
   };
@@ -58,21 +61,25 @@ const MainLayout: React.FC = () => {
   };
   
   const isModalOpen = isImovelModalOpen || isClienteModalOpen;
+  const hideBottomNav = isSpecificChatPage || isAllChatsPage;
 
   return (
     <div className="flex flex-col h-screen max-w-lg mx-auto bg-neutral-light">
       <header className="bg-primary text-white p-4 flex items-center justify-between shadow-md sticky top-0 z-10">
-        {isChatPage ? (
-          <button onClick={() => navigate(-1)} className="text-white">
+        {isSpecificChatPage || isAllChatsPage ? (
+          <button onClick={() => navigate(-1)} className="text-white p-1">
             <ChevronLeftIcon/>
           </button>
-        ) : <div className="w-6"></div>}
+        ) : <div className="w-8"></div>}
         <h1 className="text-xl font-bold">{getTitle()}</h1>
-        <div className="flex items-center space-x-4">
-            <button onClick={handleProfileClick} className="text-white hover:text-secondary">
+        <div className="flex items-center space-x-2">
+            <button onClick={() => navigate('/chats')} className="text-white hover:text-secondary p-1">
+                <MessageSquareIcon />
+            </button>
+            <button onClick={handleProfileClick} className="text-white hover:text-secondary p-1">
                 <ProfileIcon />
             </button>
-            <button onClick={logout} className="text-white hover:text-secondary">
+            <button onClick={logout} className="text-white hover:text-secondary p-1">
               <LogOutIcon/>
             </button>
         </div>
@@ -92,7 +99,7 @@ const MainLayout: React.FC = () => {
         </button>
       )}
 
-      {!isChatPage && (
+      {!hideBottomNav && (
         <nav className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-white border-t border-neutral-DEFAULT shadow-lg z-10">
           <div className="flex justify-around h-16">
             <NavLink to="/imoveis" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-neutral-dark hover:text-primary'}`}>

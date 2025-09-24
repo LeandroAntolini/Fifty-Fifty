@@ -377,5 +377,15 @@ export const createParceriaFromMatch = async (match: Match): Promise<Parceria> =
 };
 
 
-// --- PLACEHOLDER FUNCTIONS ---
-export const getMetricas = async (): Promise<Metric[]> => { console.warn("getMetricas not implemented in supabaseApi"); return []; };
+// --- METRICAS ---
+export const getMetricas = async (): Promise<Metric[]> => {
+    const { data, error } = await supabase.rpc('get_corretor_metrics');
+
+    if (error) {
+        console.error('Error fetching metrics:', error);
+        throw error;
+    }
+    
+    // The data from RPC should match the Metric type, but we cast it to be safe.
+    return data as Metric[];
+};

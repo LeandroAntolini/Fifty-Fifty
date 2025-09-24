@@ -44,7 +44,8 @@ const MetricasPage: React.FC = () => {
                         <p>Imóveis: <span className="font-semibold">{metric.Imoveis_Adicionados}</span></p>
                         <p>Clientes: <span className="font-semibold">{metric.Clientes_Adicionados}</span></p>
                         <p>Matches: <span className="font-semibold">{metric.Matches_Iniciados}</span></p>
-                        <p>Conversão: <span className="font-semibold">{(metric.Taxa_Conversao * 100).toFixed(1)}%</span></p>
+                        <p>Conversas: <span className="font-semibold">{metric.Conversas_Iniciadas}</span></p>
+                        <p className="col-span-2">Conversão: <span className="font-semibold">{(metric.Taxa_Conversao * 100).toFixed(1)}%</span></p>
                     </div>
                 </div>
             ))}

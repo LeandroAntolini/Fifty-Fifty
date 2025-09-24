@@ -532,3 +532,45 @@ export const getMetricas = async (): Promise<Metric[]> => {
     // The data from RPC should match the Metric type, but we cast it to be safe.
     return data as Metric[];
 };
+
+// --- NOTIFICATIONS ---
+
+export const getUnreadMessagesCount = async (corretorId: string): Promise<number> => {
+    const { count, error } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('to_corretor_id', corretorId)
+        .eq('read_status', 'nao lido');
+
+    if (error) {
+        console.error('Error fetching unread messages count:', error);
+        return 0;
+    }
+    return count || 0;
+};
+
+export const getNewMatchesCount = async (corretorId: string): Promise<number> => {
+    const { data, error } = await supabase.rpc('count_new_matches_for_corretor', {
+        p_corretor_id: corretorId
+    });
+
+    if (error) {
+        console.error('Error fetching new matches count:', error);
+        return 0;
+    }
+    return data || 0;
+};
+
+export const markMessagesAsRead = async (matchId: string, readerId: string): Promise<void> => {
+    const { error } = await supabase
+        .from('messages')
+        .update({ read_status: ReadStatus.Lido })
+        .eq('id_match', matchId)
+        .eq('to_corretor_id', readerId)
+        .eq('read_status', ReadStatus.NaoLido);
+
+    if (error) {
+        console.error('Error marking messages as read:', error);
+        throw error;
+    }
+};

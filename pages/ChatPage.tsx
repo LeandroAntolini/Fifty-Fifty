@@ -7,6 +7,7 @@ import Spinner from '../components/Spinner';
 import { Button } from '../components/ui/Button';
 import toast from 'react-hot-toast';
 import { supabase } from '../src/integrations/supabase/client';
+import { useNotifications } from '../contexts/NotificationContext';
 
 const ChatPage: React.FC = () => {
   const { matchId } = useParams<{ matchId: string }>();
@@ -17,6 +18,7 @@ const ChatPage: React.FC = () => {
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isConcluding, setIsConcluding] = useState(false);
+  const { fetchNotifications } = useNotifications();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -26,6 +28,9 @@ const ChatPage: React.FC = () => {
     if (!matchId || !user) return;
     setLoading(true);
     try {
+      await api.markMessagesAsRead(matchId, user.id);
+      fetchNotifications();
+
       const [msgs, match] = await Promise.all([
         api.getMessagesByMatch(matchId),
         api.getMatchById(matchId)
@@ -38,7 +43,7 @@ const ChatPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [matchId, user]);
+  }, [matchId, user, fetchNotifications]);
 
   useEffect(() => {
     fetchChatData();
@@ -104,6 +109,7 @@ const ChatPage: React.FC = () => {
 
     try {
         await api.sendMessage(messageData);
+        fetchNotifications();
     } catch (error) {
         console.error("Failed to send message", error);
         toast.error("Falha ao enviar mensagem.");

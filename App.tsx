@@ -14,6 +14,7 @@ import ChatPage from './pages/ChatPage';
 import MetricasPage from './pages/MetricasPage';
 import ProfilePage from './pages/ProfilePage';
 import ToastProvider from './components/ToastProvider';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 const App: React.FC = () => {
   return (
@@ -28,7 +29,9 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute>
                 <UIProvider>
-                  <MainLayout />
+                  <NotificationProvider>
+                    <MainLayout />
+                  </NotificationProvider>
                 </UIProvider>
               </ProtectedRoute>
             }

@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useUI } from '../contexts/UIContext';
+import { useNotifications } from '../contexts/NotificationContext';
 
 // Inline SVGs for icons
 const HomeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>;
@@ -28,6 +29,7 @@ const MainLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { openImovelModal, openClienteModal, isImovelModalOpen, isClienteModalOpen } = useUI();
+  const { notificationCount } = useNotifications();
   
   const isChatPage = location.pathname.includes('/chat');
   const showFabForImoveis = location.pathname === '/imoveis' || location.pathname === '/';
@@ -102,7 +104,14 @@ const MainLayout: React.FC = () => {
               <span>Clientes</span>
             </NavLink>
             <NavLink to="/matches" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-neutral-dark hover:text-primary'}`}>
-              <ThumbsUpIcon />
+              <div className="relative">
+                <ThumbsUpIcon />
+                {notificationCount > 0 && (
+                  <span className="absolute -top-1 -right-2.5 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+                    {notificationCount}
+                  </span>
+                )}
+              </div>
               <span>Matches</span>
             </NavLink>
             <NavLink to="/parcerias" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-neutral-dark hover:text-primary'}`}>

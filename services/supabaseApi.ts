@@ -351,7 +351,7 @@ export const updateCorretor = async (corretorId: string, corretorData: Partial<O
 
 
 // --- PUBLIC GETTERS (for augmenting data on frontend) ---
-
+// These are no longer needed by MatchesPage, but might be useful elsewhere.
 export const getImoveis = async (): Promise<Imovel[]> => {
     const { data, error } = await supabase
         .from('imoveis')
@@ -400,6 +400,18 @@ const mapSupabaseMatchToMatch = (match: any): Match => ({
     Match_Timestamp: match.created_at,
     Status: match.status,
 });
+
+export const getAugmentedMatchesByCorretor = async (corretorId: string) => {
+    const { data, error } = await supabase.rpc('get_augmented_matches_for_corretor', {
+        p_corretor_id: corretorId,
+    });
+
+    if (error) {
+        console.error('Error fetching augmented matches:', error);
+        throw error;
+    }
+    return data;
+};
 
 export const findMatchesForImovel = async (imovel: Imovel): Promise<Match[]> => {
     const { data, error } = await supabase.functions.invoke('find-matches', {

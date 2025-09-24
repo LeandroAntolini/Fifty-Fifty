@@ -56,8 +56,8 @@ export const createImovel = async (imovelData: Omit<Imovel, 'ID_Imovel' | 'Statu
     let imageUrls: string[] = [];
 
     if (Imagens && Imagens.length > 0) {
-        const uploadPromises = Imagens.map(async (base64Image, index) => {
-            try {
+        try {
+            const uploadPromises = Imagens.map(async (base64Image, index) => {
                 const file = base64ToFile(base64Image, `imovel-${Date.now()}-${index}.png`);
                 const filePath = `${ID_Corretor}/${file.name}`;
                 
@@ -69,8 +69,8 @@ export const createImovel = async (imovelData: Omit<Imovel, 'ID_Imovel' | 'Statu
                     });
 
                 if (uploadError) {
-                    console.error('Error uploading image:', uploadError);
-                    return null;
+                    // Throw an error to be caught by the outer catch block
+                    throw new Error(`Falha no upload da imagem: ${uploadError.message}`);
                 }
 
                 const { data: { publicUrl } } = supabase.storage
@@ -78,14 +78,14 @@ export const createImovel = async (imovelData: Omit<Imovel, 'ID_Imovel' | 'Statu
                     .getPublicUrl(filePath);
                 
                 return publicUrl;
-            } catch (error) {
-                console.error('Error processing base64 image:', error);
-                return null;
-            }
-        });
+            });
 
-        const results = await Promise.all(uploadPromises);
-        imageUrls = results.filter((url): url is string => url !== null);
+            imageUrls = await Promise.all(uploadPromises);
+        } catch (error) {
+            console.error('An error occurred during image upload:', error);
+            // Re-throw the error to be handled by the calling function (which shows a toast)
+            throw error;
+        }
     }
 
     const newImovelData = {

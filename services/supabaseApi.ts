@@ -169,13 +169,88 @@ export const createCliente = async (clienteData: Omit<Cliente, 'ID_Cliente' | 'S
     return mapSupabaseClienteToCliente(data);
 };
 
+// --- PUBLIC GETTERS (for augmenting data on frontend) ---
+
+export const getImoveis = async (): Promise<Imovel[]> => {
+    const { data, error } = await supabase
+        .from('imoveis')
+        .select('*')
+        .eq('status', 'Ativo');
+    
+    if (error) {
+        console.error('Error fetching all imoveis:', error);
+        throw error;
+    }
+    return data.map(mapSupabaseImovelToImovel);
+};
+
+export const getClientes = async (): Promise<Cliente[]> => {
+    const { data, error } = await supabase
+        .from('clientes')
+        .select('*')
+        .eq('status', 'Ativo');
+    
+    if (error) {
+        console.error('Error fetching all clientes:', error);
+        throw error;
+    }
+    return data.map(mapSupabaseClienteToCliente);
+};
+
+export const getCorretores = async (): Promise<Pick<Corretor, 'ID_Corretor' | 'Nome'>[]> => {
+    const { data, error } = await supabase
+        .from('corretores')
+        .select('id, nome');
+    
+    if (error) {
+        console.error('Error fetching corretores:', error);
+        throw error;
+    }
+    return data.map(c => ({ ID_Corretor: c.id, Nome: c.nome }));
+}
+
+
+// --- MATCHES ---
+
+const mapSupabaseMatchToMatch = (match: any): Match => ({
+    ID_Match: match.id,
+    ID_Imovel: match.id_imovel,
+    ID_Cliente: match.id_cliente,
+    Corretor_A_ID: match.id_corretor_imovel,
+    Corretor_B_ID: match.id_corretor_cliente,
+    Match_Timestamp: match.created_at,
+    Status: match.status,
+});
+
+export const findMatchesForImovel = async (imovel: Imovel): Promise<Match[]> => {
+    const { data, error } = await supabase.functions.invoke('find-matches', {
+        body: { imovel },
+    });
+
+    if (error) {
+        console.error('Error finding matches:', error);
+        throw error;
+    }
+    return (data || []).map(mapSupabaseMatchToMatch);
+};
+
+export const getMatchesByCorretor = async (corretorId: string): Promise<Match[]> => {
+    const { data, error } = await supabase
+        .from('matches')
+        .select('*')
+        .or(`id_corretor_imovel.eq.${corretorId},id_corretor_cliente.eq.${corretorId}`)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching matches:', error);
+        throw error;
+    }
+    return data.map(mapSupabaseMatchToMatch);
+};
+
 
 // --- PLACEHOLDER FUNCTIONS ---
-export const getMatchesByCorretor = async (corretorId: string): Promise<Match[]> => { console.warn("getMatchesByCorretor not implemented in supabaseApi"); return []; };
-export const findMatchesForImovel = async (imovel: Imovel): Promise<Match[]> => { console.warn("findMatchesForImovel not implemented in supabaseApi"); return []; };
 export const getMatchById = async (matchId: string): Promise<Match | undefined> => { console.warn("getMatchById not implemented in supabaseApi"); return undefined; };
 export const getMessagesByMatch = async (matchId: string): Promise<Message[]> => { console.warn("getMessagesByMatch not implemented in supabaseApi"); return []; };
 export const sendMessage = async (messageData: any): Promise<Message> => { throw new Error("sendMessage not implemented in supabaseApi"); };
 export const getMetricas = async (): Promise<Metric[]> => { console.warn("getMetricas not implemented in supabaseApi"); return []; };
-export const getImoveis = async (): Promise<Imovel[]> => { console.warn("getImoveis not implemented in supabaseApi"); return []; };
-export const getClientes = async (): Promise<Cliente[]> => { console.warn("getClientes not implemented in supabaseApi"); return []; };

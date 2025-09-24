@@ -28,18 +28,17 @@ const MatchesPage: React.FC = () => {
                 matchesData,
                 imoveisData,
                 clientesData,
-                metricsData
+                corretoresData
             ] = await Promise.all([
-                // FIX: Passed user.corretorInfo.ID_Corretor to getMatchesByCorretor
                 api.getMatchesByCorretor(user.corretorInfo.ID_Corretor),
                 api.getImoveis(),
                 api.getClientes(),
-                api.getMetricas(),
+                api.getCorretores(),
             ]);
 
             const imoveisMap = new Map(imoveisData.map(i => [i.ID_Imovel, i]));
             const clientesMap = new Map(clientesData.map(c => [c.ID_Cliente, c]));
-            const corretoresMap = new Map(metricsData.map(m => [m.ID_Corretor, m.Nome]));
+            const corretoresMap = new Map(corretoresData.map(c => [c.ID_Corretor, c.Nome]));
 
             const augmented = matchesData.map(match => {
                 const imovel = imoveisMap.get(match.ID_Imovel);

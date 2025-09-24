@@ -535,17 +535,15 @@ export const getMetricas = async (): Promise<Metric[]> => {
 // --- NOTIFICATIONS ---
 
 export const getUnreadMessagesCount = async (corretorId: string): Promise<number> => {
-    const { count, error } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('to_corretor_id', corretorId)
-        .eq('read_status', 'nao lido');
+    const { data, error } = await supabase.rpc('count_unread_messages_in_open_matches', {
+        p_corretor_id: corretorId
+    });
 
     if (error) {
         console.error('Error fetching unread messages count:', error);
         return 0;
     }
-    return count || 0;
+    return data || 0;
 };
 
 export const getNewMatchesCount = async (corretorId: string): Promise<number> => {

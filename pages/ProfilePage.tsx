@@ -5,6 +5,7 @@ import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import Spinner from '../components/Spinner';
+import toast from 'react-hot-toast';
 
 const ProfilePage: React.FC = () => {
     const { user, updateProfile, loading: authLoading } = useAuth();
@@ -15,7 +16,6 @@ const ProfilePage: React.FC = () => {
         Estado: '',
     });
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState('');
 
     useEffect(() => {
         if (user) {
@@ -36,13 +36,12 @@ const ProfilePage: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setMessage('');
         setLoading(true);
         try {
             await updateProfile(formData);
-            setMessage('Perfil atualizado com sucesso!');
+            toast.success('Perfil atualizado com sucesso!');
         } catch (err) {
-            setMessage('Falha ao atualizar o perfil. Tente novamente.');
+            toast.error('Falha ao atualizar o perfil. Tente novamente.');
             console.error(err);
         } finally {
             setLoading(false);
@@ -61,8 +60,6 @@ const ProfilePage: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        {message && <p className={`p-3 rounded-md text-sm ${message.includes('sucesso') ? 'bg-accent/10 text-green-700' : 'bg-destructive/10 text-destructive'}`}>{message}</p>}
-                        
                         <div className="space-y-1.5">
                             <Label htmlFor="Email">Email</Label>
                             <Input id="Email" name="Email" type="email" value={user.email} disabled className="bg-neutral-light" />

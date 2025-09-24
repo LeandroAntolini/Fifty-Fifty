@@ -6,6 +6,7 @@ import * as api from '../services/api';
 import Spinner from '../components/Spinner';
 import AddImovelModal from '../components/AddImovelModal';
 import { Edit, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 // Image Carousel Component
 const ImageCarousel = ({ images, alt }: { images: string[] | undefined, alt: string }) => {
@@ -71,7 +72,7 @@ const ImoveisPage: React.FC = () => {
         setImoveis(data);
       } catch (error) {
         console.error("Failed to fetch imoveis", error);
-        alert(`Não foi possível carregar os imóveis. ${(error as Error).message}`);
+        toast.error(`Não foi possível carregar os imóveis.`);
       } finally {
         setLoading(false);
       }
@@ -103,18 +104,20 @@ const ImoveisPage: React.FC = () => {
     try {
       if (id) {
         await api.updateImovel(id, formData);
+        toast.success("Imóvel atualizado com sucesso!");
       } else {
         const imovelData = {
           ...formData,
           ID_Corretor: user.corretorInfo.ID_Corretor,
         };
         await api.createImovel(imovelData as Omit<Imovel, 'ID_Imovel' | 'Status'> & { Imagens?: string[] });
+        toast.success("Imóvel criado com sucesso!");
       }
       handleCloseModal();
       fetchImoveis();
     } catch (error) {
       console.error("Failed to save imovel", error);
-      alert("Falha ao salvar imóvel. Tente novamente.");
+      toast.error("Falha ao salvar imóvel. Tente novamente.");
     }
   };
   
@@ -127,10 +130,11 @@ const ImoveisPage: React.FC = () => {
     if (window.confirm(`Tem certeza que deseja excluir o imóvel "${imovel.Tipo} em ${imovel.Bairro}"?`)) {
       try {
         await api.deleteImovel(imovel.ID_Imovel, imovel.Imagens);
+        toast.success("Imóvel excluído com sucesso.");
         fetchImoveis();
       } catch (error) {
         console.error("Failed to delete imovel", error);
-        alert("Falha ao excluir imóvel.");
+        toast.error("Falha ao excluir imóvel.");
       }
     }
   };
@@ -145,12 +149,12 @@ const ImoveisPage: React.FC = () => {
     try {
         const newMatches = await api.findMatchesForImovel(imovel);
         if (newMatches.length > 0) {
-            alert(`${newMatches.length} novo(s) match(s) encontrado(s)! Verifique a aba de Matches.`);
+            toast.success(`${newMatches.length} novo(s) match(s) encontrado(s)!`);
         } else {
-            alert("Nenhum novo match encontrado para este imóvel no momento.");
+            toast('Nenhum novo match encontrado para este imóvel.', { icon: '🤷' });
         }
     } catch(error) {
-        alert("Ocorreu um erro ao buscar por matches.");
+        toast.error("Ocorreu um erro ao buscar por matches.");
     } finally {
         setFindingMatch(null);
     }

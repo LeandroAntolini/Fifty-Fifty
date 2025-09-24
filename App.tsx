@@ -13,10 +13,12 @@ import ParceriasPage from './pages/ParceriasPage';
 import ChatPage from './pages/ChatPage';
 import MetricasPage from './pages/MetricasPage';
 import ProfilePage from './pages/ProfilePage';
+import ToastProvider from './components/ToastProvider';
 
 const App: React.FC = () => {
   return (
     <AuthProvider>
+      <ToastProvider />
       <HashRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />

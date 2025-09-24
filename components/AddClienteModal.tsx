@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Cliente, Finalidade, ClienteStatus } from '../types';
+import toast from 'react-hot-toast';
 
 type ClienteFormData = Omit<Cliente, 'ID_Cliente' | 'ID_Corretor'>;
 
@@ -60,7 +61,7 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.TipoImovelDesejado || !formData.CidadeDesejada || !formData.EstadoDesejado || formData.FaixaValorMax <= 0 || formData.FaixaValorMin > formData.FaixaValorMax) {
-        alert("Por favor, preencha os campos obrigatórios e verifique se a faixa de valor é válida.");
+        toast.error("Verifique os campos obrigatórios e a faixa de valor.");
         return;
     }
     onSave(formData, clienteToEdit?.ID_Cliente);

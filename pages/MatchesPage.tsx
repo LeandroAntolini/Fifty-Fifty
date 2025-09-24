@@ -4,6 +4,7 @@ import { Match, Imovel, Cliente } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
+import toast from 'react-hot-toast';
 
 interface AugmentedMatch extends Match {
   imovel: Imovel | undefined;
@@ -55,7 +56,7 @@ const MatchesPage: React.FC = () => {
 
         } catch (error) {
             console.error("Failed to fetch matches", error);
-            alert("Não foi possível carregar os matches.");
+            toast.error("Não foi possível carregar os matches.");
         } finally {
             setLoading(false);
         }

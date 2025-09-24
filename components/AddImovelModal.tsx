@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Imovel, Finalidade, ImovelStatus } from '../types';
+import toast from 'react-hot-toast';
 
 type ImovelFormData = Omit<Imovel, 'ID_Imovel' | 'ID_Corretor'> & { Imagens?: string[] };
 
@@ -89,7 +90,7 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.Tipo || !formData.Cidade || !formData.Estado || !formData.Bairro || formData.Valor <= 0) {
-        alert("Por favor, preencha todos os campos obrigatórios.");
+        toast.error("Por favor, preencha todos os campos obrigatórios.");
         return;
     }
     

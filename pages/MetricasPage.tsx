@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Metric } from '../types';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
+import toast from 'react-hot-toast';
 
 const MetricasPage: React.FC = () => {
     const [metrics, setMetrics] = useState<Metric[]>([]);
@@ -14,7 +15,7 @@ const MetricasPage: React.FC = () => {
             setMetrics(data);
         } catch (error) {
             console.error("Failed to fetch metrics", error);
-            alert(`Não foi possível carregar as métricas. ${(error as Error).message}`);
+            toast.error(`Não foi possível carregar as métricas.`);
         } finally {
             setLoading(false);
         }

@@ -6,6 +6,7 @@ import * as api from '../services/api';
 import Spinner from '../components/Spinner';
 import AddClienteModal from '../components/AddClienteModal';
 import { Edit, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const ClientesPage: React.FC = () => {
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -30,7 +31,7 @@ const ClientesPage: React.FC = () => {
         setClientes(data);
       } catch (error) {
         console.error("Failed to fetch clientes", error);
-        alert(`Não foi possível carregar os clientes. ${(error as Error).message}`);
+        toast.error(`Não foi possível carregar os clientes.`);
       } finally {
         setLoading(false);
       }
@@ -65,18 +66,20 @@ const ClientesPage: React.FC = () => {
     try {
       if (id) {
         await api.updateCliente(id, formData);
+        toast.success("Cliente atualizado com sucesso!");
       } else {
         const clienteData = {
           ...formData,
           ID_Corretor: user.corretorInfo.ID_Corretor,
         };
         await api.createCliente(clienteData as Omit<Cliente, 'ID_Cliente' | 'Status'>);
+        toast.success("Cliente criado com sucesso!");
       }
       handleCloseModal();
       fetchClientes();
     } catch (error) {
       console.error("Failed to save cliente", error);
-      alert("Falha ao salvar cliente. Tente novamente.");
+      toast.error("Falha ao salvar cliente. Tente novamente.");
     }
   };
 
@@ -89,10 +92,11 @@ const ClientesPage: React.FC = () => {
     if (window.confirm(`Tem certeza que deseja excluir o cliente que busca "${cliente.TipoImovelDesejado} em ${cliente.CidadeDesejada}"?`)) {
       try {
         await api.deleteCliente(cliente.ID_Cliente);
+        toast.success("Cliente excluído com sucesso.");
         fetchClientes();
       } catch (error) {
         console.error("Failed to delete cliente", error);
-        alert("Falha ao excluir cliente.");
+        toast.error("Falha ao excluir cliente.");
       }
     }
   };
@@ -107,12 +111,12 @@ const ClientesPage: React.FC = () => {
     try {
         const newMatches = await api.findMatchesForCliente(cliente);
         if (newMatches.length > 0) {
-            alert(`${newMatches.length} novo(s) match(s) encontrado(s)! Verifique a aba de Matches.`);
+            toast.success(`${newMatches.length} novo(s) match(s) encontrado(s)!`);
         } else {
-            alert("Nenhum novo match encontrado para este cliente no momento.");
+            toast('Nenhum novo match encontrado para este cliente.', { icon: '🤷' });
         }
     } catch(error) {
-        alert("Ocorreu um erro ao buscar por matches.");
+        toast.error("Ocorreu um erro ao buscar por matches.");
     } finally {
         setFindingMatch(null);
     }

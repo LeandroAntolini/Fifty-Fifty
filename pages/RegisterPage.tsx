@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/Card';
+import toast from 'react-hot-toast';
 
 const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -16,7 +17,6 @@ const RegisterPage: React.FC = () => {
         Estado: '',
         password: '',
     });
-    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const { register } = useAuth();
     const navigate = useNavigate();
@@ -28,16 +28,15 @@ const RegisterPage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.CRECI) {
-            setError("O CRECI é obrigatório.");
+            toast.error("O CRECI é obrigatório.");
             return;
         }
-        setError('');
         setLoading(true);
         try {
             await register(formData);
             navigate('/');
         } catch (err) {
-            setError((err as Error).message || 'Falha ao registrar. Tente novamente.');
+            toast.error((err as Error).message || 'Falha ao registrar. Tente novamente.');
         } finally {
             setLoading(false);
         }
@@ -51,8 +50,6 @@ const RegisterPage: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        {error && <p className="bg-destructive/10 text-destructive p-3 rounded-md text-sm">{error}</p>}
-                        
                         <div className="space-y-1.5">
                             <Label htmlFor="Nome">Nome Completo</Label>
                             <Input id="Nome" name="Nome" placeholder="Seu nome completo" onChange={handleChange} required />

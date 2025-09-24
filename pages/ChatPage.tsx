@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
 import { Button } from '../components/ui/Button';
+import toast from 'react-hot-toast';
 
 const ChatPage: React.FC = () => {
   const { matchId } = useParams<{ matchId: string }>();
@@ -32,7 +33,7 @@ const ChatPage: React.FC = () => {
       setMatchDetails(match || null);
     } catch (error) {
       console.error("Failed to fetch chat data", error);
-      alert("Não foi possível carregar o chat.");
+      toast.error("Não foi possível carregar o chat.");
     } finally {
       setLoading(false);
     }
@@ -78,7 +79,7 @@ const ChatPage: React.FC = () => {
         setMessages(prev => prev.map(msg => msg.ID_Message === tempId ? sentMessage : msg));
     } catch (error) {
         console.error("Failed to send message", error);
-        alert("Falha ao enviar mensagem.");
+        toast.error("Falha ao enviar mensagem.");
         setMessages(prev => prev.filter(msg => msg.ID_Message !== tempId));
     }
   };
@@ -91,10 +92,10 @@ const ChatPage: React.FC = () => {
         try {
             await api.createParceriaFromMatch(matchDetails);
             setMatchDetails(prev => prev ? { ...prev, Status: MatchStatus.Convertido } : null);
-            alert("Parabéns! Parceria concluída com sucesso.");
+            toast.success("Parabéns! Parceria concluída com sucesso.");
         } catch (error) {
             console.error("Failed to conclude parceria", error);
-            alert("Ocorreu um erro ao concluir a parceria.");
+            toast.error("Ocorreu um erro ao concluir a parceria.");
         } finally {
             setIsConcluding(false);
         }

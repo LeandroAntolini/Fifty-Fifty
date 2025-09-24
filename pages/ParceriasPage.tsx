@@ -3,6 +3,7 @@ import { Parceria, Imovel, Cliente } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
+import toast from 'react-hot-toast';
 
 interface AugmentedParceria extends Parceria {
   imovel: Imovel | undefined;
@@ -54,7 +55,7 @@ const ParceriasPage: React.FC = () => {
 
         } catch (error) {
             console.error("Failed to fetch parcerias", error);
-            alert("Não foi possível carregar as parcerias.");
+            toast.error("Não foi possível carregar as parcerias.");
         } finally {
             setLoading(false);
         }

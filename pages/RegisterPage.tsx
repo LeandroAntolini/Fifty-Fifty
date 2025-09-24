@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import { Label } from '../components/ui/Label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/Card';
 
 const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -40,33 +44,57 @@ const RegisterPage: React.FC = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-neutral-light p-4">
-            <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-lg">
-                <h1 className="text-2xl font-bold text-center text-primary mb-6">Criar Conta de Corretor</h1>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    {error && <p className="bg-red-100 text-red-700 p-3 rounded">{error}</p>}
-                    
-                    <input name="Nome" placeholder="Nome Completo" onChange={handleChange} className="w-full px-3 py-2 border rounded" required />
-                    <input name="CRECI" placeholder="CRECI (obrigatório)" onChange={handleChange} className="w-full px-3 py-2 border rounded" required />
-                    <input name="Email" type="email" placeholder="Email" onChange={handleChange} className="w-full px-3 py-2 border rounded" required />
-                    <input name="password" type="password" placeholder="Senha (mín. 6 caracteres)" onChange={handleChange} className="w-full px-3 py-2 border rounded" required minLength={6} />
-                    <input name="Telefone" placeholder="Telefone / WhatsApp" onChange={handleChange} className="w-full px-3 py-2 border rounded" required />
-                    <input name="Cidade" placeholder="Cidade" onChange={handleChange} className="w-full px-3 py-2 border rounded" required />
+            <Card className="w-full max-w-md">
+                <CardHeader className="text-center">
+                    <CardTitle className="text-2xl font-bold text-primary">Criar Conta de Corretor</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        {error && <p className="bg-destructive/10 text-destructive p-3 rounded-md text-sm">{error}</p>}
+                        
+                        <div className="space-y-1.5">
+                            <Label htmlFor="Nome">Nome Completo</Label>
+                            <Input id="Nome" name="Nome" placeholder="Seu nome completo" onChange={handleChange} required />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="CRECI">CRECI</Label>
+                            <Input id="CRECI" name="CRECI" placeholder="CRECI (obrigatório)" onChange={handleChange} required />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="Email">Email</Label>
+                            <Input id="Email" name="Email" type="email" placeholder="seu@email.com" onChange={handleChange} required />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="password">Senha</Label>
+                            <Input id="password" name="password" type="password" placeholder="Mínimo 6 caracteres" onChange={handleChange} required minLength={6} />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="Telefone">Telefone / WhatsApp</Label>
+                            <Input id="Telefone" name="Telefone" placeholder="(XX) XXXXX-XXXX" onChange={handleChange} required />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="Cidade">Cidade</Label>
+                            <Input id="Cidade" name="Cidade" placeholder="Sua cidade de atuação" onChange={handleChange} required />
+                        </div>
 
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:bg-neutral-DEFAULT"
-                    >
-                        {loading ? 'Registrando...' : 'Registrar'}
-                    </button>
-                    <p className="text-center text-sm text-neutral-dark mt-4">
+                        <Button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full"
+                        >
+                            {loading ? 'Registrando...' : 'Registrar'}
+                        </Button>
+                    </form>
+                </CardContent>
+                <CardFooter className="flex justify-center">
+                    <p className="text-center text-sm text-muted-foreground">
                         Já tem uma conta?{' '}
-                        <Link to="/login" className="font-bold text-primary hover:text-primary-hover">
+                        <Link to="/login" className="font-bold text-primary hover:underline">
                             Faça Login
                         </Link>
                     </p>
-                </form>
-            </div>
+                </CardFooter>
+            </Card>
         </div>
     );
 };

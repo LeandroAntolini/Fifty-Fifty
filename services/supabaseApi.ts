@@ -355,8 +355,7 @@ export const updateCorretor = async (corretorId: string, corretorData: Partial<O
 export const getImoveis = async (): Promise<Imovel[]> => {
     const { data, error } = await supabase
         .from('imoveis')
-        .select('*')
-        .eq('status', 'Ativo');
+        .select('*');
     
     if (error) {
         console.error('Error fetching all imoveis:', error);
@@ -368,8 +367,7 @@ export const getImoveis = async (): Promise<Imovel[]> => {
 export const getClientes = async (): Promise<Cliente[]> => {
     const { data, error } = await supabase
         .from('clientes')
-        .select('*')
-        .eq('status', 'Ativo');
+        .select('*');
     
     if (error) {
         console.error('Error fetching all clientes:', error);

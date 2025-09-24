@@ -70,14 +70,15 @@ const MainLayout: React.FC = () => {
           <button onClick={() => navigate(-1)} className="text-white p-1">
             <ChevronLeftIcon/>
           </button>
-        ) : <div className="w-8"></div>}
+        ) : (
+          <button onClick={handleProfileClick} className="text-white hover:text-secondary p-1">
+            <ProfileIcon />
+          </button>
+        )}
         <h1 className="text-xl font-bold">{getTitle()}</h1>
         <div className="flex items-center space-x-2">
             <button onClick={() => navigate('/chats')} className="text-white hover:text-secondary p-1">
                 <MessageSquareIcon />
-            </button>
-            <button onClick={handleProfileClick} className="text-white hover:text-secondary p-1">
-                <ProfileIcon />
             </button>
             <button onClick={logout} className="text-white hover:text-secondary p-1">
               <LogOutIcon/>

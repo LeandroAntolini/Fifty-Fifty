@@ -21,7 +21,6 @@ const base64ToFile = (base64: string, filename: string): File => {
 
 // --- IMOVEIS ---
 
-// Map Supabase imovel to frontend Imovel type
 const mapSupabaseImovelToImovel = (imovel: any): Imovel => ({
     ID_Imovel: imovel.id,
     ID_Corretor: imovel.id_corretor,
@@ -113,11 +112,65 @@ export const createImovel = async (imovelData: Omit<Imovel, 'ID_Imovel' | 'Statu
     return mapSupabaseImovelToImovel(data);
 };
 
-// --- PLACEHOLDER FUNCTIONS ---
-// These will be implemented in the next steps.
+// --- CLIENTES ---
 
-export const getClientesByCorretor = async (corretorId: string): Promise<Cliente[]> => { console.warn("getClientesByCorretor not implemented in supabaseApi"); return []; };
-export const createCliente = async (clienteData: any): Promise<Cliente> => { throw new Error("createCliente not implemented in supabaseApi"); };
+const mapSupabaseClienteToCliente = (cliente: any): Cliente => ({
+    ID_Cliente: cliente.id,
+    ID_Corretor: cliente.id_corretor,
+    TipoImovelDesejado: cliente.tipo_imovel_desejado,
+    Finalidade: cliente.finalidade,
+    CidadeDesejada: cliente.cidade_desejada,
+    BairroRegiaoDesejada: cliente.bairro_regiao_desejada,
+    FaixaValorMin: cliente.faixa_valor_min,
+    FaixaValorMax: cliente.faixa_valor_max,
+    DormitoriosMinimos: cliente.dormitorios_minimos,
+    Status: cliente.status,
+});
+
+export const getClientesByCorretor = async (corretorId: string): Promise<Cliente[]> => {
+    const { data, error } = await supabase
+        .from('clientes')
+        .select('*')
+        .eq('id_corretor', corretorId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching clientes:', error);
+        throw error;
+    }
+
+    return data.map(mapSupabaseClienteToCliente);
+};
+
+export const createCliente = async (clienteData: Omit<Cliente, 'ID_Cliente' | 'Status'>): Promise<Cliente> => {
+    const newClienteData = {
+        id_corretor: clienteData.ID_Corretor,
+        tipo_imovel_desejado: clienteData.TipoImovelDesejado,
+        finalidade: clienteData.Finalidade,
+        cidade_desejada: clienteData.CidadeDesejada,
+        bairro_regiao_desejada: clienteData.BairroRegiaoDesejada,
+        faixa_valor_min: clienteData.FaixaValorMin,
+        faixa_valor_max: clienteData.FaixaValorMax,
+        dormitorios_minimos: clienteData.DormitoriosMinimos,
+        status: ClienteStatus.Ativo,
+    };
+
+    const { data, error } = await supabase
+        .from('clientes')
+        .insert(newClienteData)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error creating cliente:', error);
+        throw error;
+    }
+
+    return mapSupabaseClienteToCliente(data);
+};
+
+
+// --- PLACEHOLDER FUNCTIONS ---
 export const getMatchesByCorretor = async (corretorId: string): Promise<Match[]> => { console.warn("getMatchesByCorretor not implemented in supabaseApi"); return []; };
 export const findMatchesForImovel = async (imovel: Imovel): Promise<Match[]> => { console.warn("findMatchesForImovel not implemented in supabaseApi"); return []; };
 export const getMatchById = async (matchId: string): Promise<Match | undefined> => { console.warn("getMatchById not implemented in supabaseApi"); return undefined; };

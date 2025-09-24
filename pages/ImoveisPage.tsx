@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useUI } from '../contexts/UIContext';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
-import AddImovelModal from '../components/AddImovelModal';
+import AddImovelModal, { ImageChanges } from '../components/AddImovelModal';
 import { Edit, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -101,16 +101,21 @@ const ImoveisPage: React.FC = () => {
     });
   }, [imoveis, cidadeFilter, bairroFilter, estadoFilter, valorMinFilter, valorMaxFilter, dormitoriosFilter]);
 
-  const handleSaveImovel = async (formData: Partial<Omit<Imovel, 'ID_Imovel' | 'ID_Corretor'>> & { Imagens?: string[] }, id?: string) => {
+  const handleSaveImovel = async (
+    formData: Partial<Omit<Imovel, 'ID_Imovel' | 'ID_Corretor' | 'Imagens'>>,
+    id?: string,
+    imageChanges?: ImageChanges
+  ) => {
     if (!user) return;
     try {
       if (id) {
-        await api.updateImovel(id, formData);
+        await api.updateImovel(id, formData, imageChanges);
         toast.success("Imóvel atualizado com sucesso!");
       } else {
         const imovelData = {
           ...formData,
           ID_Corretor: user.corretorInfo.ID_Corretor,
+          Imagens: imageChanges?.newImagesBase64 || [],
         };
         await api.createImovel(imovelData as Omit<Imovel, 'ID_Imovel' | 'Status'> & { Imagens?: string[] });
         toast.success("Imóvel criado com sucesso!");

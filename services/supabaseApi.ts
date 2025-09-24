@@ -18,6 +18,11 @@ const base64ToFile = (base64: string, filename: string): File => {
     return new File([u8arr], filename, { type: mime });
 };
 
+export interface ImageChanges {
+  newImagesBase64?: string[];
+  imagesToDelete?: string[];
+}
+
 
 // --- IMOVEIS ---
 
@@ -69,7 +74,6 @@ export const createImovel = async (imovelData: Omit<Imovel, 'ID_Imovel' | 'Statu
                     });
 
                 if (uploadError) {
-                    // Throw an error to be caught by the outer catch block
                     throw new Error(`Falha no upload da imagem: ${uploadError.message}`);
                 }
 
@@ -83,7 +87,6 @@ export const createImovel = async (imovelData: Omit<Imovel, 'ID_Imovel' | 'Statu
             imageUrls = await Promise.all(uploadPromises);
         } catch (error) {
             console.error('An error occurred during image upload:', error);
-            // Re-throw the error to be handled by the calling function (which shows a toast)
             throw error;
         }
     }
@@ -116,7 +119,57 @@ export const createImovel = async (imovelData: Omit<Imovel, 'ID_Imovel' | 'Statu
     return mapSupabaseImovelToImovel(data);
 };
 
-export const updateImovel = async (imovelId: string, imovelData: Partial<Omit<Imovel, 'ID_Imovel' | 'ID_Corretor'>>): Promise<Imovel> => {
+export const updateImovel = async (
+    imovelId: string,
+    imovelData: Partial<Omit<Imovel, 'ID_Imovel' | 'ID_Corretor'>>,
+    imageChanges?: ImageChanges
+): Promise<Imovel> => {
+    const { newImagesBase64 = [], imagesToDelete = [] } = imageChanges || {};
+
+    // 1. Delete marked images from storage
+    if (imagesToDelete.length > 0) {
+        const filePaths = imagesToDelete.map(url => {
+            const urlParts = url.split('/');
+            const bucketNameIndex = urlParts.findIndex(part => part === 'imoveis-imagens');
+            return bucketNameIndex !== -1 ? urlParts.slice(bucketNameIndex + 1).join('/') : '';
+        }).filter(Boolean);
+
+        if (filePaths.length > 0) {
+            const { error: storageError } = await supabase.storage.from('imoveis-imagens').remove(filePaths);
+            if (storageError) {
+                console.error('Error deleting images:', storageError);
+            }
+        }
+    }
+
+    // 2. Upload new images to storage
+    let newImageUrls: string[] = [];
+    if (newImagesBase64.length > 0) {
+        const { data: imovelOwner, error: ownerError } = await supabase.from('imoveis').select('id_corretor').eq('id', imovelId).single();
+        if (ownerError || !imovelOwner) throw new Error("Imóvel não encontrado para adicionar imagens.");
+        const ID_Corretor = imovelOwner.id_corretor;
+
+        const uploadPromises = newImagesBase64.map(async (base64Image, index) => {
+            const file = base64ToFile(base64Image, `imovel-${Date.now()}-${index}.png`);
+            const filePath = `${ID_Corretor}/${file.name}`;
+            const { error: uploadError } = await supabase.storage.from('imoveis-imagens').upload(filePath, file, { upsert: false });
+            if (uploadError) throw new Error(`Falha no upload da imagem: ${uploadError.message}`);
+            const { data: { publicUrl } } = supabase.storage.from('imoveis-imagens').getPublicUrl(filePath);
+            return publicUrl;
+        });
+        newImageUrls = await Promise.all(uploadPromises);
+    }
+
+    // 3. Get current imovel to update its image array
+    const { data: currentImovel, error: fetchError } = await supabase.from('imoveis').select('imagens').eq('id', imovelId).single();
+    if (fetchError) throw new Error("Não foi possível buscar os dados atuais do imóvel.");
+
+    const currentImageUrls = currentImovel.imagens || [];
+    const updatedImageUrls = currentImageUrls
+        .filter(url => !imagesToDelete.includes(url))
+        .concat(newImageUrls);
+
+    // 4. Update the imovel record in the database
     const updateData = {
         tipo: imovelData.Tipo,
         finalidade: imovelData.Finalidade,
@@ -127,19 +180,13 @@ export const updateImovel = async (imovelId: string, imovelData: Partial<Omit<Im
         dormitorios: imovelData.Dormitorios,
         metragem: imovelData.Metragem,
         status: imovelData.Status,
+        imagens: updatedImageUrls,
     };
-
     Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
 
-    const { data, error } = await supabase
-        .from('imoveis')
-        .update(updateData)
-        .eq('id', imovelId)
-        .select()
-        .single();
-
+    const { data, error } = await supabase.from('imoveis').update(updateData).eq('id', imovelId).select().single();
     if (error) {
-        console.error('Error updating imovel:', error);
+        console.error('Error updating imovel record:', error);
         throw error;
     }
     return mapSupabaseImovelToImovel(data);

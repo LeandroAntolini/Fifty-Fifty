@@ -11,6 +11,7 @@ const ClientesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { isClienteModalOpen, closeClienteModal } = useUI();
+  const [findingMatch, setFindingMatch] = useState<string | null>(null);
 
   // Filter states
   const [cidadeFilter, setCidadeFilter] = useState('');
@@ -22,7 +23,6 @@ const ClientesPage: React.FC = () => {
     if (user) {
       try {
         setLoading(true);
-        // FIX: Passed user.corretorInfo.ID_Corretor to getClientesByCorretor
         const data = await api.getClientesByCorretor(user.corretorInfo.ID_Corretor);
         setClientes(data);
       } catch (error) {
@@ -59,7 +59,6 @@ const ClientesPage: React.FC = () => {
   const handleAddCliente = async (clienteData: Omit<Cliente, 'ID_Cliente' | 'ID_Corretor' | 'Status'>) => {
     if (!user) return;
     try {
-      // FIX: Added ID_Corretor to the new client data before sending to the API.
       const newClienteData = {
         ...clienteData,
         ID_Corretor: user.corretorInfo.ID_Corretor,
@@ -70,6 +69,22 @@ const ClientesPage: React.FC = () => {
     } catch (error) {
       console.error("Failed to create cliente", error);
       alert("Falha ao cadastrar cliente. Tente novamente.");
+    }
+  };
+
+  const handleBuscarMatch = async (cliente: Cliente) => {
+    setFindingMatch(cliente.ID_Cliente);
+    try {
+        const newMatches = await api.findMatchesForCliente(cliente);
+        if (newMatches.length > 0) {
+            alert(`${newMatches.length} novo(s) match(s) encontrado(s)! Verifique a aba de Matches.`);
+        } else {
+            alert("Nenhum novo match encontrado para este cliente no momento.");
+        }
+    } catch(error) {
+        alert("Ocorreu um erro ao buscar por matches.");
+    } finally {
+        setFindingMatch(null);
     }
   };
 
@@ -136,10 +151,11 @@ const ClientesPage: React.FC = () => {
                 <span className={`px-2 py-1 rounded-full text-white ${cliente.Status === 'Ativo' ? 'bg-green-500' : 'bg-gray-500'}`}>{cliente.Status}</span>
               </div>
               <button
-                // onClick={() => handleBuscarMatch(cliente)}
+                onClick={() => handleBuscarMatch(cliente)}
+                disabled={findingMatch === cliente.ID_Cliente}
                 className="mt-4 w-full bg-secondary hover:bg-amber-500 text-primary font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:bg-neutral-DEFAULT"
               >
-                Buscar Match
+                {findingMatch === cliente.ID_Cliente ? 'Buscando...' : 'Buscar Match'}
               </button>
             </div>
           ))}

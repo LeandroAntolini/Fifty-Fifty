@@ -228,7 +228,19 @@ export const findMatchesForImovel = async (imovel: Imovel): Promise<Match[]> => 
     });
 
     if (error) {
-        console.error('Error finding matches:', error);
+        console.error('Error finding matches for imovel:', error);
+        throw error;
+    }
+    return (data || []).map(mapSupabaseMatchToMatch);
+};
+
+export const findMatchesForCliente = async (cliente: Cliente): Promise<Match[]> => {
+    const { data, error } = await supabase.functions.invoke('find-matches-for-cliente', {
+        body: { cliente },
+    });
+
+    if (error) {
+        console.error('Error finding matches for cliente:', error);
         throw error;
     }
     return (data || []).map(mapSupabaseMatchToMatch);

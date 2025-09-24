@@ -112,6 +112,66 @@ export const createImovel = async (imovelData: Omit<Imovel, 'ID_Imovel' | 'Statu
     return mapSupabaseImovelToImovel(data);
 };
 
+export const updateImovel = async (imovelId: string, imovelData: Partial<Omit<Imovel, 'ID_Imovel' | 'ID_Corretor'>>): Promise<Imovel> => {
+    const updateData = {
+        tipo: imovelData.Tipo,
+        finalidade: imovelData.Finalidade,
+        cidade: imovelData.Cidade,
+        bairro: imovelData.Bairro,
+        valor: imovelData.Valor,
+        dormitorios: imovelData.Dormitorios,
+        status: imovelData.Status,
+    };
+
+    Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+
+    const { data, error } = await supabase
+        .from('imoveis')
+        .update(updateData)
+        .eq('id', imovelId)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error updating imovel:', error);
+        throw error;
+    }
+    return mapSupabaseImovelToImovel(data);
+};
+
+export const deleteImovel = async (imovelId: string, imageUrls: string[] = []) => {
+    if (imageUrls && imageUrls.length > 0) {
+        const filePaths = imageUrls.map(url => {
+            const urlParts = url.split('/');
+            const bucketNameIndex = urlParts.findIndex(part => part === 'imoveis-imagens');
+            if (bucketNameIndex !== -1) {
+                return urlParts.slice(bucketNameIndex + 1).join('/');
+            }
+            return '';
+        }).filter(Boolean);
+
+        if (filePaths.length > 0) {
+            const { error: storageError } = await supabase.storage
+                .from('imoveis-imagens')
+                .remove(filePaths);
+            if (storageError) {
+                console.error('Error deleting imovel images:', storageError);
+            }
+        }
+    }
+
+    const { error } = await supabase
+        .from('imoveis')
+        .delete()
+        .eq('id', imovelId);
+
+    if (error) {
+        console.error('Error deleting imovel:', error);
+        throw error;
+    }
+};
+
+
 // --- CLIENTES ---
 
 const mapSupabaseClienteToCliente = (cliente: any): Cliente => ({

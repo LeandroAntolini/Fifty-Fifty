@@ -5,6 +5,7 @@ import { useUI } from '../contexts/UIContext';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
 import AddImovelModal from '../components/AddImovelModal';
+import { Edit, Trash2 } from 'lucide-react';
 
 // Image Carousel Component
 const ImageCarousel = ({ images, alt }: { images: string[] | undefined, alt: string }) => {
@@ -51,8 +52,9 @@ const ImoveisPage: React.FC = () => {
   const [imoveis, setImoveis] = useState<Imovel[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
-  const { isImovelModalOpen, closeImovelModal } = useUI();
+  const { isImovelModalOpen, openImovelModal, closeImovelModal } = useUI();
   const [findingMatch, setFindingMatch] = useState<string | null>(null);
+  const [editingImovel, setEditingImovel] = useState<Imovel | null>(null);
 
   // Filter states
   const [cidadeFilter, setCidadeFilter] = useState('');
@@ -64,7 +66,6 @@ const ImoveisPage: React.FC = () => {
     if (user) {
       try {
         setLoading(true);
-        // FIX: Passed user.corretorInfo.ID_Corretor to getImoveisByCorretor
         const data = await api.getImoveisByCorretor(user.corretorInfo.ID_Corretor);
         setImoveis(data);
       } catch (error) {
@@ -95,22 +96,48 @@ const ImoveisPage: React.FC = () => {
     });
   }, [imoveis, cidadeFilter, valorMinFilter, valorMaxFilter, dormitoriosFilter]);
 
-  const handleAddImovel = async (formData: Omit<Imovel, 'ID_Imovel' | 'ID_Corretor' | 'Status'> & { Imagens?: string[] }) => {
+  const handleSaveImovel = async (formData: Partial<Omit<Imovel, 'ID_Imovel' | 'ID_Corretor'>> & { Imagens?: string[] }, id?: string) => {
     if (!user) return;
     try {
-      const imovelData = {
-        ...formData,
-        ID_Corretor: user.corretorInfo.ID_Corretor,
-      };
-      await api.createImovel(imovelData);
-      closeImovelModal();
-      fetchImoveis(); // Refresh the list
+      if (id) {
+        await api.updateImovel(id, formData);
+      } else {
+        const imovelData = {
+          ...formData,
+          ID_Corretor: user.corretorInfo.ID_Corretor,
+        };
+        await api.createImovel(imovelData as Omit<Imovel, 'ID_Imovel' | 'Status'> & { Imagens?: string[] });
+      }
+      handleCloseModal();
+      fetchImoveis();
     } catch (error) {
-      console.error("Failed to create imovel", error);
-      alert("Falha ao cadastrar imóvel. Tente novamente.");
+      console.error("Failed to save imovel", error);
+      alert("Falha ao salvar imóvel. Tente novamente.");
     }
   };
   
+  const handleEdit = (imovel: Imovel) => {
+    setEditingImovel(imovel);
+    openImovelModal();
+  };
+
+  const handleDelete = async (imovel: Imovel) => {
+    if (window.confirm(`Tem certeza que deseja excluir o imóvel "${imovel.Tipo} em ${imovel.Bairro}"?`)) {
+      try {
+        await api.deleteImovel(imovel.ID_Imovel, imovel.Imagens);
+        fetchImoveis();
+      } catch (error) {
+        console.error("Failed to delete imovel", error);
+        alert("Falha ao excluir imóvel.");
+      }
+    }
+  };
+
+  const handleCloseModal = () => {
+    setEditingImovel(null);
+    closeImovelModal();
+  };
+
   const handleBuscarMatch = async (imovel: Imovel) => {
     setFindingMatch(imovel.ID_Imovel);
     try {
@@ -188,8 +215,12 @@ const ImoveisPage: React.FC = () => {
                   <p>Valor: {formatCurrency(imovel.Valor)}</p>
                   <p>Dormitórios: {imovel.Dormitorios}</p>
                 </div>
-                <div className="mt-2 text-sm">
-                  <span className={`px-2 py-1 rounded-full text-white ${imovel.Status === 'Ativo' ? 'bg-green-500' : 'bg-gray-500'}`}>{imovel.Status}</span>
+                <div className="flex items-center justify-between mt-2">
+                  <span className={`px-2 py-1 rounded-full text-white text-sm ${imovel.Status === 'Ativo' ? 'bg-green-500' : 'bg-gray-500'}`}>{imovel.Status}</span>
+                  <div className="flex space-x-2">
+                    <button onClick={() => handleEdit(imovel)} className="text-gray-500 hover:text-primary p-1"><Edit size={20} /></button>
+                    <button onClick={() => handleDelete(imovel)} className="text-gray-500 hover:text-destructive p-1"><Trash2 size={20} /></button>
+                  </div>
                 </div>
                 <button
                   onClick={() => handleBuscarMatch(imovel)}
@@ -205,8 +236,9 @@ const ImoveisPage: React.FC = () => {
       )}
         <AddImovelModal
             isOpen={isImovelModalOpen}
-            onClose={closeImovelModal}
-            onSave={handleAddImovel}
+            onClose={handleCloseModal}
+            onSave={handleSaveImovel}
+            imovelToEdit={editingImovel}
         />
     </div>
   );

@@ -31,6 +31,7 @@ const mapSupabaseImovelToImovel = (imovel: any): Imovel => ({
     Bairro: imovel.bairro,
     Valor: imovel.valor,
     Dormitorios: imovel.dormitorios,
+    Metragem: imovel.metragem,
     Status: imovel.status,
     Imagens: imovel.imagens || [],
 });
@@ -96,6 +97,7 @@ export const createImovel = async (imovelData: Omit<Imovel, 'ID_Imovel' | 'Statu
         bairro: rest.Bairro,
         valor: rest.Valor,
         dormitorios: rest.Dormitorios,
+        metragem: rest.Metragem,
         imagens: imageUrls,
         status: ImovelStatus.Ativo,
     };
@@ -123,6 +125,7 @@ export const updateImovel = async (imovelId: string, imovelData: Partial<Omit<Im
         bairro: imovelData.Bairro,
         valor: imovelData.Valor,
         dormitorios: imovelData.Dormitorios,
+        metragem: imovelData.Metragem,
         status: imovelData.Status,
     };
 

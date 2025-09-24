@@ -31,6 +31,7 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
     Bairro: '',
     Valor: 0,
     Dormitorios: 1,
+    Metragem: 0,
     Status: ImovelStatus.Ativo,
   });
 
@@ -49,6 +50,7 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
           Bairro: imovelToEdit.Bairro,
           Valor: imovelToEdit.Valor,
           Dormitorios: imovelToEdit.Dormitorios,
+          Metragem: imovelToEdit.Metragem || 0,
           Status: imovelToEdit.Status,
         });
       } else {
@@ -63,7 +65,7 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    const numericFields = ['Valor', 'Dormitorios'];
+    const numericFields = ['Valor', 'Dormitorios', 'Metragem'];
     const finalValue = name === 'Estado' ? value.toUpperCase() : value;
     const numericValue = numericFields.includes(name) ? parseFloat(finalValue) || 0 : finalValue;
     setFormData(prev => ({ ...prev, [name]: numericValue }));
@@ -133,14 +135,18 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
                 <label htmlFor="Bairro" className="block text-sm font-medium text-gray-700">Bairro</label>
                 <input id="Bairro" type="text" name="Bairro" value={formData.Bairro} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
                 <div>
                     <label htmlFor="Valor" className="block text-sm font-medium text-gray-700">Valor (R$)</label>
                     <input id="Valor" type="number" name="Valor" min="1" value={formData.Valor === 0 ? '' : formData.Valor} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required />
                 </div>
                 <div>
-                    <label htmlFor="Dormitorios" className="block text-sm font-medium text-gray-700">Dormitórios</label>
+                    <label htmlFor="Dormitorios" className="block text-sm font-medium text-gray-700">Dorms</label>
                     <input id="Dormitorios" type="number" name="Dormitorios" min="0" value={formData.Dormitorios} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required />
+                </div>
+                <div>
+                    <label htmlFor="Metragem" className="block text-sm font-medium text-gray-700">Área (m²)</label>
+                    <input id="Metragem" type="number" name="Metragem" min="0" value={formData.Metragem === 0 ? '' : formData.Metragem} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" />
                 </div>
             </div>
             {isEditMode && (

@@ -54,6 +54,7 @@ export interface Imovel {
   Bairro: string;
   Valor: number;
   Dormitorios: number;
+  Metragem?: number;
   Status: ImovelStatus;
   Imagens?: string[];
 }

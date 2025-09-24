@@ -236,7 +236,10 @@ const ImoveisPage: React.FC = () => {
                 <p className="text-sm text-gray-600">{imovel.Cidade} - {imovel.Estado}</p>
                 <div className="mt-2 text-sm">
                   <p>Valor: {formatCurrency(imovel.Valor)}</p>
-                  <p>Dormitórios: {imovel.Dormitorios}</p>
+                  <p>
+                    {imovel.Dormitorios} dorms
+                    {imovel.Metragem && ` • ${imovel.Metragem} m²`}
+                  </p>
                 </div>
                 <div className="flex items-center justify-between mt-2">
                   <span className={`px-2 py-1 rounded-full text-white text-sm ${imovel.Status === 'Ativo' ? 'bg-green-500' : 'bg-gray-500'}`}>{imovel.Status}</span>

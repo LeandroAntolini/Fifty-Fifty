@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
-import { Cliente, Finalidade } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Cliente, Finalidade, ClienteStatus } from '../types';
+
+type ClienteFormData = Omit<Cliente, 'ID_Cliente' | 'ID_Corretor'>;
 
 interface AddClienteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (clienteData: Omit<Cliente, 'ID_Cliente' | 'ID_Corretor' | 'Status'>) => void;
+  onSave: (clienteData: Partial<ClienteFormData>, id?: string) => void;
+  clienteToEdit?: Cliente | null;
 }
 
-const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSave }) => {
-  const [formData, setFormData] = useState({
+const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSave, clienteToEdit }) => {
+  const isEditMode = !!clienteToEdit;
+
+  const getInitialFormData = (): ClienteFormData => ({
     TipoImovelDesejado: '',
     Finalidade: Finalidade.Venda,
     CidadeDesejada: '',
@@ -16,7 +21,29 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
     FaixaValorMin: 0,
     FaixaValorMax: 0,
     DormitoriosMinimos: 1,
+    Status: ClienteStatus.Ativo,
   });
+
+  const [formData, setFormData] = useState(getInitialFormData());
+
+  useEffect(() => {
+    if (isOpen) {
+      if (isEditMode && clienteToEdit) {
+        setFormData({
+          TipoImovelDesejado: clienteToEdit.TipoImovelDesejado,
+          Finalidade: clienteToEdit.Finalidade,
+          CidadeDesejada: clienteToEdit.CidadeDesejada,
+          BairroRegiaoDesejada: clienteToEdit.BairroRegiaoDesejada,
+          FaixaValorMin: clienteToEdit.FaixaValorMin,
+          FaixaValorMax: clienteToEdit.FaixaValorMax,
+          DormitoriosMinimos: clienteToEdit.DormitoriosMinimos,
+          Status: clienteToEdit.Status,
+        });
+      } else {
+        setFormData(getInitialFormData());
+      }
+    }
+  }, [isOpen, isEditMode, clienteToEdit]);
 
   if (!isOpen) return null;
 
@@ -33,13 +60,13 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
         alert("Por favor, preencha os campos obrigatórios e verifique se a faixa de valor é válida.");
         return;
     }
-    onSave(formData);
+    onSave(formData, clienteToEdit?.ID_Cliente);
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-20" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md m-4">
-        <h2 id="modal-title" className="text-2xl font-bold text-primary mb-4">Cadastrar Novo Cliente</h2>
+        <h2 id="modal-title" className="text-2xl font-bold text-primary mb-4">{isEditMode ? 'Editar Cliente' : 'Cadastrar Novo Cliente'}</h2>
         <form onSubmit={handleSubmit} noValidate>
           <div className="space-y-4">
             <div>
@@ -75,13 +102,22 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
               <label htmlFor="DormitoriosMinimos" className="block text-sm font-medium text-gray-700">Dormitórios Mínimos</label>
               <input id="DormitoriosMinimos" type="number" name="DormitoriosMinimos" min="0" value={formData.DormitoriosMinimos} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required />
             </div>
+            {isEditMode && (
+                <div>
+                    <label htmlFor="Status" className="block text-sm font-medium text-gray-700">Status</label>
+                    <select id="Status" name="Status" value={formData.Status} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required>
+                        <option value={ClienteStatus.Ativo}>Ativo</option>
+                        <option value={ClienteStatus.Inativo}>Inativo</option>
+                    </select>
+                </div>
+            )}
           </div>
           <div className="mt-6 flex justify-end space-x-2">
             <button type="button" onClick={onClose} className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
               Cancelar
             </button>
             <button type="submit" className="bg-primary hover:bg-primary-hover text-white font-bold py-2 px-4 rounded">
-              Salvar Cliente
+              {isEditMode ? 'Salvar Alterações' : 'Salvar Cliente'}
             </button>
           </div>
         </form>

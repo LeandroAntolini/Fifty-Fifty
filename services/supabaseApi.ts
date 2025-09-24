@@ -229,6 +229,47 @@ export const createCliente = async (clienteData: Omit<Cliente, 'ID_Cliente' | 'S
     return mapSupabaseClienteToCliente(data);
 };
 
+export const updateCliente = async (clienteId: string, clienteData: Partial<Omit<Cliente, 'ID_Cliente' | 'ID_Corretor'>>): Promise<Cliente> => {
+    const updateData = {
+        tipo_imovel_desejado: clienteData.TipoImovelDesejado,
+        finalidade: clienteData.Finalidade,
+        cidade_desejada: clienteData.CidadeDesejada,
+        bairro_regiao_desejada: clienteData.BairroRegiaoDesejada,
+        faixa_valor_min: clienteData.FaixaValorMin,
+        faixa_valor_max: clienteData.FaixaValorMax,
+        dormitorios_minimos: clienteData.DormitoriosMinimos,
+        status: clienteData.Status,
+    };
+
+    Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+
+    const { data, error } = await supabase
+        .from('clientes')
+        .update(updateData)
+        .eq('id', clienteId)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error updating cliente:', error);
+        throw error;
+    }
+    return mapSupabaseClienteToCliente(data);
+};
+
+export const deleteCliente = async (clienteId: string) => {
+    const { error } = await supabase
+        .from('clientes')
+        .delete()
+        .eq('id', clienteId);
+
+    if (error) {
+        console.error('Error deleting cliente:', error);
+        throw error;
+    }
+};
+
+
 // --- PUBLIC GETTERS (for augmenting data on frontend) ---
 
 export const getImoveis = async (): Promise<Imovel[]> => {

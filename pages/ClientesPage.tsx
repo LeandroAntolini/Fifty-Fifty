@@ -5,13 +5,15 @@ import { useUI } from '../contexts/UIContext';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
 import AddClienteModal from '../components/AddClienteModal';
+import { Edit, Trash2 } from 'lucide-react';
 
 const ClientesPage: React.FC = () => {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
-  const { isClienteModalOpen, closeClienteModal } = useUI();
+  const { isClienteModalOpen, openClienteModal, closeClienteModal } = useUI();
   const [findingMatch, setFindingMatch] = useState<string | null>(null);
+  const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
 
   // Filter states
   const [cidadeFilter, setCidadeFilter] = useState('');
@@ -56,20 +58,46 @@ const ClientesPage: React.FC = () => {
     });
   }, [clientes, cidadeFilter, valorMinFilter, valorMaxFilter, dormitoriosFilter]);
 
-  const handleAddCliente = async (clienteData: Omit<Cliente, 'ID_Cliente' | 'ID_Corretor' | 'Status'>) => {
+  const handleSaveCliente = async (formData: Partial<Omit<Cliente, 'ID_Cliente' | 'ID_Corretor'>>, id?: string) => {
     if (!user) return;
     try {
-      const newClienteData = {
-        ...clienteData,
-        ID_Corretor: user.corretorInfo.ID_Corretor,
-      };
-      await api.createCliente(newClienteData);
-      closeClienteModal();
-      fetchClientes(); // Refresh the list
+      if (id) {
+        await api.updateCliente(id, formData);
+      } else {
+        const clienteData = {
+          ...formData,
+          ID_Corretor: user.corretorInfo.ID_Corretor,
+        };
+        await api.createCliente(clienteData as Omit<Cliente, 'ID_Cliente' | 'Status'>);
+      }
+      handleCloseModal();
+      fetchClientes();
     } catch (error) {
-      console.error("Failed to create cliente", error);
-      alert("Falha ao cadastrar cliente. Tente novamente.");
+      console.error("Failed to save cliente", error);
+      alert("Falha ao salvar cliente. Tente novamente.");
     }
+  };
+
+  const handleEdit = (cliente: Cliente) => {
+    setEditingCliente(cliente);
+    openClienteModal();
+  };
+
+  const handleDelete = async (cliente: Cliente) => {
+    if (window.confirm(`Tem certeza que deseja excluir o cliente que busca "${cliente.TipoImovelDesejado} em ${cliente.CidadeDesejada}"?`)) {
+      try {
+        await api.deleteCliente(cliente.ID_Cliente);
+        fetchClientes();
+      } catch (error) {
+        console.error("Failed to delete cliente", error);
+        alert("Falha ao excluir cliente.");
+      }
+    }
+  };
+
+  const handleCloseModal = () => {
+    setEditingCliente(null);
+    closeClienteModal();
   };
 
   const handleBuscarMatch = async (cliente: Cliente) => {
@@ -141,8 +169,16 @@ const ClientesPage: React.FC = () => {
         <div className="space-y-4">
           {filteredClientes.map(cliente => (
             <div key={cliente.ID_Cliente} className="bg-white p-4 rounded-lg shadow">
-              <h3 className="font-bold text-lg text-primary">{cliente.TipoImovelDesejado} em {cliente.CidadeDesejada}</h3>
-              <p className="text-sm text-gray-600">Busca em: {cliente.BairroRegiaoDesejada}</p>
+              <div className="flex justify-between items-start">
+                <div>
+                    <h3 className="font-bold text-lg text-primary">{cliente.TipoImovelDesejado} em {cliente.CidadeDesejada}</h3>
+                    <p className="text-sm text-gray-600">Busca em: {cliente.BairroRegiaoDesejada}</p>
+                </div>
+                <div className="flex space-x-2">
+                    <button onClick={() => handleEdit(cliente)} className="text-gray-500 hover:text-primary p-1"><Edit size={20} /></button>
+                    <button onClick={() => handleDelete(cliente)} className="text-gray-500 hover:text-destructive p-1"><Trash2 size={20} /></button>
+                </div>
+              </div>
               <div className="mt-2 text-sm">
                 <p>Faixa de Valor: {formatCurrency(cliente.FaixaValorMin)} - {formatCurrency(cliente.FaixaValorMax)}</p>
                 <p>Dormitórios: {cliente.DormitoriosMinimos}+</p>
@@ -163,8 +199,9 @@ const ClientesPage: React.FC = () => {
       )}
         <AddClienteModal
             isOpen={isClienteModalOpen}
-            onClose={closeClienteModal}
-            onSave={handleAddCliente}
+            onClose={handleCloseModal}
+            onSave={handleSaveCliente}
+            clienteToEdit={editingCliente}
         />
     </div>
   );

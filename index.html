@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fifty-Fifty: Parcerias Imobiliárias</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              DEFAULT: '#0D9488', // A modern, pleasant teal
+              hover: '#0F766E',
+              focus: '#14B8A6',
+            },
+            secondary: '#FBBF24',
+            accent: '#10B981',
+            neutral: {
+              light: '#F3F4F6',
+              DEFAULT: '#D1D5DB',
+              dark: '#374151',
+            },
+            background: '#FFFFFF',
+            surface: '#F9FAFB'
+          },
+        },
+      },
+    }
+  </script>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.2"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-background text-neutral-dark">
+  <div id="root"></div>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>

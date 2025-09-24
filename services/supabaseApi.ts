@@ -478,7 +478,33 @@ export const getAugmentedParceriasByCorretor = async (corretorId: string) => {
 };
 
 export const createParceriaFromMatch = async (match: Match): Promise<Parceria> => {
-    // 1. Update match status
+    // 1. Fetch the imovel to determine its finalidade
+    const { data: imovelData, error: imovelError } = await supabase
+        .from('imoveis')
+        .select('finalidade')
+        .eq('id', match.ID_Imovel)
+        .single();
+
+    if (imovelError || !imovelData) {
+        console.error('Error fetching imovel for status update:', imovelError);
+        throw new Error('Não foi possível encontrar o imóvel para atualizar o status.');
+    }
+
+    // 2. Determine the new status based on finalidade
+    const newStatus = imovelData.finalidade === Finalidade.Venda ? ImovelStatus.Vendido : ImovelStatus.Alugado;
+
+    // 3. Update the imovel's status
+    const { error: imovelUpdateError } = await supabase
+        .from('imoveis')
+        .update({ status: newStatus })
+        .eq('id', match.ID_Imovel);
+
+    if (imovelUpdateError) {
+        console.error('Error updating imovel status:', imovelUpdateError);
+        throw imovelUpdateError;
+    }
+
+    // 4. Update match status
     const { error: matchUpdateError } = await supabase
         .from('matches')
         .update({ status: MatchStatus.Convertido })
@@ -489,7 +515,7 @@ export const createParceriaFromMatch = async (match: Match): Promise<Parceria> =
         throw matchUpdateError;
     }
 
-    // 2. Create parceria
+    // 5. Create parceria
     const newParceriaData = {
         id_match: match.ID_Match,
         id_imovel: match.ID_Imovel,

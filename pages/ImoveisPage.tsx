@@ -253,13 +253,15 @@ const ImoveisPage: React.FC = () => {
                     <button onClick={() => handleDelete(imovel)} className="text-gray-500 hover:text-destructive p-1"><Trash2 size={20} /></button>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleBuscarMatch(imovel)}
-                  disabled={findingMatch === imovel.ID_Imovel}
-                  className="mt-4 w-full bg-secondary hover:bg-amber-500 text-primary font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:bg-neutral-DEFAULT"
-                >
-                  {findingMatch === imovel.ID_Imovel ? 'Buscando...' : 'Buscar Match'}
-                </button>
+                {imovel.Status === 'Ativo' && (
+                  <button
+                    onClick={() => handleBuscarMatch(imovel)}
+                    disabled={findingMatch === imovel.ID_Imovel}
+                    className="mt-4 w-full bg-secondary hover:bg-amber-500 text-primary font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:bg-neutral-DEFAULT"
+                  >
+                    {findingMatch === imovel.ID_Imovel ? 'Buscando...' : 'Buscar Match'}
+                  </button>
+                )}
               </div>
             </div>
           ))}

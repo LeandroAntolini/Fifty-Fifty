@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { Message, Match, ReadStatus } from '../types';
+import { Message, Match, ReadStatus, MatchStatus } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
+import { Button } from '../components/ui/Button';
 
 const ChatPage: React.FC = () => {
   const { matchId } = useParams<{ matchId: string }>();
@@ -13,6 +14,7 @@ const ChatPage: React.FC = () => {
   const [matchDetails, setMatchDetails] = useState<Match | null>(null);
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isConcluding, setIsConcluding] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -52,7 +54,6 @@ const ChatPage: React.FC = () => {
       ? matchDetails.Corretor_B_ID
       : matchDetails.Corretor_A_ID;
 
-    // FIX: Added From_Corretor_ID to the message data object.
     const messageData = {
       ID_Match: matchId,
       ID_Parceria: null,
@@ -61,7 +62,6 @@ const ChatPage: React.FC = () => {
       Message_Text: newMessage,
     };
     
-    // Optimistically update UI
     const tempId = `temp_${Date.now()}`;
     const optimisticMessage: Message = {
         ...messageData,
@@ -75,13 +75,29 @@ const ChatPage: React.FC = () => {
 
     try {
         const sentMessage = await api.sendMessage(messageData);
-        // Replace optimistic message with real one from server
         setMessages(prev => prev.map(msg => msg.ID_Message === tempId ? sentMessage : msg));
     } catch (error) {
         console.error("Failed to send message", error);
         alert("Falha ao enviar mensagem.");
-        // Revert optimistic update
         setMessages(prev => prev.filter(msg => msg.ID_Message !== tempId));
+    }
+  };
+
+  const handleConcluirParceria = async () => {
+    if (!matchDetails) return;
+    const confirmation = window.confirm("Tem certeza que deseja marcar esta conversa como uma parceria concluída? Esta ação não pode ser desfeita.");
+    if (confirmation) {
+        setIsConcluding(true);
+        try {
+            await api.createParceriaFromMatch(matchDetails);
+            setMatchDetails(prev => prev ? { ...prev, Status: MatchStatus.Convertido } : null);
+            alert("Parabéns! Parceria concluída com sucesso.");
+        } catch (error) {
+            console.error("Failed to conclude parceria", error);
+            alert("Ocorreu um erro ao concluir a parceria.");
+        } finally {
+            setIsConcluding(false);
+        }
     }
   };
 
@@ -91,6 +107,17 @@ const ChatPage: React.FC = () => {
   
   return (
     <div className="flex flex-col h-full bg-neutral-light">
+      {matchDetails && matchDetails.Status === MatchStatus.Aberto && (
+        <div className="p-4 border-b bg-white">
+            <Button 
+                onClick={handleConcluirParceria}
+                disabled={isConcluding}
+                className="w-full bg-accent hover:bg-green-700"
+            >
+                {isConcluding ? 'Concluindo...' : 'Marcar como Parceria Concluída'}
+            </Button>
+        </div>
+      )}
       <div className="flex-grow p-4 space-y-4 overflow-y-auto">
         {messages.map(msg => (
           <div key={msg.ID_Message} className={`flex ${msg.From_Corretor_ID === user?.corretorInfo.ID_Corretor ? 'justify-end' : 'justify-start'}`}>

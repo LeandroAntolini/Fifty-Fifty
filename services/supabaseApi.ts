@@ -314,6 +314,68 @@ export const sendMessage = async (messageData: Omit<Message, 'ID_Message' | 'Tim
     return mapSupabaseMessageToMessage(data);
 };
 
+// --- PARCERIAS ---
+
+const mapSupabaseParceriaToParceria = (p: any): Parceria => ({
+    ID_Parceria: p.id,
+    ID_Imovel: p.id_imovel,
+    ID_Cliente: p.id_cliente,
+    CorretorA_ID: p.id_corretor_a,
+    CorretorB_ID: p.id_corretor_b,
+    DataFechamento: p.data_fechamento,
+    Status: p.status,
+});
+
+export const getParceriasByCorretor = async (corretorId: string): Promise<Parceria[]> => {
+    const { data, error } = await supabase
+        .from('parcerias')
+        .select('*')
+        .or(`id_corretor_a.eq.${corretorId},id_corretor_b.eq.${corretorId}`)
+        .order('data_fechamento', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching parcerias:', error);
+        throw error;
+    }
+    return data.map(mapSupabaseParceriaToParceria);
+};
+
+export const createParceriaFromMatch = async (match: Match): Promise<Parceria> => {
+    // 1. Update match status
+    const { error: matchUpdateError } = await supabase
+        .from('matches')
+        .update({ status: MatchStatus.Convertido })
+        .eq('id', match.ID_Match);
+
+    if (matchUpdateError) {
+        console.error('Error updating match status:', matchUpdateError);
+        throw matchUpdateError;
+    }
+
+    // 2. Create parceria
+    const newParceriaData = {
+        id_match: match.ID_Match,
+        id_imovel: match.ID_Imovel,
+        id_cliente: match.ID_Cliente,
+        id_corretor_a: match.Corretor_A_ID,
+        id_corretor_b: match.Corretor_B_ID,
+        status: ParceriaStatus.Concluida,
+    };
+
+    const { data, error } = await supabase
+        .from('parcerias')
+        .insert(newParceriaData)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error creating parceria:', error);
+        throw error;
+    }
+
+    return mapSupabaseParceriaToParceria(data);
+};
+
 
 // --- PLACEHOLDER FUNCTIONS ---
 export const getMetricas = async (): Promise<Metric[]> => { console.warn("getMetricas not implemented in supabaseApi"); return []; };

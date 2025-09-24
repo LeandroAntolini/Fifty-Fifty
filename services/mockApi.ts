@@ -1,4 +1,3 @@
-
 import { Corretor, Imovel, ImovelStatus, Finalidade, Cliente, ClienteStatus, Match, MatchStatus, Message, ReadStatus, Parceria, ParceriaStatus, Metric } from '../types';
 
 // --- MOCK DATABASE ---
@@ -39,18 +38,6 @@ const simulateDelay = <T,>(data: T): Promise<T> => {
 };
 
 const generateId = (prefix: string) => `${prefix}${Date.now()}${Math.random().toString(16).slice(2)}`;
-
-// Corretor
-export const getCorretorById = async (id: string): Promise<Corretor | undefined> => simulateDelay(corretores.find(c => c.ID_Corretor === id));
-// FIX: Added register function to create a new corretor
-export const register = async (corretorData: Omit<Corretor, 'ID_Corretor'>): Promise<Corretor> => {
-    const newCorretor: Corretor = {
-        ...corretorData,
-        ID_Corretor: generateId('c'),
-    };
-    corretores.push(newCorretor);
-    return simulateDelay(newCorretor);
-};
 
 // Imóveis
 export const getImoveis = async (filters: any = {}): Promise<Imovel[]> => simulateDelay(imoveis);

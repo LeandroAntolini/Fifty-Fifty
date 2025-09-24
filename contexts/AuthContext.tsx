@@ -1,13 +1,12 @@
-
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { User, Corretor } from '../types';
-import * as api from '../services/api';
+import { supabase } from '../integrations/supabase/client';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, pass: string) => Promise<void>;
-  register: (corretorData: Omit<Corretor, 'ID_Corretor'> & {password: string}) => Promise<void>;
+  register: (corretorData: Omit<Corretor, 'ID_Corretor' | 'Email'> & {Email: string, password: string}) => Promise<void>;
   logout: () => void;
 }
 
@@ -18,79 +17,76 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const storedUser = localStorage.getItem('fifty-fifty-user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session) {
+        const { data: corretorData, error } = await supabase
+          .from('corretores')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (corretorData) {
+          const corretorInfo: Corretor = {
+            ID_Corretor: corretorData.id,
+            Nome: corretorData.nome,
+            CRECI: corretorData.creci,
+            Telefone: corretorData.telefone,
+            Email: session.user.email!,
+            Cidade: corretorData.cidade,
+          };
+
+          setUser({
+            id: session.user.id,
+            email: session.user.email!,
+            corretorInfo: corretorInfo,
+          });
+        } else if (error) {
+          console.error('Error fetching corretor profile:', error);
         }
-      } catch (error) {
-        console.error("Failed to load user from storage", error);
-      } finally {
-        setLoading(false);
+      } else {
+        setUser(null);
       }
+      setLoading(false);
+    });
+
+    const checkSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            setLoading(false);
+        }
     };
-    checkUser();
+    checkSession();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, pass: string) => {
-    setLoading(true);
-    // This is a mock login. In a real app, you'd call Firebase Auth.
-    // We assume the Google Sheet has a corretor with the email 'ana.silva@email.com' for the default login to work.
-    try {
-        // We'll create a user object locally, but a real app would fetch this after getting a token.
-        // For our backend to work, it needs to find a corretor with this email in the sheet.
-        const corretorInfo: Corretor = { 
-            ID_Corretor: 'c1', // This is a placeholder, real ID is looked up on the backend by email
-            Nome: 'Corretor', 
-            CRECI: '00000-F', 
-            Telefone: '00000000000', 
-            Email: email, 
-            Cidade: 'Cidade'
-        };
-
-        const loggedUser: User = {
-            id: 'firebase-user-id-mock', // Mock Firebase ID
-            email: email,
-            corretorInfo: corretorInfo,
-        };
-        setUser(loggedUser);
-        localStorage.setItem('fifty-fifty-user', JSON.stringify(loggedUser));
-    } catch (err) {
-      console.error(err);
-      throw new Error("Usuário não encontrado ou senha inválida.");
-    } finally {
-        setLoading(false);
-    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+    if (error) throw error;
   };
 
-  const register = async (formData: Omit<Corretor, 'ID_Corretor'> & {password: string}) => {
-     setLoading(true);
-     // In a real app, this would first call Firebase Auth to create a user.
-     try {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { password, ...corretorData } = formData;
-        const newCorretor = await api.register(corretorData);
-        
-        // After successful registration in our backend, automatically log the user in.
-        const registeredUser: User = {
-            id: `firebase-user-id-${newCorretor.ID_Corretor}`,
-            email: newCorretor.Email,
-            corretorInfo: newCorretor
-        };
-        setUser(registeredUser);
-        localStorage.setItem('fifty-fifty-user', JSON.stringify(registeredUser));
-     } catch (err) {
-        console.error("Registration failed", err);
-        throw new Error("Falha ao registrar. O email pode já estar em uso.");
-     } finally {
-        setLoading(false);
-     }
+  const register = async (formData: Omit<Corretor, 'ID_Corretor' | 'Email'> & {Email: string, password: string}) => {
+    const { password, Email, Nome, CRECI, Telefone, Cidade } = formData;
+    const { error } = await supabase.auth.signUp({
+      email: Email,
+      password: password,
+      options: {
+        data: {
+          nome: Nome,
+          creci: CRECI,
+          telefone: Telefone,
+          cidade: Cidade,
+        },
+      },
+    });
+    if (error) throw error;
   };
   
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem('fifty-fifty-user');
   };
 
   return (

@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode, useCallback, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import * as api from '../services/api';
+import { supabase } from '../src/integrations/supabase/client';
 
 interface NotificationContextType {
   notificationCount: number;
@@ -32,10 +33,51 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   useEffect(() => {
     if (user) {
+      // Fetch initial count
       fetchNotifications();
-      // Poll for new notifications periodically
-      const interval = setInterval(fetchNotifications, 30000); // every 30 seconds
-      return () => clearInterval(interval);
+
+      // Listen for new messages or when messages are read/deleted
+      const messagesChannel = supabase
+        .channel(`public:messages:to_corretor_id=eq.${user.id}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'messages', filter: `to_corretor_id=eq.${user.id}` },
+          () => {
+            fetchNotifications();
+          }
+        )
+        .subscribe();
+
+      // Listen for new matches where the user is the property owner
+      const matchesAsImovelOwnerChannel = supabase
+        .channel(`public:matches:id_corretor_imovel=eq.${user.id}`)
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'matches', filter: `id_corretor_imovel=eq.${user.id}` },
+          () => {
+            fetchNotifications();
+          }
+        )
+        .subscribe();
+
+      // Listen for new matches where the user is the client owner
+      const matchesAsClienteOwnerChannel = supabase
+        .channel(`public:matches:id_corretor_cliente=eq.${user.id}`)
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'matches', filter: `id_corretor_cliente=eq.${user.id}` },
+          () => {
+            fetchNotifications();
+          }
+        )
+        .subscribe();
+
+      // Clean up subscriptions on component unmount
+      return () => {
+        supabase.removeChannel(messagesChannel);
+        supabase.removeChannel(matchesAsImovelOwnerChannel);
+        supabase.removeChannel(matchesAsClienteOwnerChannel);
+      };
     }
   }, [user, fetchNotifications]);
 

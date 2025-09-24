@@ -478,75 +478,31 @@ export const getAugmentedParceriasByCorretor = async (corretorId: string) => {
 };
 
 export const createParceriaFromMatch = async (match: Match): Promise<Parceria> => {
-    // 1. Fetch the imovel to determine its finalidade
-    const { data: imovelData, error: imovelError } = await supabase
-        .from('imoveis')
-        .select('finalidade')
-        .eq('id', match.ID_Imovel)
-        .single();
-
-    if (imovelError || !imovelData) {
-        console.error('Error fetching imovel for status update:', imovelError);
-        throw new Error('Não foi possível encontrar o imóvel para atualizar o status.');
-    }
-
-    // 2. Determine the new status based on finalidade
-    const newStatus = imovelData.finalidade === Finalidade.Venda ? ImovelStatus.Vendido : ImovelStatus.Alugado;
-
-    // 3. Update the imovel's status
-    const { error: imovelUpdateError } = await supabase
-        .from('imoveis')
-        .update({ status: newStatus })
-        .eq('id', match.ID_Imovel);
-
-    if (imovelUpdateError) {
-        console.error('Error updating imovel status:', imovelUpdateError);
-        throw imovelUpdateError;
-    }
-
-    // 4. Update match status
-    const { error: matchUpdateError } = await supabase
-        .from('matches')
-        .update({ status: MatchStatus.Convertido })
-        .eq('id', match.ID_Match);
-
-    if (matchUpdateError) {
-        console.error('Error updating match status:', matchUpdateError);
-        throw matchUpdateError;
-    }
-
-    // 5. Create parceria
-    const newParceriaData = {
-        id_match: match.ID_Match,
-        id_imovel: match.ID_Imovel,
-        id_cliente: match.ID_Cliente,
-        id_corretor_a: match.Corretor_A_ID,
-        id_corretor_b: match.Corretor_B_ID,
-        status: ParceriaStatus.Concluida,
-    };
-
-    const { data, error } = await supabase
-        .from('parcerias')
-        .insert(newParceriaData)
-        .select()
-        .single();
-
-    if (error) {
-        console.error('Error creating parceria:', error);
-        throw error;
-    }
-
-    const mapSupabaseParceriaToParceria = (p: any): Parceria => ({
-        ID_Parceria: p.id,
-        ID_Imovel: p.id_imovel,
-        ID_Cliente: p.id_cliente,
-        CorretorA_ID: p.id_corretor_a,
-        CorretorB_ID: p.id_corretor_b,
-        DataFechamento: p.data_fechamento,
-        Status: p.status,
+    const { data, error } = await supabase.rpc('concluir_parceria', {
+        p_match_id: match.ID_Match,
+        p_imovel_id: match.ID_Imovel,
+        p_corretor_a_id: match.Corretor_A_ID,
+        p_corretor_b_id: match.Corretor_B_ID,
+        p_cliente_id: match.ID_Cliente
     });
 
-    return mapSupabaseParceriaToParceria(data);
+    if (error || !data || data.length === 0) {
+        console.error('Error creating parceria via RPC:', error);
+        throw error || new Error("Failed to create partnership.");
+    }
+
+    const result = data[0];
+    const mappedParceria: Parceria = {
+        ID_Parceria: result.ID_Parceria,
+        ID_Imovel: result.ID_Imovel,
+        ID_Cliente: result.ID_Cliente,
+        CorretorA_ID: result.CorretorA_ID,
+        CorretorB_ID: result.CorretorB_ID,
+        DataFechamento: result.DataFechamento,
+        Status: result.Status,
+    };
+
+    return mappedParceria;
 };
 
 // --- CHATS ---

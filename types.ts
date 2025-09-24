@@ -41,6 +41,7 @@ export interface Corretor {
   Telefone: string;
   Email: string;
   Cidade: string;
+  Estado: string;
 }
 
 export interface Imovel {
@@ -49,6 +50,7 @@ export interface Imovel {
   Tipo: string;
   Finalidade: Finalidade;
   Cidade: string;
+  Estado: string;
   Bairro: string;
   Valor: number;
   Dormitorios: number;
@@ -62,6 +64,7 @@ export interface Cliente {
   TipoImovelDesejado: string;
   Finalidade: Finalidade;
   CidadeDesejada: string;
+  EstadoDesejado: string;
   BairroRegiaoDesejada: string;
   FaixaValorMin: number;
   FaixaValorMax: number;

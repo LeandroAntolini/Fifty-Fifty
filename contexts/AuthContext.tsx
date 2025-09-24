@@ -33,6 +33,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             Telefone: corretorData.telefone,
             Email: session.user.email!,
             Cidade: corretorData.cidade,
+            Estado: corretorData.estado,
           };
 
           setUser({
@@ -68,7 +69,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const register = async (formData: Omit<Corretor, 'ID_Corretor' | 'Email'> & {Email: string, password: string}) => {
-    const { password, Email, Nome, CRECI, Telefone, Cidade } = formData;
+    const { password, Email, Nome, CRECI, Telefone, Cidade, Estado } = formData;
     const { error } = await supabase.auth.signUp({
       email: Email,
       password: password,
@@ -78,6 +79,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           creci: CRECI,
           telefone: Telefone,
           cidade: Cidade,
+          estado: Estado,
         },
       },
     });

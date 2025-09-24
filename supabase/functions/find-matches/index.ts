@@ -30,6 +30,7 @@ serve(async (req) => {
       .eq('status', 'Ativo')
       .eq('finalidade', imovel.Finalidade)
       .eq('cidade_desejada', imovel.Cidade)
+      .eq('estado_desejado', imovel.Estado)
       .lte('faixa_valor_min', imovel.Valor)
       .gte('faixa_valor_max', imovel.Valor)
       .lte('dormitorios_minimos', imovel.Dormitorios)

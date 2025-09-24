@@ -26,6 +26,7 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
     Tipo: '',
     Finalidade: Finalidade.Venda,
     Cidade: '',
+    Estado: '',
     Bairro: '',
     Valor: 0,
     Dormitorios: 1,
@@ -43,6 +44,7 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
           Tipo: imovelToEdit.Tipo,
           Finalidade: imovelToEdit.Finalidade,
           Cidade: imovelToEdit.Cidade,
+          Estado: imovelToEdit.Estado || '',
           Bairro: imovelToEdit.Bairro,
           Valor: imovelToEdit.Valor,
           Dormitorios: imovelToEdit.Dormitorios,
@@ -61,7 +63,8 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const numericFields = ['Valor', 'Dormitorios'];
-    const numericValue = numericFields.includes(name) ? parseFloat(value) || 0 : value;
+    const finalValue = name === 'Estado' ? value.toUpperCase() : value;
+    const numericValue = numericFields.includes(name) ? parseFloat(finalValue) || 0 : finalValue;
     setFormData(prev => ({ ...prev, [name]: numericValue }));
   };
 
@@ -85,7 +88,7 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.Tipo || !formData.Cidade || !formData.Bairro || formData.Valor <= 0) {
+    if (!formData.Tipo || !formData.Cidade || !formData.Estado || !formData.Bairro || formData.Valor <= 0) {
         alert("Por favor, preencha todos os campos obrigatórios.");
         return;
     }
@@ -115,15 +118,19 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
                 <option value={Finalidade.Aluguel}>Aluguel</option>
               </select>
             </div>
-             <div className="grid grid-cols-2 gap-4">
-                <div>
+             <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-2">
                     <label htmlFor="Cidade" className="block text-sm font-medium text-gray-700">Cidade</label>
                     <input id="Cidade" type="text" name="Cidade" value={formData.Cidade} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required />
                 </div>
                  <div>
-                    <label htmlFor="Bairro" className="block text-sm font-medium text-gray-700">Bairro</label>
-                    <input id="Bairro" type="text" name="Bairro" value={formData.Bairro} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required />
+                    <label htmlFor="Estado" className="block text-sm font-medium text-gray-700">Estado</label>
+                    <input id="Estado" type="text" name="Estado" value={formData.Estado} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required maxLength={2} placeholder="UF" />
                 </div>
+            </div>
+            <div>
+                <label htmlFor="Bairro" className="block text-sm font-medium text-gray-700">Bairro</label>
+                <input id="Bairro" type="text" name="Bairro" value={formData.Bairro} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required />
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>

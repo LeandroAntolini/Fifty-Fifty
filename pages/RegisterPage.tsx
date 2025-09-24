@@ -13,6 +13,7 @@ const RegisterPage: React.FC = () => {
         Telefone: '',
         Email: '',
         Cidade: '',
+        Estado: '',
         password: '',
     });
     const [error, setError] = useState('');
@@ -72,9 +73,15 @@ const RegisterPage: React.FC = () => {
                             <Label htmlFor="Telefone">Telefone / WhatsApp</Label>
                             <Input id="Telefone" name="Telefone" placeholder="(XX) XXXXX-XXXX" onChange={handleChange} required />
                         </div>
-                        <div className="space-y-1.5">
-                            <Label htmlFor="Cidade">Cidade</Label>
-                            <Input id="Cidade" name="Cidade" placeholder="Sua cidade de atuação" onChange={handleChange} required />
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="space-y-1.5 col-span-2">
+                                <Label htmlFor="Cidade">Cidade</Label>
+                                <Input id="Cidade" name="Cidade" placeholder="Sua cidade" onChange={handleChange} required />
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="Estado">Estado</Label>
+                                <Input id="Estado" name="Estado" placeholder="UF" onChange={handleChange} required maxLength={2} />
+                            </div>
                         </div>
 
                         <Button

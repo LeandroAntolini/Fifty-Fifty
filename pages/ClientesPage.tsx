@@ -17,6 +17,7 @@ const ClientesPage: React.FC = () => {
 
   // Filter states
   const [cidadeFilter, setCidadeFilter] = useState('');
+  const [estadoFilter, setEstadoFilter] = useState('');
   const [valorMinFilter, setValorMinFilter] = useState('');
   const [valorMaxFilter, setValorMaxFilter] = useState('');
   const [dormitoriosFilter, setDormitoriosFilter] = useState('');
@@ -52,11 +53,12 @@ const ClientesPage: React.FC = () => {
 
       return (
         (cidadeFilter === '' || cliente.CidadeDesejada.toLowerCase().includes(cidadeFilter.toLowerCase())) &&
+        (estadoFilter === '' || (cliente.EstadoDesejado && cliente.EstadoDesejado.toLowerCase().includes(estadoFilter.toLowerCase()))) &&
         valorOverlap &&
         (isNaN(dormitorios) || cliente.DormitoriosMinimos >= dormitorios)
       );
     });
-  }, [clientes, cidadeFilter, valorMinFilter, valorMaxFilter, dormitoriosFilter]);
+  }, [clientes, cidadeFilter, estadoFilter, valorMinFilter, valorMaxFilter, dormitoriosFilter]);
 
   const handleSaveCliente = async (formData: Partial<Omit<Cliente, 'ID_Cliente' | 'ID_Corretor'>>, id?: string) => {
     if (!user) return;
@@ -137,6 +139,14 @@ const ClientesPage: React.FC = () => {
             className="w-full px-3 py-2 border rounded text-sm"
           />
           <input
+            type="text"
+            placeholder="Estado (UF)"
+            value={estadoFilter}
+            onChange={(e) => setEstadoFilter(e.target.value.toUpperCase())}
+            className="w-full px-3 py-2 border rounded text-sm"
+            maxLength={2}
+          />
+          <input
             type="number"
             placeholder="Dorms. Mín."
             value={dormitoriosFilter}
@@ -171,7 +181,7 @@ const ClientesPage: React.FC = () => {
             <div key={cliente.ID_Cliente} className="bg-white p-4 rounded-lg shadow">
               <div className="flex justify-between items-start">
                 <div>
-                    <h3 className="font-bold text-lg text-primary">{cliente.TipoImovelDesejado} em {cliente.CidadeDesejada}</h3>
+                    <h3 className="font-bold text-lg text-primary">{cliente.TipoImovelDesejado} em {cliente.CidadeDesejada} - {cliente.EstadoDesejado}</h3>
                     <p className="text-sm text-gray-600">Busca em: {cliente.BairroRegiaoDesejada}</p>
                 </div>
                 <div className="flex space-x-2">

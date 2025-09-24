@@ -17,6 +17,7 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
     TipoImovelDesejado: '',
     Finalidade: Finalidade.Venda,
     CidadeDesejada: '',
+    EstadoDesejado: '',
     BairroRegiaoDesejada: '',
     FaixaValorMin: 0,
     FaixaValorMax: 0,
@@ -33,6 +34,7 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
           TipoImovelDesejado: clienteToEdit.TipoImovelDesejado,
           Finalidade: clienteToEdit.Finalidade,
           CidadeDesejada: clienteToEdit.CidadeDesejada,
+          EstadoDesejado: clienteToEdit.EstadoDesejado || '',
           BairroRegiaoDesejada: clienteToEdit.BairroRegiaoDesejada,
           FaixaValorMin: clienteToEdit.FaixaValorMin,
           FaixaValorMax: clienteToEdit.FaixaValorMax,
@@ -50,13 +52,14 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const numericFields = ['FaixaValorMin', 'FaixaValorMax', 'DormitoriosMinimos'];
-    const numericValue = numericFields.includes(name) ? parseFloat(value) || 0 : value;
+    const finalValue = name === 'EstadoDesejado' ? value.toUpperCase() : value;
+    const numericValue = numericFields.includes(name) ? parseFloat(finalValue) || 0 : finalValue;
     setFormData(prev => ({ ...prev, [name]: numericValue }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.TipoImovelDesejado || !formData.CidadeDesejada || formData.FaixaValorMax <= 0 || formData.FaixaValorMin > formData.FaixaValorMax) {
+    if (!formData.TipoImovelDesejado || !formData.CidadeDesejada || !formData.EstadoDesejado || formData.FaixaValorMax <= 0 || formData.FaixaValorMin > formData.FaixaValorMax) {
         alert("Por favor, preencha os campos obrigatórios e verifique se a faixa de valor é válida.");
         return;
     }
@@ -80,9 +83,15 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
                 <option value={Finalidade.Aluguel}>Aluguel</option>
               </select>
             </div>
-            <div>
-              <label htmlFor="CidadeDesejada" className="block text-sm font-medium text-gray-700">Cidade Desejada</label>
-              <input id="CidadeDesejada" type="text" name="CidadeDesejada" value={formData.CidadeDesejada} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required />
+            <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-2">
+                    <label htmlFor="CidadeDesejada" className="block text-sm font-medium text-gray-700">Cidade Desejada</label>
+                    <input id="CidadeDesejada" type="text" name="CidadeDesejada" value={formData.CidadeDesejada} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required />
+                </div>
+                <div>
+                    <label htmlFor="EstadoDesejado" className="block text-sm font-medium text-gray-700">Estado</label>
+                    <input id="EstadoDesejado" type="text" name="EstadoDesejado" value={formData.EstadoDesejado} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required maxLength={2} placeholder="UF" />
+                </div>
             </div>
             <div>
               <label htmlFor="BairroRegiaoDesejada" className="block text-sm font-medium text-gray-700">Bairro/Região (separado por vírgula)</label>

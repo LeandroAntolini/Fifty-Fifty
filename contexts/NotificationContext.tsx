@@ -48,24 +48,24 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         )
         .subscribe();
 
-      // Listen for new matches where the user is the property owner
+      // Listen for ANY changes (insert, update) to matches where the user is the property owner
       const matchesAsImovelOwnerChannel = supabase
         .channel(`public:matches:id_corretor_imovel=eq.${user.id}`)
         .on(
           'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'matches', filter: `id_corretor_imovel=eq.${user.id}` },
+          { event: '*', schema: 'public', table: 'matches', filter: `id_corretor_imovel=eq.${user.id}` },
           () => {
             fetchNotifications();
           }
         )
         .subscribe();
 
-      // Listen for new matches where the user is the client owner
+      // Listen for ANY changes (insert, update) to matches where the user is the client owner
       const matchesAsClienteOwnerChannel = supabase
         .channel(`public:matches:id_corretor_cliente=eq.${user.id}`)
         .on(
           'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'matches', filter: `id_corretor_cliente=eq.${user.id}` },
+          { event: '*', schema: 'public', table: 'matches', filter: `id_corretor_cliente=eq.${user.id}` },
           () => {
             fetchNotifications();
           }

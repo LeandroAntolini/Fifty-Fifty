@@ -349,46 +349,6 @@ export const updateCorretor = async (corretorId: string, corretorData: Partial<O
     }
 };
 
-
-// --- PUBLIC GETTERS (for augmenting data on frontend) ---
-// These are no longer needed by MatchesPage, but might be useful elsewhere.
-export const getImoveis = async (): Promise<Imovel[]> => {
-    const { data, error } = await supabase
-        .from('imoveis')
-        .select('*');
-    
-    if (error) {
-        console.error('Error fetching all imoveis:', error);
-        throw error;
-    }
-    return data.map(mapSupabaseImovelToImovel);
-};
-
-export const getClientes = async (): Promise<Cliente[]> => {
-    const { data, error } = await supabase
-        .from('clientes')
-        .select('*');
-    
-    if (error) {
-        console.error('Error fetching all clientes:', error);
-        throw error;
-    }
-    return data.map(mapSupabaseClienteToCliente);
-};
-
-export const getCorretores = async (): Promise<Pick<Corretor, 'ID_Corretor' | 'Nome'>[]> => {
-    const { data, error } = await supabase
-        .from('corretores')
-        .select('id, nome');
-    
-    if (error) {
-        console.error('Error fetching corretores:', error);
-        throw error;
-    }
-    return data.map(c => ({ ID_Corretor: c.id, Nome: c.nome }));
-}
-
-
 // --- MATCHES ---
 
 const mapSupabaseMatchToMatch = (match: any): Match => ({
@@ -435,20 +395,6 @@ export const findMatchesForCliente = async (cliente: Cliente): Promise<Match[]> 
         throw error;
     }
     return (data || []).map(mapSupabaseMatchToMatch);
-};
-
-export const getMatchesByCorretor = async (corretorId: string): Promise<Match[]> => {
-    const { data, error } = await supabase
-        .from('matches')
-        .select('*')
-        .or(`id_corretor_imovel.eq.${corretorId},id_corretor_cliente.eq.${corretorId}`)
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        console.error('Error fetching matches:', error);
-        throw error;
-    }
-    return data.map(mapSupabaseMatchToMatch);
 };
 
 export const getMatchById = async (matchId: string): Promise<Match | undefined> => {
@@ -519,28 +465,16 @@ export const sendMessage = async (messageData: Omit<Message, 'ID_Message' | 'Tim
 
 // --- PARCERIAS ---
 
-const mapSupabaseParceriaToParceria = (p: any): Parceria => ({
-    ID_Parceria: p.id,
-    ID_Imovel: p.id_imovel,
-    ID_Cliente: p.id_cliente,
-    CorretorA_ID: p.id_corretor_a,
-    CorretorB_ID: p.id_corretor_b,
-    DataFechamento: p.data_fechamento,
-    Status: p.status,
-});
-
-export const getParceriasByCorretor = async (corretorId: string): Promise<Parceria[]> => {
-    const { data, error } = await supabase
-        .from('parcerias')
-        .select('*')
-        .or(`id_corretor_a.eq.${corretorId},id_corretor_b.eq.${corretorId}`)
-        .order('data_fechamento', { ascending: false });
+export const getAugmentedParceriasByCorretor = async (corretorId: string) => {
+    const { data, error } = await supabase.rpc('get_augmented_parcerias_for_corretor', {
+        p_corretor_id: corretorId,
+    });
 
     if (error) {
-        console.error('Error fetching parcerias:', error);
+        console.error('Error fetching augmented parcerias:', error);
         throw error;
     }
-    return data.map(mapSupabaseParceriaToParceria);
+    return data;
 };
 
 export const createParceriaFromMatch = async (match: Match): Promise<Parceria> => {
@@ -575,6 +509,16 @@ export const createParceriaFromMatch = async (match: Match): Promise<Parceria> =
         console.error('Error creating parceria:', error);
         throw error;
     }
+
+    const mapSupabaseParceriaToParceria = (p: any): Parceria => ({
+        ID_Parceria: p.id,
+        ID_Imovel: p.id_imovel,
+        ID_Cliente: p.id_cliente,
+        CorretorA_ID: p.id_corretor_a,
+        CorretorB_ID: p.id_corretor_b,
+        DataFechamento: p.data_fechamento,
+        Status: p.status,
+    });
 
     return mapSupabaseParceriaToParceria(data);
 };

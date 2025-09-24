@@ -59,6 +59,7 @@ const ImoveisPage: React.FC = () => {
 
   // Filter states
   const [cidadeFilter, setCidadeFilter] = useState('');
+  const [bairroFilter, setBairroFilter] = useState('');
   const [estadoFilter, setEstadoFilter] = useState('');
   const [valorMinFilter, setValorMinFilter] = useState('');
   const [valorMaxFilter, setValorMaxFilter] = useState('');
@@ -91,13 +92,14 @@ const ImoveisPage: React.FC = () => {
 
       return (
         (cidadeFilter === '' || imovel.Cidade.toLowerCase().includes(cidadeFilter.toLowerCase())) &&
+        (bairroFilter === '' || imovel.Bairro.toLowerCase().includes(bairroFilter.toLowerCase())) &&
         (estadoFilter === '' || (imovel.Estado && imovel.Estado.toLowerCase().includes(estadoFilter.toLowerCase()))) &&
         (isNaN(valorMin) || imovel.Valor >= valorMin) &&
         (isNaN(valorMax) || imovel.Valor <= valorMax) &&
         (isNaN(dormitorios) || imovel.Dormitorios >= dormitorios)
       );
     });
-  }, [imoveis, cidadeFilter, estadoFilter, valorMinFilter, valorMaxFilter, dormitoriosFilter]);
+  }, [imoveis, cidadeFilter, bairroFilter, estadoFilter, valorMinFilter, valorMaxFilter, dormitoriosFilter]);
 
   const handleSaveImovel = async (formData: Partial<Omit<Imovel, 'ID_Imovel' | 'ID_Corretor'>> & { Imagens?: string[] }, id?: string) => {
     if (!user) return;
@@ -178,6 +180,13 @@ const ImoveisPage: React.FC = () => {
             placeholder="Cidade"
             value={cidadeFilter}
             onChange={(e) => setCidadeFilter(e.target.value)}
+            className="w-full px-3 py-2 border rounded text-sm"
+          />
+           <input
+            type="text"
+            placeholder="Bairro"
+            value={bairroFilter}
+            onChange={(e) => setBairroFilter(e.target.value)}
             className="w-full px-3 py-2 border rounded text-sm"
           />
           <input

@@ -46,6 +46,14 @@ const MainLayout: React.FC = () => {
       openClienteModal();
     }
   };
+
+  const handleProfileClick = () => {
+    if (location.pathname === '/profile') {
+      navigate(-1); // Go back to the previous page
+    } else {
+      navigate('/profile');
+    }
+  };
   
   const isModalOpen = isImovelModalOpen || isClienteModalOpen;
 
@@ -59,9 +67,9 @@ const MainLayout: React.FC = () => {
         ) : <div className="w-6"></div>}
         <h1 className="text-xl font-bold">{getTitle()}</h1>
         <div className="flex items-center space-x-4">
-            <NavLink to="/profile" className="text-white hover:text-secondary">
+            <button onClick={handleProfileClick} className="text-white hover:text-secondary">
                 <ProfileIcon />
-            </NavLink>
+            </button>
             <button onClick={logout} className="text-white hover:text-secondary">
               <LogOutIcon/>
             </button>

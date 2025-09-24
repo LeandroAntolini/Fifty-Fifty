@@ -28,8 +28,10 @@ const ChatPage: React.FC = () => {
     if (!matchId || !user) return;
     setLoading(true);
     try {
+      // Mark the match as viewed and messages as read
+      await api.markMatchAsViewed(matchId, user.id);
       await api.markMessagesAsRead(matchId, user.id);
-      fetchNotifications();
+      fetchNotifications(); // Refresh notification count immediately
 
       const [msgs, match] = await Promise.all([
         api.getMessagesByMatch(matchId),
@@ -128,6 +130,7 @@ const ChatPage: React.FC = () => {
             await api.createParceriaFromMatch(matchDetails);
             setMatchDetails(prev => prev ? { ...prev, Status: MatchStatus.Convertido } : null);
             toast.success("Parabéns! Parceria concluída com sucesso.");
+            fetchNotifications();
         } catch (error) {
             console.error("Failed to conclude parceria", error);
             toast.error("Ocorreu um erro ao concluir a parceria.");

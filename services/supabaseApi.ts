@@ -578,3 +578,34 @@ export const markMessagesAsRead = async (matchId: string, readerId: string): Pro
         throw error;
     }
 };
+
+export const markMatchAsViewed = async (matchId: string, userId: string): Promise<void> => {
+    const { data: match, error: fetchError } = await supabase
+        .from('matches')
+        .select('id_corretor_imovel, id_corretor_cliente, viewed_by_corretor_imovel, viewed_by_corretor_cliente')
+        .eq('id', matchId)
+        .single();
+
+    if (fetchError || !match) {
+        console.error("Could not find match to mark as viewed", fetchError);
+        return;
+    }
+
+    const updateData: { [key: string]: boolean } = {};
+    if (match.id_corretor_imovel === userId && !match.viewed_by_corretor_imovel) {
+        updateData.viewed_by_corretor_imovel = true;
+    } else if (match.id_corretor_cliente === userId && !match.viewed_by_corretor_cliente) {
+        updateData.viewed_by_corretor_cliente = true;
+    }
+
+    if (Object.keys(updateData).length > 0) {
+        const { error: updateError } = await supabase
+            .from('matches')
+            .update(updateData)
+            .eq('id', matchId);
+
+        if (updateError) {
+            console.error("Failed to mark match as viewed", updateError);
+        }
+    }
+};

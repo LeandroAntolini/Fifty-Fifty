@@ -108,7 +108,8 @@ const ChatPage: React.FC = () => {
     setNewMessage('');
 
     try {
-        await api.sendMessage(messageData);
+        const sentMessage = await api.sendMessage(messageData);
+        setMessages(prevMessages => [...prevMessages, sentMessage]);
         fetchNotifications();
     } catch (error) {
         console.error("Failed to send message", error);

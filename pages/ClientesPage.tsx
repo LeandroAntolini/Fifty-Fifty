@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Cliente, ClienteStatus } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useUI } from '../contexts/UIContext';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
 import AddClienteModal from '../components/AddClienteModal';
-import { Edit, Trash2, Search } from 'lucide-react';
+import { Edit, Trash2, Search, Filter, ArrowUpDown, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../src/integrations/supabase/client';
 import { Button } from '../components/ui/Button';
@@ -19,6 +19,11 @@ const ClientesPage: React.FC = () => {
   const { isClienteModalOpen, openClienteModal, closeClienteModal } = useUI();
   const [findingMatch, setFindingMatch] = useState<string | null>(null);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
+
+  // UI State
+  const [showFilters, setShowFilters] = useState(false);
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
 
   // Filter and Sort states
   const [cidadeFilter, setCidadeFilter] = useState('');
@@ -51,59 +56,54 @@ const ClientesPage: React.FC = () => {
   // Real-time subscription
   useEffect(() => {
     if (!user) return;
-
-    const channel = supabase
-      .channel(`clientes-page-channel-for-${user.id}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'clientes', filter: `id_corretor=eq.${user.id}` },
-        () => {
-          fetchClientes();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    const channel = supabase.channel(`clientes-page-channel-for-${user.id}`).on('postgres_changes', { event: '*', schema: 'public', table: 'clientes', filter: `id_corretor=eq.${user.id}` }, () => { fetchClientes(); }).subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [user, fetchClientes]);
+
+  // Close sort menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) {
+        setShowSortMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const areFiltersActive = useMemo(() => {
+    return !!(cidadeFilter || bairroFilter || estadoFilter || valorMinFilter || valorMaxFilter || dormitoriosFilter);
+  }, [cidadeFilter, bairroFilter, estadoFilter, valorMinFilter, valorMaxFilter, dormitoriosFilter]);
+
+  const clearFilters = () => {
+    setCidadeFilter('');
+    setBairroFilter('');
+    setEstadoFilter('');
+    setValorMinFilter('');
+    setValorMaxFilter('');
+    setDormitoriosFilter('');
+  };
 
   const processedClientes = useMemo(() => {
     const filtered = clientes.filter(cliente => {
       const valorMin = parseFloat(valorMinFilter);
       const valorMax = parseFloat(valorMaxFilter);
       const dormitorios = parseInt(dormitoriosFilter, 10);
-
-      const valorOverlap = 
-        (isNaN(valorMin) || cliente.FaixaValorMax >= valorMin) &&
-        (isNaN(valorMax) || cliente.FaixaValorMin <= valorMax);
-
-      return (
-        (cidadeFilter === '' || cliente.CidadeDesejada.toLowerCase().includes(cidadeFilter.toLowerCase())) &&
-        (bairroFilter === '' || cliente.BairroRegiaoDesejada.toLowerCase().includes(bairroFilter.toLowerCase())) &&
-        (estadoFilter === '' || (cliente.EstadoDesejado && cliente.EstadoDesejado.toLowerCase().includes(estadoFilter.toLowerCase()))) &&
-        valorOverlap &&
-        (isNaN(dormitorios) || cliente.DormitoriosMinimos >= dormitorios)
-      );
+      const valorOverlap = (isNaN(valorMin) || cliente.FaixaValorMax >= valorMin) && (isNaN(valorMax) || cliente.FaixaValorMin <= valorMax);
+      return ((cidadeFilter === '' || cliente.CidadeDesejada.toLowerCase().includes(cidadeFilter.toLowerCase())) && (bairroFilter === '' || cliente.BairroRegiaoDesejada.toLowerCase().includes(bairroFilter.toLowerCase())) && (estadoFilter === '' || (cliente.EstadoDesejado && cliente.EstadoDesejado.toLowerCase().includes(estadoFilter.toLowerCase()))) && valorOverlap && (isNaN(dormitorios) || cliente.DormitoriosMinimos >= dormitorios));
     });
 
     return filtered.sort((a, b) => {
-      // Primary sort: 'Ativo' status always comes first
       if (a.Status === ClienteStatus.Ativo && b.Status !== ClienteStatus.Ativo) return -1;
       if (a.Status !== ClienteStatus.Ativo && b.Status === ClienteStatus.Ativo) return 1;
-
-      // Secondary sort: based on user's choice
       switch (sortCriteria) {
-        case 'newest':
-          return new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime();
-        case 'oldest':
-          return new Date(a.CreatedAt).getTime() - new Date(b.CreatedAt).getTime();
-        case 'highest_value':
-          return b.FaixaValorMax - a.FaixaValorMax;
-        case 'lowest_value':
-          return a.FaixaValorMax - b.FaixaValorMax;
-        default:
-          return 0;
+        case 'newest': return new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime();
+        case 'oldest': return new Date(a.CreatedAt).getTime() - new Date(b.CreatedAt).getTime();
+        case 'highest_value': return b.FaixaValorMax - a.FaixaValorMax;
+        case 'lowest_value': return a.FaixaValorMax - b.FaixaValorMax;
+        default: return 0;
       }
     });
   }, [clientes, cidadeFilter, bairroFilter, estadoFilter, valorMinFilter, valorMaxFilter, dormitoriosFilter, sortCriteria]);
@@ -116,21 +116,15 @@ const ClientesPage: React.FC = () => {
         savedCliente = await api.updateCliente(id, formData);
         toast.success("Cliente atualizado com sucesso!");
       } else {
-        const clienteData = {
-          ...formData,
-          ID_Corretor: user.corretorInfo.ID_Corretor,
-        };
+        const clienteData = { ...formData, ID_Corretor: user.corretorInfo.ID_Corretor };
         savedCliente = await api.createCliente(clienteData as Omit<Cliente, 'ID_Cliente' | 'Status' | 'CreatedAt'>);
         toast.success("Cliente criado com sucesso!");
       }
       handleCloseModal();
-      fetchClientes(); // Manually refetch after saving
-
-      // Automatically find matches in the background
+      fetchClientes();
       if (savedCliente.Status === 'Ativo') {
         api.findMatchesForCliente(savedCliente).catch(err => console.error("Background match finding failed:", err));
       }
-
     } catch (error) {
       console.error("Failed to save cliente", error);
       toast.error("Falha ao salvar cliente. Tente novamente.");
@@ -174,10 +168,7 @@ const ClientesPage: React.FC = () => {
     }
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(value);
-  }
-
+  const formatCurrency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(value);
   const sortOptions: { label: string; value: SortCriteria }[] = [
     { label: 'Recém Adicionados', value: 'newest' },
     { label: 'Mais Antigos', value: 'oldest' },
@@ -191,28 +182,49 @@ const ClientesPage: React.FC = () => {
 
   return (
     <div>
-      <div className="bg-white p-4 rounded-lg shadow mb-4 space-y-4">
-        <div>
-          <h3 className="font-semibold text-gray-700 mb-2">Filtrar Clientes</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <input type="text" placeholder="Cidade Desejada" value={cidadeFilter} onChange={(e) => setCidadeFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
-            <input type="text" placeholder="Bairro Desejado" value={bairroFilter} onChange={(e) => setBairroFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
-            <input type="text" placeholder="Estado (UF)" value={estadoFilter} onChange={(e) => setEstadoFilter(e.target.value.toUpperCase())} className="w-full px-3 py-2 border rounded text-sm" maxLength={2} />
-            <input type="number" placeholder="Dorms. Mín." value={dormitoriosFilter} onChange={(e) => setDormitoriosFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
-            <input type="number" placeholder="Valor Mín." value={valorMinFilter} onChange={(e) => setValorMinFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
-            <input type="number" placeholder="Valor Máx." value={valorMaxFilter} onChange={(e) => setValorMaxFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+      <div className="bg-white p-2 rounded-lg shadow mb-4 space-y-2">
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="w-full justify-center">
+            <Filter size={16} className="mr-2" />
+            Filtrar
+            {areFiltersActive && <span className="ml-2 h-2 w-2 rounded-full bg-secondary" />}
+          </Button>
+          <div className="relative w-full" ref={sortMenuRef}>
+            <Button variant="outline" onClick={() => setShowSortMenu(!showSortMenu)} className="w-full justify-center">
+              <ArrowUpDown size={16} className="mr-2" />
+              Ordenar
+            </Button>
+            {showSortMenu && (
+              <div className="absolute top-full right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10">
+                {sortOptions.map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => { setSortCriteria(option.value); setShowSortMenu(false); }}
+                    className={`block w-full text-left px-4 py-2 text-sm ${sortCriteria === option.value ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-        <div>
-          <h3 className="font-semibold text-gray-700 mb-2">Ordenar por</h3>
-          <div className="grid grid-cols-2 gap-2">
-            {sortOptions.map(option => (
-              <Button key={option.value} size="sm" variant={sortCriteria === option.value ? 'default' : 'ghost'} onClick={() => setSortCriteria(option.value)}>
-                {option.label}
-              </Button>
-            ))}
+        {showFilters && (
+          <div className="p-2 border-t">
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <input type="text" placeholder="Cidade Desejada" value={cidadeFilter} onChange={(e) => setCidadeFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+              <input type="text" placeholder="Bairro Desejado" value={bairroFilter} onChange={(e) => setBairroFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+              <input type="text" placeholder="Estado (UF)" value={estadoFilter} onChange={(e) => setEstadoFilter(e.target.value.toUpperCase())} className="w-full px-3 py-2 border rounded text-sm" maxLength={2} />
+              <input type="number" placeholder="Dorms. Mín." value={dormitoriosFilter} onChange={(e) => setDormitoriosFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+              <input type="number" placeholder="Valor Mín." value={valorMinFilter} onChange={(e) => setValorMinFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+              <input type="number" placeholder="Valor Máx." value={valorMaxFilter} onChange={(e) => setValorMaxFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+            </div>
+            <Button variant="ghost" onClick={clearFilters} className="w-full text-destructive">
+              <X size={16} className="mr-2" />
+              Limpar Filtros
+            </Button>
           </div>
-        </div>
+        )}
       </div>
 
       {processedClientes.length === 0 ? (
@@ -242,12 +254,7 @@ const ClientesPage: React.FC = () => {
                 <span className={`px-2 py-1 rounded-full text-white text-sm ${cliente.Status === 'Ativo' ? 'bg-green-500' : 'bg-gray-500'}`}>{cliente.Status}</span>
                 <div className="flex space-x-2 items-center">
                     {cliente.Status === 'Ativo' && (
-                        <button
-                            onClick={() => handleBuscarMatch(cliente)}
-                            disabled={findingMatch === cliente.ID_Cliente}
-                            className="text-gray-500 hover:text-secondary p-1 disabled:opacity-50 disabled:cursor-wait"
-                            title="Buscar Match"
-                        >
+                        <button onClick={() => handleBuscarMatch(cliente)} disabled={findingMatch === cliente.ID_Cliente} className="text-gray-500 hover:text-secondary p-1 disabled:opacity-50 disabled:cursor-wait" title="Buscar Match">
                             {findingMatch === cliente.ID_Cliente ? <Spinner size="sm" /> : <Search size={20} />}
                         </button>
                     )}
@@ -259,12 +266,7 @@ const ClientesPage: React.FC = () => {
           ))}
         </div>
       )}
-        <AddClienteModal
-            isOpen={isClienteModalOpen}
-            onClose={handleCloseModal}
-            onSave={handleSaveCliente}
-            clienteToEdit={editingCliente}
-        />
+        <AddClienteModal isOpen={isClienteModalOpen} onClose={handleCloseModal} onSave={handleSaveCliente} clienteToEdit={editingCliente} />
     </div>
   );
 };

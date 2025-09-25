@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Imovel, ImovelStatus } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useUI } from '../contexts/UIContext';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
 import AddImovelModal, { ImageChanges } from '../components/AddImovelModal';
-import { Edit, Trash2, Search } from 'lucide-react';
+import { Edit, Trash2, Search, Filter, ArrowUpDown, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../src/integrations/supabase/client';
 import { Button } from '../components/ui/Button';
@@ -61,6 +61,11 @@ const ImoveisPage: React.FC = () => {
   const [findingMatch, setFindingMatch] = useState<string | null>(null);
   const [editingImovel, setEditingImovel] = useState<Imovel | null>(null);
 
+  // UI State
+  const [showFilters, setShowFilters] = useState(false);
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
+
   // Filter and Sort states
   const [cidadeFilter, setCidadeFilter] = useState('');
   const [bairroFilter, setBairroFilter] = useState('');
@@ -109,6 +114,32 @@ const ImoveisPage: React.FC = () => {
     };
   }, [user, fetchImoveis]);
 
+  // Close sort menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) {
+        setShowSortMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const areFiltersActive = useMemo(() => {
+    return !!(cidadeFilter || bairroFilter || estadoFilter || valorMinFilter || valorMaxFilter || dormitoriosFilter);
+  }, [cidadeFilter, bairroFilter, estadoFilter, valorMinFilter, valorMaxFilter, dormitoriosFilter]);
+
+  const clearFilters = () => {
+    setCidadeFilter('');
+    setBairroFilter('');
+    setEstadoFilter('');
+    setValorMinFilter('');
+    setValorMaxFilter('');
+    setDormitoriosFilter('');
+  };
+
   const processedImoveis = useMemo(() => {
     const filtered = imoveis.filter(imovel => {
       const valorMin = parseFloat(valorMinFilter);
@@ -126,31 +157,19 @@ const ImoveisPage: React.FC = () => {
     });
 
     return filtered.sort((a, b) => {
-      // Primary sort: 'Ativo' status always comes first
       if (a.Status === ImovelStatus.Ativo && b.Status !== ImovelStatus.Ativo) return -1;
       if (a.Status !== ImovelStatus.Ativo && b.Status === ImovelStatus.Ativo) return 1;
-
-      // Secondary sort: based on user's choice
       switch (sortCriteria) {
-        case 'newest':
-          return new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime();
-        case 'oldest':
-          return new Date(a.CreatedAt).getTime() - new Date(b.CreatedAt).getTime();
-        case 'highest_value':
-          return b.Valor - a.Valor;
-        case 'lowest_value':
-          return a.Valor - b.Valor;
-        default:
-          return 0;
+        case 'newest': return new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime();
+        case 'oldest': return new Date(a.CreatedAt).getTime() - new Date(b.CreatedAt).getTime();
+        case 'highest_value': return b.Valor - a.Valor;
+        case 'lowest_value': return a.Valor - b.Valor;
+        default: return 0;
       }
     });
   }, [imoveis, cidadeFilter, bairroFilter, estadoFilter, valorMinFilter, valorMaxFilter, dormitoriosFilter, sortCriteria]);
 
-  const handleSaveImovel = async (
-    formData: Partial<Omit<Imovel, 'ID_Imovel' | 'ID_Corretor' | 'Imagens' | 'CreatedAt'>>,
-    id?: string,
-    imageChanges?: ImageChanges
-  ) => {
+  const handleSaveImovel = async (formData: Partial<Omit<Imovel, 'ID_Imovel' | 'ID_Corretor' | 'CreatedAt'>>, id?: string, imageChanges?: ImageChanges) => {
     if (!user) return;
     try {
       let savedImovel: Imovel;
@@ -158,22 +177,15 @@ const ImoveisPage: React.FC = () => {
         savedImovel = await api.updateImovel(id, formData, imageChanges);
         toast.success("Imóvel atualizado com sucesso!");
       } else {
-        const imovelData = {
-          ...formData,
-          ID_Corretor: user.corretorInfo.ID_Corretor,
-          Imagens: imageChanges?.newImagesBase64 || [],
-        };
+        const imovelData = { ...formData, ID_Corretor: user.corretorInfo.ID_Corretor, Imagens: imageChanges?.newImagesBase64 || [] };
         savedImovel = await api.createImovel(imovelData as Omit<Imovel, 'ID_Imovel' | 'Status' | 'CreatedAt'> & { Imagens?: string[] });
         toast.success("Imóvel criado com sucesso!");
       }
       handleCloseModal();
-      fetchImoveis(); // Manually refetch after saving
-      
-      // Automatically find matches in the background
+      fetchImoveis();
       if (savedImovel.Status === 'Ativo') {
         api.findMatchesForImovel(savedImovel).catch(err => console.error("Background match finding failed:", err));
       }
-
     } catch (error) {
       console.error("Failed to save imovel", error);
       toast.error((error as Error).message || "Falha ao salvar imóvel. Tente novamente.");
@@ -190,7 +202,7 @@ const ImoveisPage: React.FC = () => {
       try {
         await api.deleteImovel(imovel.ID_Imovel, imovel.Imagens);
         toast.success("Imóvel excluído com sucesso.");
-        fetchImoveis(); // Manually refetch after deleting
+        fetchImoveis();
       } catch (error) {
         console.error("Failed to delete imovel", error);
         toast.error("Falha ao excluir imóvel.");
@@ -217,10 +229,7 @@ const ImoveisPage: React.FC = () => {
     }
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-  }
-
+  const formatCurrency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   const sortOptions: { label: string; value: SortCriteria }[] = [
     { label: 'Recém Adicionados', value: 'newest' },
     { label: 'Mais Antigos', value: 'oldest' },
@@ -234,28 +243,49 @@ const ImoveisPage: React.FC = () => {
 
   return (
     <div>
-      <div className="bg-white p-4 rounded-lg shadow mb-4 space-y-4">
-        <div>
-          <h3 className="font-semibold text-gray-700 mb-2">Filtrar Imóveis</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <input type="text" placeholder="Cidade" value={cidadeFilter} onChange={(e) => setCidadeFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
-            <input type="text" placeholder="Bairro" value={bairroFilter} onChange={(e) => setBairroFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
-            <input type="text" placeholder="Estado (UF)" value={estadoFilter} onChange={(e) => setEstadoFilter(e.target.value.toUpperCase())} className="w-full px-3 py-2 border rounded text-sm" maxLength={2} />
-            <input type="number" placeholder="Dorms. Mín." value={dormitoriosFilter} onChange={(e) => setDormitoriosFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
-            <input type="number" placeholder="Valor Mín." value={valorMinFilter} onChange={(e) => setValorMinFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
-            <input type="number" placeholder="Valor Máx." value={valorMaxFilter} onChange={(e) => setValorMaxFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+      <div className="bg-white p-2 rounded-lg shadow mb-4 space-y-2">
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="w-full justify-center">
+            <Filter size={16} className="mr-2" />
+            Filtrar
+            {areFiltersActive && <span className="ml-2 h-2 w-2 rounded-full bg-secondary" />}
+          </Button>
+          <div className="relative w-full" ref={sortMenuRef}>
+            <Button variant="outline" onClick={() => setShowSortMenu(!showSortMenu)} className="w-full justify-center">
+              <ArrowUpDown size={16} className="mr-2" />
+              Ordenar
+            </Button>
+            {showSortMenu && (
+              <div className="absolute top-full right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10">
+                {sortOptions.map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => { setSortCriteria(option.value); setShowSortMenu(false); }}
+                    className={`block w-full text-left px-4 py-2 text-sm ${sortCriteria === option.value ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-        <div>
-          <h3 className="font-semibold text-gray-700 mb-2">Ordenar por</h3>
-          <div className="grid grid-cols-2 gap-2">
-            {sortOptions.map(option => (
-              <Button key={option.value} size="sm" variant={sortCriteria === option.value ? 'default' : 'ghost'} onClick={() => setSortCriteria(option.value)}>
-                {option.label}
-              </Button>
-            ))}
+        {showFilters && (
+          <div className="p-2 border-t">
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <input type="text" placeholder="Cidade" value={cidadeFilter} onChange={(e) => setCidadeFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+              <input type="text" placeholder="Bairro" value={bairroFilter} onChange={(e) => setBairroFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+              <input type="text" placeholder="Estado (UF)" value={estadoFilter} onChange={(e) => setEstadoFilter(e.target.value.toUpperCase())} className="w-full px-3 py-2 border rounded text-sm" maxLength={2} />
+              <input type="number" placeholder="Dorms. Mín." value={dormitoriosFilter} onChange={(e) => setDormitoriosFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+              <input type="number" placeholder="Valor Mín." value={valorMinFilter} onChange={(e) => setValorMinFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+              <input type="number" placeholder="Valor Máx." value={valorMaxFilter} onChange={(e) => setValorMaxFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+            </div>
+            <Button variant="ghost" onClick={clearFilters} className="w-full text-destructive">
+              <X size={16} className="mr-2" />
+              Limpar Filtros
+            </Button>
           </div>
-        </div>
+        )}
       </div>
 
       {processedImoveis.length === 0 ? (
@@ -276,21 +306,13 @@ const ImoveisPage: React.FC = () => {
                 <p className="text-sm text-gray-600">{imovel.Cidade} - {imovel.Estado}</p>
                 <div className="mt-2 text-sm">
                   <p>Valor: {formatCurrency(imovel.Valor)}</p>
-                  <p>
-                    {imovel.Dormitorios} dorms
-                    {imovel.Metragem && ` • ${imovel.Metragem} m²`}
-                  </p>
+                  <p>{imovel.Dormitorios} dorms{imovel.Metragem && ` • ${imovel.Metragem} m²`}</p>
                 </div>
                 <div className="flex items-center justify-between mt-4">
                   <span className={`px-2 py-1 rounded-full text-white text-sm ${imovel.Status === 'Ativo' ? 'bg-green-500' : 'bg-gray-500'}`}>{imovel.Status}</span>
                   <div className="flex space-x-2 items-center">
                     {imovel.Status === 'Ativo' && (
-                      <button
-                        onClick={() => handleBuscarMatch(imovel)}
-                        disabled={findingMatch === imovel.ID_Imovel}
-                        className="text-gray-500 hover:text-secondary p-1 disabled:opacity-50 disabled:cursor-wait"
-                        title="Buscar Match"
-                      >
+                      <button onClick={() => handleBuscarMatch(imovel)} disabled={findingMatch === imovel.ID_Imovel} className="text-gray-500 hover:text-secondary p-1 disabled:opacity-50 disabled:cursor-wait" title="Buscar Match">
                         {findingMatch === imovel.ID_Imovel ? <Spinner size="sm" /> : <Search size={20} />}
                       </button>
                     )}
@@ -303,12 +325,7 @@ const ImoveisPage: React.FC = () => {
           ))}
         </div>
       )}
-        <AddImovelModal
-            isOpen={isImovelModalOpen}
-            onClose={handleCloseModal}
-            onSave={handleSaveImovel}
-            imovelToEdit={editingImovel}
-        />
+        <AddImovelModal isOpen={isImovelModalOpen} onClose={handleCloseModal} onSave={handleSaveImovel} imovelToEdit={editingImovel} />
     </div>
   );
 };

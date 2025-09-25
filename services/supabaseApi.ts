@@ -414,6 +414,18 @@ export const getMatchById = async (matchId: string): Promise<Match | undefined> 
     return data ? mapSupabaseMatchToMatch(data) : undefined;
 };
 
+export const closeMatch = async (matchId: string): Promise<void> => {
+    const { error } = await supabase
+        .from('matches')
+        .update({ status: MatchStatus.Fechado })
+        .eq('id', matchId);
+
+    if (error) {
+        console.error('Error closing match:', error);
+        throw error;
+    }
+};
+
 
 // --- MESSAGES / CHAT ---
 

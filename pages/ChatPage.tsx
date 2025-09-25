@@ -18,6 +18,7 @@ const ChatPage: React.FC = () => {
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isConcluding, setIsConcluding] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const { fetchNotifications } = useNotifications();
 
   const scrollToBottom = () => {
@@ -140,6 +141,25 @@ const ChatPage: React.FC = () => {
     }
   };
 
+  const handleCloseMatch = async () => {
+    if (!matchDetails) return;
+    const confirmation = window.confirm("Tem certeza que deseja fechar este match? A conversa será arquivada e a oportunidade removida da sua lista.");
+    if (confirmation) {
+        setIsClosing(true);
+        try {
+            await api.closeMatch(matchDetails.ID_Match);
+            setMatchDetails(prev => prev ? { ...prev, Status: MatchStatus.Fechado } : null);
+            toast.success("Match fechado com sucesso.");
+            fetchNotifications();
+        } catch (error) {
+            console.error("Failed to close match", error);
+            toast.error("Ocorreu um erro ao fechar o match.");
+        } finally {
+            setIsClosing(false);
+        }
+    }
+  };
+
   if (loading) {
     return <div className="flex justify-center mt-8"><Spinner /></div>;
   }
@@ -147,13 +167,21 @@ const ChatPage: React.FC = () => {
   return (
     <div className="flex flex-col h-full bg-neutral-light">
       {matchDetails && matchDetails.Status === MatchStatus.Aberto && (
-        <div className="p-4 border-b bg-white">
+        <div className="p-4 border-b bg-white space-y-2">
             <Button 
                 onClick={handleConcluirParceria}
-                disabled={isConcluding}
+                disabled={isConcluding || isClosing}
                 className="w-full bg-accent hover:bg-green-700"
             >
                 {isConcluding ? 'Concluindo...' : 'Marcar como Parceria Concluída'}
+            </Button>
+            <Button 
+                onClick={handleCloseMatch}
+                disabled={isConcluding || isClosing}
+                variant="destructive"
+                className="w-full"
+            >
+                {isClosing ? 'Fechando...' : 'Fechar Match (Sem Parceria)'}
             </Button>
         </div>
       )}

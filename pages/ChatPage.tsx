@@ -17,8 +17,7 @@ const ChatPage: React.FC = () => {
   const [matchDetails, setMatchDetails] = useState<Match | null>(null);
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [isConcluding, setIsConcluding] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { fetchNotifications } = useNotifications();
 
   const scrollToBottom = () => {
@@ -27,7 +26,6 @@ const ChatPage: React.FC = () => {
   
   const fetchChatData = useCallback(async () => {
     if (!matchId || !user) return;
-    setLoading(true);
     try {
       // Mark the match as viewed and messages as read
       await api.markMatchAsViewed(matchId, user.id);
@@ -56,12 +54,12 @@ const ChatPage: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Real-time subscription
+  // Real-time subscriptions
   useEffect(() => {
     if (!matchId) return;
 
-    const channel = supabase
-      .channel(`chat:${matchId}`)
+    const messagesChannel = supabase
+      .channel(`chat-messages:${matchId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `id_match=eq.${matchId}` },
@@ -87,8 +85,21 @@ const ChatPage: React.FC = () => {
       )
       .subscribe();
 
+    const matchChannel = supabase
+      .channel(`match-status:${matchId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'matches', filter: `id=eq.${matchId}` },
+        (payload) => {
+          const updatedMatch = payload.new as any;
+          setMatchDetails(prev => prev ? { ...prev, Status: updatedMatch.status, StatusChangeRequesterID: updatedMatch.status_change_requester_id } : null);
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(matchChannel);
     };
   }, [matchId]);
 
@@ -117,46 +128,149 @@ const ChatPage: React.FC = () => {
     } catch (error) {
         console.error("Failed to send message", error);
         toast.error("Falha ao enviar mensagem.");
-        // Re-set the message in the input if sending fails
         setNewMessage(messageData.Message_Text);
     }
   };
 
-  const handleConcluirParceria = async () => {
-    if (!matchDetails) return;
-    const confirmation = window.confirm("Tem certeza que deseja marcar esta conversa como uma parceria concluída? Esta ação não pode ser desfeita.");
-    if (confirmation) {
-        setIsConcluding(true);
-        try {
-            await api.createParceriaFromMatch(matchDetails);
-            setMatchDetails(prev => prev ? { ...prev, Status: MatchStatus.Convertido } : null);
-            toast.success("Parabéns! Parceria concluída com sucesso.");
-            fetchNotifications();
-        } catch (error) {
-            console.error("Failed to conclude parceria", error);
-            toast.error("Ocorreu um erro ao concluir a parceria.");
-        } finally {
-            setIsConcluding(false);
-        }
+  const handleRequestConcluir = async () => {
+    if (!matchId || !user) return;
+    setIsSubmitting(true);
+    try {
+      await api.requestConcluirParceria(matchId, user.id);
+      toast('Solicitação para concluir parceria enviada.', { icon: '👍' });
+    } catch (error) {
+      toast.error("Falha ao enviar solicitação.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleCloseMatch = async () => {
+  const handleRequestFechar = async () => {
+    if (!matchId || !user) return;
+    setIsSubmitting(true);
+    try {
+      await api.requestFecharMatch(matchId, user.id);
+      toast('Solicitação para fechar match enviada.', { icon: '👍' });
+    } catch (error) {
+      toast.error("Falha ao enviar solicitação.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleConfirmConclusao = async () => {
     if (!matchDetails) return;
-    const confirmation = window.confirm("Tem certeza que deseja fechar este match? A conversa será arquivada e a oportunidade removida da sua lista.");
-    if (confirmation) {
-        setIsClosing(true);
-        try {
-            await api.closeMatch(matchDetails.ID_Match);
-            setMatchDetails(prev => prev ? { ...prev, Status: MatchStatus.Fechado } : null);
-            toast.success("Match fechado com sucesso.");
-            fetchNotifications();
-        } catch (error) {
-            console.error("Failed to close match", error);
-            toast.error("Ocorreu um erro ao fechar o match.");
-        } finally {
-            setIsClosing(false);
+    setIsSubmitting(true);
+    try {
+      await api.createParceriaFromMatch(matchDetails);
+      toast.success("Parabéns! Parceria concluída com sucesso.");
+      fetchNotifications();
+    } catch (error) {
+      toast.error("Ocorreu um erro ao concluir a parceria.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleConfirmFechamento = async () => {
+    if (!matchId) return;
+    setIsSubmitting(true);
+    try {
+      await api.closeMatch(matchId);
+      toast.success("Match fechado com sucesso.");
+      fetchNotifications();
+    } catch (error) {
+      toast.error("Ocorreu um erro ao fechar o match.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCancelOrReject = async () => {
+    if (!matchId) return;
+    setIsSubmitting(true);
+    try {
+      await api.cancelStatusChangeRequest(matchId);
+      toast.info("A solicitação foi cancelada/rejeitada.");
+    } catch (error) {
+      toast.error("Falha ao cancelar a solicitação.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const renderActionUI = () => {
+    if (!matchDetails || !user) return null;
+
+    const isRequester = matchDetails.StatusChangeRequesterID === user.id;
+
+    switch (matchDetails.Status) {
+      case MatchStatus.Aberto:
+        return (
+          <div className="p-4 border-b bg-white space-y-2">
+            <Button onClick={handleRequestConcluir} disabled={isSubmitting} className="w-full bg-accent hover:bg-green-700">
+              {isSubmitting ? 'Enviando...' : 'Concluir Parceria'}
+            </Button>
+            <Button onClick={handleRequestFechar} disabled={isSubmitting} variant="destructive" className="w-full">
+              {isSubmitting ? 'Enviando...' : 'Fechar Match (Sem Parceria)'}
+            </Button>
+          </div>
+        );
+      
+      case MatchStatus.ConclusaoPendente:
+        if (isRequester) {
+          return (
+            <div className="p-4 border-b bg-white text-center space-y-2">
+              <p className="text-sm text-gray-600">Aguardando confirmação do outro corretor para concluir a parceria.</p>
+              <Button onClick={handleCancelOrReject} disabled={isSubmitting} variant="ghost" className="w-full">
+                {isSubmitting ? 'Cancelando...' : 'Cancelar Solicitação'}
+              </Button>
+            </div>
+          );
         }
+        return (
+          <div className="p-4 border-b bg-yellow-100 text-center space-y-2">
+            <p className="font-semibold">O outro corretor solicitou a conclusão da parceria.</p>
+            <Button onClick={handleConfirmConclusao} disabled={isSubmitting} className="w-full bg-accent hover:bg-green-700">
+              {isSubmitting ? 'Confirmando...' : 'Confirmar Conclusão'}
+            </Button>
+            <Button onClick={handleCancelOrReject} disabled={isSubmitting} variant="destructive" className="w-full">
+              {isSubmitting ? 'Rejeitando...' : 'Rejeitar'}
+            </Button>
+          </div>
+        );
+
+      case MatchStatus.FechamentoPendente:
+        if (isRequester) {
+          return (
+            <div className="p-4 border-b bg-white text-center space-y-2">
+              <p className="text-sm text-gray-600">Aguardando confirmação do outro corretor para fechar o match.</p>
+              <Button onClick={handleCancelOrReject} disabled={isSubmitting} variant="ghost" className="w-full">
+                {isSubmitting ? 'Cancelando...' : 'Cancelar Solicitação'}
+              </Button>
+            </div>
+          );
+        }
+        return (
+          <div className="p-4 border-b bg-yellow-100 text-center space-y-2">
+            <p className="font-semibold">O outro corretor solicitou o fechamento do match.</p>
+            <Button onClick={handleConfirmFechamento} disabled={isSubmitting} className="w-full">
+              {isSubmitting ? 'Confirmando...' : 'Confirmar Fechamento'}
+            </Button>
+            <Button onClick={handleCancelOrReject} disabled={isSubmitting} variant="destructive" className="w-full">
+              {isSubmitting ? 'Rejeitando...' : 'Rejeitar'}
+            </Button>
+          </div>
+        );
+
+      case MatchStatus.Convertido:
+        return <div className="p-4 bg-green-100 text-center text-green-800 font-semibold">Parceria concluída com sucesso!</div>;
+      
+      case MatchStatus.Fechado:
+        return <div className="p-4 bg-gray-100 text-center text-gray-600 font-semibold">Match fechado.</div>;
+
+      default:
+        return null;
     }
   };
 
@@ -166,25 +280,7 @@ const ChatPage: React.FC = () => {
   
   return (
     <div className="flex flex-col h-full bg-neutral-light">
-      {matchDetails && matchDetails.Status === MatchStatus.Aberto && (
-        <div className="p-4 border-b bg-white space-y-2">
-            <Button 
-                onClick={handleConcluirParceria}
-                disabled={isConcluding || isClosing}
-                className="w-full bg-accent hover:bg-green-700"
-            >
-                {isConcluding ? 'Concluindo...' : 'Marcar como Parceria Concluída'}
-            </Button>
-            <Button 
-                onClick={handleCloseMatch}
-                disabled={isConcluding || isClosing}
-                variant="destructive"
-                className="w-full"
-            >
-                {isClosing ? 'Fechando...' : 'Fechar Match (Sem Parceria)'}
-            </Button>
-        </div>
-      )}
+      {renderActionUI()}
       <div className="flex-grow p-4 space-y-4 overflow-y-auto">
         {messages.map(msg => (
           <div key={msg.ID_Message} className={`flex ${msg.From_Corretor_ID === user?.corretorInfo.ID_Corretor ? 'justify-end' : 'justify-start'}`}>
@@ -204,8 +300,9 @@ const ChatPage: React.FC = () => {
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Digite sua mensagem..."
             className="flex-grow p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-primary-focus"
+            disabled={matchDetails?.Status !== MatchStatus.Aberto}
           />
-          <button type="submit" className="bg-primary text-white rounded-full p-3 flex-shrink-0">
+          <button type="submit" className="bg-primary text-white rounded-full p-3 flex-shrink-0 disabled:bg-gray-400" disabled={matchDetails?.Status !== MatchStatus.Aberto}>
              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
           </button>
         </form>

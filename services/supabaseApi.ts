@@ -393,6 +393,7 @@ const mapSupabaseMatchToMatch = (match: any): Match => ({
     Corretor_B_ID: match.id_corretor_cliente,
     Match_Timestamp: match.created_at,
     Status: match.status,
+    StatusChangeRequesterID: match.status_change_requester_id,
 });
 
 export const getAugmentedMatchesByCorretor = async (corretorId: string) => {
@@ -448,10 +449,34 @@ export const getMatchById = async (matchId: string): Promise<Match | undefined> 
     return data ? mapSupabaseMatchToMatch(data) : undefined;
 };
 
+export const requestConcluirParceria = async (matchId: string, requesterId: string): Promise<void> => {
+    const { error } = await supabase
+        .from('matches')
+        .update({ status: MatchStatus.ConclusaoPendente, status_change_requester_id: requesterId })
+        .eq('id', matchId);
+    if (error) throw error;
+};
+
+export const requestFecharMatch = async (matchId: string, requesterId: string): Promise<void> => {
+    const { error } = await supabase
+        .from('matches')
+        .update({ status: MatchStatus.FechamentoPendente, status_change_requester_id: requesterId })
+        .eq('id', matchId);
+    if (error) throw error;
+};
+
+export const cancelStatusChangeRequest = async (matchId: string): Promise<void> => {
+    const { error } = await supabase
+        .from('matches')
+        .update({ status: MatchStatus.Aberto, status_change_requester_id: null })
+        .eq('id', matchId);
+    if (error) throw error;
+};
+
 export const closeMatch = async (matchId: string): Promise<void> => {
     const { error } = await supabase
         .from('matches')
-        .update({ status: MatchStatus.Fechado })
+        .update({ status: MatchStatus.Fechado, status_change_requester_id: null })
         .eq('id', matchId);
 
     if (error) {

@@ -99,7 +99,7 @@ const ClientesPage: React.FC = () => {
         toast.success("Cliente criado com sucesso!");
       }
       handleCloseModal();
-      // No need to call fetchClientes() here, real-time will handle it
+      fetchClientes(); // Manually refetch after saving
     } catch (error) {
       console.error("Failed to save cliente", error);
       toast.error("Falha ao salvar cliente. Tente novamente.");
@@ -116,7 +116,7 @@ const ClientesPage: React.FC = () => {
       try {
         await api.deleteCliente(cliente.ID_Cliente);
         toast.success("Cliente excluído com sucesso.");
-        // No need to call fetchClientes() here, real-time will handle it
+        fetchClientes(); // Manually refetch after deleting
       } catch (error) {
         console.error("Failed to delete cliente", error);
         toast.error("Falha ao excluir cliente.");

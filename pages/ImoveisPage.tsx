@@ -142,7 +142,7 @@ const ImoveisPage: React.FC = () => {
         toast.success("Imóvel criado com sucesso!");
       }
       handleCloseModal();
-      // No need to call fetchImoveis() here, real-time will handle it
+      fetchImoveis(); // Manually refetch after saving
     } catch (error) {
       console.error("Failed to save imovel", error);
       toast.error((error as Error).message || "Falha ao salvar imóvel. Tente novamente.");
@@ -159,7 +159,7 @@ const ImoveisPage: React.FC = () => {
       try {
         await api.deleteImovel(imovel.ID_Imovel, imovel.Imagens);
         toast.success("Imóvel excluído com sucesso.");
-        // No need to call fetchImoveis() here, real-time will handle it
+        fetchImoveis(); // Manually refetch after deleting
       } catch (error) {
         console.error("Failed to delete imovel", error);
         toast.error("Falha ao excluir imóvel.");

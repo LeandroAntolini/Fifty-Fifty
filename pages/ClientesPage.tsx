@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Cliente, ClienteStatus } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useUI } from '../contexts/UIContext';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
 import AddClienteModal from '../components/AddClienteModal';
-import { Edit, Trash2, Search, Filter, ArrowUpDown, X } from 'lucide-react';
+import { Edit, Trash2, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../src/integrations/supabase/client';
-import { Button } from '../components/ui/Button';
 import ConfirmationModal from '../components/ConfirmationModal';
+import FilterSortControls from '../components/FilterSortControls';
 
 type SortCriteria = 'newest' | 'oldest' | 'highest_value' | 'lowest_value';
 
@@ -23,19 +23,20 @@ const ClientesPage: React.FC = () => {
   const [clienteToArchive, setClienteToArchive] = useState<Cliente | null>(null);
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
 
-  // UI State
-  const [showFilters, setShowFilters] = useState(false);
-  const [showSortMenu, setShowSortMenu] = useState(false);
-  const sortMenuRef = useRef<HTMLDivElement>(null);
-
   // Filter and Sort states
-  const [cidadeFilter, setCidadeFilter] = useState('');
-  const [bairroFilter, setBairroFilter] = useState('');
-  const [estadoFilter, setEstadoFilter] = useState('');
-  const [valorMinFilter, setValorMinFilter] = useState('');
-  const [valorMaxFilter, setValorMaxFilter] = useState('');
-  const [dormitoriosFilter, setDormitoriosFilter] = useState('');
+  const [filters, setFilters] = useState({
+    cidade: '',
+    bairro: '',
+    estado: '',
+    valorMin: '',
+    valorMax: '',
+    dormitorios: '',
+  });
   const [sortCriteria, setSortCriteria] = useState<SortCriteria>('newest');
+
+  const handleFilterChange = (filterName: keyof typeof filters, value: string) => {
+    setFilters(prev => ({ ...prev, [filterName]: value }));
+  };
 
   const fetchClientes = useCallback(async () => {
     if (user) {
@@ -63,39 +64,28 @@ const ClientesPage: React.FC = () => {
     return () => { supabase.removeChannel(channel); };
   }, [user, fetchClientes]);
 
-  // Close sort menu on outside click
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) {
-        setShowSortMenu(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
   const areFiltersActive = useMemo(() => {
-    return !!(cidadeFilter || bairroFilter || estadoFilter || valorMinFilter || valorMaxFilter || dormitoriosFilter);
-  }, [cidadeFilter, bairroFilter, estadoFilter, valorMinFilter, valorMaxFilter, dormitoriosFilter]);
+    return Object.values(filters).some(val => val !== '');
+  }, [filters]);
 
   const clearFilters = () => {
-    setCidadeFilter('');
-    setBairroFilter('');
-    setEstadoFilter('');
-    setValorMinFilter('');
-    setValorMaxFilter('');
-    setDormitoriosFilter('');
+    setFilters({
+      cidade: '',
+      bairro: '',
+      estado: '',
+      valorMin: '',
+      valorMax: '',
+      dormitorios: '',
+    });
   };
 
   const processedClientes = useMemo(() => {
     const filtered = clientes.filter(cliente => {
-      const valorMin = parseFloat(valorMinFilter);
-      const valorMax = parseFloat(valorMaxFilter);
-      const dormitorios = parseInt(dormitoriosFilter, 10);
+      const valorMin = parseFloat(filters.valorMin);
+      const valorMax = parseFloat(filters.valorMax);
+      const dormitorios = parseInt(filters.dormitorios, 10);
       const valorOverlap = (isNaN(valorMin) || cliente.FaixaValorMax >= valorMin) && (isNaN(valorMax) || cliente.FaixaValorMin <= valorMax);
-      return ((cidadeFilter === '' || cliente.CidadeDesejada.toLowerCase().includes(cidadeFilter.toLowerCase())) && (bairroFilter === '' || cliente.BairroRegiaoDesejada.toLowerCase().includes(bairroFilter.toLowerCase())) && (estadoFilter === '' || (cliente.EstadoDesejado && cliente.EstadoDesejado.toLowerCase().includes(estadoFilter.toLowerCase()))) && valorOverlap && (isNaN(dormitorios) || cliente.DormitoriosMinimos >= dormitorios));
+      return ((filters.cidade === '' || cliente.CidadeDesejada.toLowerCase().includes(filters.cidade.toLowerCase())) && (filters.bairro === '' || cliente.BairroRegiaoDesejada.toLowerCase().includes(filters.bairro.toLowerCase())) && (filters.estado === '' || (cliente.EstadoDesejado && cliente.EstadoDesejado.toLowerCase().includes(filters.estado.toLowerCase()))) && valorOverlap && (isNaN(dormitorios) || cliente.DormitoriosMinimos >= dormitorios));
     });
 
     return filtered.sort((a, b) => {
@@ -109,7 +99,7 @@ const ClientesPage: React.FC = () => {
         default: return 0;
       }
     });
-  }, [clientes, cidadeFilter, bairroFilter, estadoFilter, valorMinFilter, valorMaxFilter, dormitoriosFilter, sortCriteria]);
+  }, [clientes, filters, sortCriteria]);
 
   const handleSaveCliente = async (formData: Partial<Omit<Cliente, 'ID_Cliente' | 'ID_Corretor' | 'CreatedAt'>>, id?: string) => {
     if (!user) return;
@@ -180,12 +170,6 @@ const ClientesPage: React.FC = () => {
   };
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(value);
-  const sortOptions: { label: string; value: SortCriteria }[] = [
-    { label: 'Recém Adicionados', value: 'newest' },
-    { label: 'Mais Antigos', value: 'oldest' },
-    { label: 'Maior Valor', value: 'highest_value' },
-    { label: 'Menor Valor', value: 'lowest_value' },
-  ];
 
   if (loading) {
     return <div className="flex justify-center mt-8"><Spinner /></div>;
@@ -193,50 +177,18 @@ const ClientesPage: React.FC = () => {
 
   return (
     <div>
-      <div className="bg-white p-2 rounded-lg shadow mb-4 space-y-2">
-        <div className="flex space-x-2">
-          <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="w-full justify-center">
-            <Filter size={16} className="mr-2" />
-            Filtrar
-            {areFiltersActive && <span className="ml-2 h-2 w-2 rounded-full bg-secondary" />}
-          </Button>
-          <div className="relative w-full" ref={sortMenuRef}>
-            <Button variant="outline" onClick={() => setShowSortMenu(!showSortMenu)} className="w-full justify-center">
-              <ArrowUpDown size={16} className="mr-2" />
-              Ordenar
-            </Button>
-            {showSortMenu && (
-              <div className="absolute top-full right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10">
-                {sortOptions.map(option => (
-                  <button
-                    key={option.value}
-                    onClick={() => { setSortCriteria(option.value); setShowSortMenu(false); }}
-                    className={`block w-full text-left px-4 py-2 text-sm ${sortCriteria === option.value ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'}`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-        {showFilters && (
-          <div className="p-2 border-t">
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <input type="text" placeholder="Cidade Desejada" value={cidadeFilter} onChange={(e) => setCidadeFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
-              <input type="text" placeholder="Bairro Desejado" value={bairroFilter} onChange={(e) => setBairroFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
-              <input type="text" placeholder="Estado (UF)" value={estadoFilter} onChange={(e) => setEstadoFilter(e.target.value.toUpperCase())} className="w-full px-3 py-2 border rounded text-sm" maxLength={2} />
-              <input type="number" placeholder="Dorms. Mín." value={dormitoriosFilter} onChange={(e) => setDormitoriosFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
-              <input type="number" placeholder="Valor Mín." value={valorMinFilter} onChange={(e) => setValorMinFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
-              <input type="number" placeholder="Valor Máx." value={valorMaxFilter} onChange={(e) => setValorMaxFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
-            </div>
-            <Button variant="ghost" onClick={clearFilters} className="w-full text-destructive">
-              <X size={16} className="mr-2" />
-              Limpar Filtros
-            </Button>
-          </div>
-        )}
-      </div>
+      <FilterSortControls
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        sortCriteria={sortCriteria}
+        onSortChange={setSortCriteria}
+        areFiltersActive={areFiltersActive}
+        onClearFilters={clearFilters}
+        placeholders={{
+          cidade: 'Cidade Desejada',
+          bairro: 'Bairro Desejado',
+        }}
+      />
 
       {processedClientes.length === 0 ? (
         <div className="text-center p-4 bg-white rounded-lg shadow">

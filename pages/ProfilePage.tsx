@@ -169,6 +169,33 @@ const ProfilePage: React.FC = () => {
                     </Button>
                 </CardContent>
             </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Sobre o Aplicativo</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm">
+                    <div className="flex justify-between items-center">
+                        <p className="text-muted-foreground">Versão</p>
+                        <p>1.0.0</p>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <p className="text-muted-foreground">Suporte Técnico</p>
+                        <a href="mailto:suporte@fiftyfifty.com" className="text-primary hover:underline">enviar e-mail</a>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <p className="text-muted-foreground">Enviar Feedback</p>
+                        <a href="mailto:feedback@fiftyfifty.com" className="text-primary hover:underline">enviar e-mail</a>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <p className="text-muted-foreground">Política de Privacidade</p>
+                        <a href="#" className="text-primary hover:underline">ler documento</a>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <p className="text-muted-foreground">Termos de Serviço</p>
+                        <a href="#" className="text-primary hover:underline">ler documento</a>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     );
 };

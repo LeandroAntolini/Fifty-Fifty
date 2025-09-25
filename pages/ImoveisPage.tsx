@@ -5,7 +5,7 @@ import { useUI } from '../contexts/UIContext';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
 import AddImovelModal, { ImageChanges } from '../components/AddImovelModal';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../src/integrations/supabase/client';
 
@@ -176,7 +176,6 @@ const ImoveisPage: React.FC = () => {
     setFindingMatch(imovel.ID_Imovel);
     try {
         const newMatches = await api.findMatchesForImovel(imovel);
-        // The success toast is now handled by the real-time NotificationContext
         if (newMatches.length === 0) {
             toast('Nenhum novo match encontrado para este imóvel.', { icon: '🤷' });
         }
@@ -269,22 +268,23 @@ const ImoveisPage: React.FC = () => {
                     {imovel.Metragem && ` • ${imovel.Metragem} m²`}
                   </p>
                 </div>
-                <div className="flex items-center justify-between mt-2">
+                <div className="flex items-center justify-between mt-4">
                   <span className={`px-2 py-1 rounded-full text-white text-sm ${imovel.Status === 'Ativo' ? 'bg-green-500' : 'bg-gray-500'}`}>{imovel.Status}</span>
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-2 items-center">
+                    {imovel.Status === 'Ativo' && (
+                      <button
+                        onClick={() => handleBuscarMatch(imovel)}
+                        disabled={findingMatch === imovel.ID_Imovel}
+                        className="text-gray-500 hover:text-secondary p-1 disabled:opacity-50 disabled:cursor-wait"
+                        title="Buscar Match"
+                      >
+                        {findingMatch === imovel.ID_Imovel ? <Spinner size="sm" /> : <Sparkles size={20} />}
+                      </button>
+                    )}
                     <button onClick={() => handleEdit(imovel)} className="text-gray-500 hover:text-primary p-1"><Edit size={20} /></button>
                     <button onClick={() => handleDelete(imovel)} className="text-gray-500 hover:text-destructive p-1"><Trash2 size={20} /></button>
                   </div>
                 </div>
-                {imovel.Status === 'Ativo' && (
-                  <button
-                    onClick={() => handleBuscarMatch(imovel)}
-                    disabled={findingMatch === imovel.ID_Imovel}
-                    className="mt-4 w-full bg-secondary hover:bg-amber-500 text-primary font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:bg-neutral-DEFAULT"
-                  >
-                    {findingMatch === imovel.ID_Imovel ? 'Buscando...' : 'Buscar Match'}
-                  </button>
-                )}
               </div>
             </div>
           ))}

@@ -5,7 +5,7 @@ import { useUI } from '../contexts/UIContext';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
 import AddClienteModal from '../components/AddClienteModal';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../src/integrations/supabase/client';
 
@@ -133,7 +133,6 @@ const ClientesPage: React.FC = () => {
     setFindingMatch(cliente.ID_Cliente);
     try {
         const newMatches = await api.findMatchesForCliente(cliente);
-        // The success toast is now handled by the real-time NotificationContext
         if (newMatches.length === 0) {
             toast('Nenhum novo match encontrado para este cliente.', { icon: '🤷' });
         }
@@ -221,25 +220,28 @@ const ClientesPage: React.FC = () => {
                     <p className="text-sm text-gray-600">{cliente.CidadeDesejada} - {cliente.EstadoDesejado}</p>
                     <p className="text-sm text-gray-500">Busca em: {cliente.BairroRegiaoDesejada}</p>
                 </div>
-                <div className="flex space-x-2">
-                    <button onClick={() => handleEdit(cliente)} className="text-gray-500 hover:text-primary p-1"><Edit size={20} /></button>
-                    <button onClick={() => handleDelete(cliente)} className="text-gray-500 hover:text-destructive p-1"><Trash2 size={20} /></button>
-                </div>
               </div>
               <div className="mt-2 text-sm">
                 <p>Faixa de Valor: {formatCurrency(cliente.FaixaValorMin)} - {formatCurrency(cliente.FaixaValorMax)}</p>
                 <p>Dormitórios: {cliente.DormitoriosMinimos}+</p>
               </div>
-              <div className="mt-2 text-sm">
-                <span className={`px-2 py-1 rounded-full text-white ${cliente.Status === 'Ativo' ? 'bg-green-500' : 'bg-gray-500'}`}>{cliente.Status}</span>
+              <div className="flex items-center justify-between mt-4">
+                <span className={`px-2 py-1 rounded-full text-white text-sm ${cliente.Status === 'Ativo' ? 'bg-green-500' : 'bg-gray-500'}`}>{cliente.Status}</span>
+                <div className="flex space-x-2 items-center">
+                    {cliente.Status === 'Ativo' && (
+                        <button
+                            onClick={() => handleBuscarMatch(cliente)}
+                            disabled={findingMatch === cliente.ID_Cliente}
+                            className="text-gray-500 hover:text-secondary p-1 disabled:opacity-50 disabled:cursor-wait"
+                            title="Buscar Match"
+                        >
+                            {findingMatch === cliente.ID_Cliente ? <Spinner size="sm" /> : <Sparkles size={20} />}
+                        </button>
+                    )}
+                    <button onClick={() => handleEdit(cliente)} className="text-gray-500 hover:text-primary p-1"><Edit size={20} /></button>
+                    <button onClick={() => handleDelete(cliente)} className="text-gray-500 hover:text-destructive p-1"><Trash2 size={20} /></button>
+                </div>
               </div>
-              <button
-                onClick={() => handleBuscarMatch(cliente)}
-                disabled={findingMatch === cliente.ID_Cliente}
-                className="mt-4 w-full bg-secondary hover:bg-amber-500 text-primary font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:bg-neutral-DEFAULT"
-              >
-                {findingMatch === cliente.ID_Cliente ? 'Buscando...' : 'Buscar Match'}
-              </button>
             </div>
           ))}
         </div>

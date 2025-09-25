@@ -9,6 +9,7 @@ import { Edit, Trash2, Search, Filter, ArrowUpDown, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../src/integrations/supabase/client';
 import { Button } from '../components/ui/Button';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 type SortCriteria = 'newest' | 'oldest' | 'highest_value' | 'lowest_value';
 
@@ -19,6 +20,8 @@ const ClientesPage: React.FC = () => {
   const { isClienteModalOpen, openClienteModal, closeClienteModal } = useUI();
   const [findingMatch, setFindingMatch] = useState<string | null>(null);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
+  const [clienteToArchive, setClienteToArchive] = useState<Cliente | null>(null);
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
 
   // UI State
   const [showFilters, setShowFilters] = useState(false);
@@ -136,15 +139,23 @@ const ClientesPage: React.FC = () => {
     openClienteModal();
   };
 
-  const handleArchive = async (cliente: Cliente) => {
-    if (window.confirm(`Tem certeza que deseja arquivar este cliente? Ele será removido da sua lista principal, mas o histórico de parcerias será mantido.`)) {
+  const handleArchive = (cliente: Cliente) => {
+    setClienteToArchive(cliente);
+    setShowArchiveConfirm(true);
+  };
+
+  const confirmArchive = async () => {
+    if (clienteToArchive) {
       try {
-        await api.updateCliente(cliente.ID_Cliente, { Status: ClienteStatus.Inativo });
+        await api.updateCliente(clienteToArchive.ID_Cliente, { Status: ClienteStatus.Inativo });
         toast.success("Cliente arquivado com sucesso.");
         fetchClientes();
       } catch (error) {
         console.error("Failed to archive cliente", error);
         toast.error("Falha ao arquivar o cliente.");
+      } finally {
+        setShowArchiveConfirm(false);
+        setClienteToArchive(null);
       }
     }
   };
@@ -267,6 +278,14 @@ const ClientesPage: React.FC = () => {
         </div>
       )}
         <AddClienteModal isOpen={isClienteModalOpen} onClose={handleCloseModal} onSave={handleSaveCliente} clienteToEdit={editingCliente} />
+        <ConfirmationModal
+            isOpen={showArchiveConfirm}
+            onClose={() => setShowArchiveConfirm(false)}
+            onConfirm={confirmArchive}
+            title="Confirmar Arquivamento"
+            message="Tem certeza que deseja arquivar este cliente? Ele será removido da sua lista principal, mas o histórico de parcerias será mantido."
+            confirmText="Arquivar"
+        />
     </div>
   );
 };

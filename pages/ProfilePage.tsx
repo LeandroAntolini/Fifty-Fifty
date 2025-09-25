@@ -8,6 +8,7 @@ import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
 import { User as UserIcon, Edit2 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const ProfilePage: React.FC = () => {
     const { user, updateProfile, loading: authLoading, deleteAccount } = useAuth();
@@ -22,6 +23,7 @@ const ProfilePage: React.FC = () => {
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -64,19 +66,22 @@ const ProfilePage: React.FC = () => {
         }
     };
 
-    const handleDeleteAccount = async () => {
-        if (window.confirm("Tem certeza que deseja excluir sua conta? Esta ação é irreversível e todos os seus dados serão perdidos.")) {
-            setLoading(true);
-            try {
-                await deleteAccount();
-                toast.success('Conta excluída com sucesso.');
-                navigate('/login');
-            } catch (err) {
-                toast.error('Falha ao excluir a conta. Tente novamente.');
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
+    const handleDeleteAccount = () => {
+        setShowDeleteAccountConfirm(true);
+    };
+
+    const confirmDeleteAccount = async () => {
+        setShowDeleteAccountConfirm(false);
+        setLoading(true);
+        try {
+            await deleteAccount();
+            toast.success('Conta excluída com sucesso.');
+            navigate('/login');
+        } catch (err) {
+            toast.error('Falha ao excluir a conta. Tente novamente.');
+            console.error(err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -196,6 +201,15 @@ const ProfilePage: React.FC = () => {
                     </div>
                 </CardContent>
             </Card>
+            <ConfirmationModal
+                isOpen={showDeleteAccountConfirm}
+                onClose={() => setShowDeleteAccountConfirm(false)}
+                onConfirm={confirmDeleteAccount}
+                title="Excluir Conta"
+                message="Tem certeza que deseja excluir sua conta? Esta ação é irreversível e todos os seus dados serão perdidos."
+                isDestructive
+                confirmText="Excluir Permanentemente"
+            />
         </div>
     );
 };

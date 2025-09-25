@@ -9,6 +9,7 @@ import { Edit, Trash2, Search, Filter, ArrowUpDown, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../src/integrations/supabase/client';
 import { Button } from '../components/ui/Button';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 type SortCriteria = 'newest' | 'oldest' | 'highest_value' | 'lowest_value';
 
@@ -60,6 +61,8 @@ const ImoveisPage: React.FC = () => {
   const { isImovelModalOpen, openImovelModal, closeImovelModal } = useUI();
   const [findingMatch, setFindingMatch] = useState<string | null>(null);
   const [editingImovel, setEditingImovel] = useState<Imovel | null>(null);
+  const [imovelToDelete, setImovelToDelete] = useState<Imovel | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // UI State
   const [showFilters, setShowFilters] = useState(false);
@@ -197,15 +200,23 @@ const ImoveisPage: React.FC = () => {
     openImovelModal();
   };
 
-  const handleDelete = async (imovel: Imovel) => {
-    if (window.confirm(`Tem certeza que deseja excluir o imóvel "${imovel.Tipo} em ${imovel.Bairro}"?`)) {
+  const handleDelete = (imovel: Imovel) => {
+    setImovelToDelete(imovel);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (imovelToDelete) {
       try {
-        await api.deleteImovel(imovel.ID_Imovel, imovel.Imagens);
+        await api.deleteImovel(imovelToDelete.ID_Imovel, imovelToDelete.Imagens);
         toast.success("Imóvel excluído com sucesso.");
         fetchImoveis();
       } catch (error) {
         console.error("Failed to delete imovel", error);
         toast.error("Falha ao excluir imóvel.");
+      } finally {
+        setShowDeleteConfirm(false);
+        setImovelToDelete(null);
       }
     }
   };
@@ -326,6 +337,15 @@ const ImoveisPage: React.FC = () => {
         </div>
       )}
         <AddImovelModal isOpen={isImovelModalOpen} onClose={handleCloseModal} onSave={handleSaveImovel} imovelToEdit={editingImovel} />
+        <ConfirmationModal
+            isOpen={showDeleteConfirm}
+            onClose={() => setShowDeleteConfirm(false)}
+            onConfirm={confirmDelete}
+            title="Confirmar Exclusão"
+            message={`Tem certeza que deseja excluir o imóvel "${imovelToDelete?.Tipo} em ${imovelToDelete?.Bairro}"? Esta ação não pode ser desfeita.`}
+            isDestructive
+            confirmText="Excluir"
+        />
     </div>
   );
 };

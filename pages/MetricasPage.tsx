@@ -3,7 +3,8 @@ import { Metric } from '../types';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
-import { Button } from '../components/ui/Button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/Select';
+import { Label } from '../components/ui/Label';
 
 type SortCriteria = keyof Omit<Metric, 'ID_Corretor' | 'Nome'>;
 
@@ -54,12 +55,12 @@ const MetricasPage: React.FC = () => {
     };
 
     const filterOptions: { label: string; value: SortCriteria }[] = [
-        { label: 'Parcerias', value: 'Parcerias_Concluidas' },
-        { label: 'Imóveis', value: 'Imoveis_Adicionados' },
-        { label: 'Clientes', value: 'Clientes_Adicionados' },
-        { label: 'Matches', value: 'Matches_Iniciados' },
-        { label: 'Conversas', value: 'Conversas_Iniciadas' },
-        { label: 'Conversão', value: 'Taxa_Conversao' },
+        { label: 'Parcerias Concluídas', value: 'Parcerias_Concluidas' },
+        { label: 'Imóveis Adicionados', value: 'Imoveis_Adicionados' },
+        { label: 'Clientes Adicionados', value: 'Clientes_Adicionados' },
+        { label: 'Matches Iniciados', value: 'Matches_Iniciados' },
+        { label: 'Conversas Iniciadas', value: 'Conversas_Iniciadas' },
+        { label: 'Taxa de Conversão', value: 'Taxa_Conversao' },
     ];
 
     if (loading) {
@@ -70,17 +71,23 @@ const MetricasPage: React.FC = () => {
         <div className="space-y-4">
             <h2 className="text-xl font-bold text-center text-primary mb-4">Ranking de Corretores</h2>
             
-            <div className="grid grid-cols-3 gap-2 mb-4 bg-white p-2 rounded-lg shadow">
-                {filterOptions.map(option => (
-                    <Button
-                        key={option.value}
-                        size="sm"
-                        variant={sortCriteria === option.value ? 'default' : 'ghost'}
-                        onClick={() => setSortCriteria(option.value)}
-                    >
-                        {option.label}
-                    </Button>
-                ))}
+            <div className="mb-4 bg-white p-4 rounded-lg shadow space-y-2">
+                <Label htmlFor="metricas-sort">Ordenar ranking por</Label>
+                <Select
+                    value={sortCriteria}
+                    onValueChange={(value) => setSortCriteria(value as SortCriteria)}
+                >
+                    <SelectTrigger id="metricas-sort">
+                        <SelectValue placeholder="Selecione uma métrica" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {filterOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
 
             {sortedMetrics.map((metric, index) => (

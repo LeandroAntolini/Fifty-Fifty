@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Cliente, Finalidade, ClienteStatus } from '../types';
 import toast from 'react-hot-toast';
+import { Button } from './ui/Button';
+import { Input } from './ui/Input';
+import { Label } from './ui/Label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/Select';
 
-type ClienteFormData = Omit<Cliente, 'ID_Cliente' | 'ID_Corretor'>;
+type ClienteFormData = Omit<Cliente, 'ID_Cliente' | 'ID_Corretor' | 'CreatedAt'>;
 
 interface AddClienteModalProps {
   isOpen: boolean;
@@ -50,12 +54,16 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
 
   if (!isOpen) return null;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const numericFields = ['FaixaValorMin', 'FaixaValorMax', 'DormitoriosMinimos'];
     const finalValue = name === 'EstadoDesejado' ? value.toUpperCase() : value;
     const numericValue = numericFields.includes(name) ? parseFloat(finalValue) || 0 : finalValue;
     setFormData(prev => ({ ...prev, [name]: numericValue }));
+  };
+
+  const handleSelectChange = (name: 'Finalidade' | 'Status') => (value: string) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -73,62 +81,64 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
         <h2 id="modal-title" className="text-2xl font-bold text-primary mb-4">{isEditMode ? 'Editar Cliente' : 'Cadastrar Novo Cliente'}</h2>
         <form onSubmit={handleSubmit} noValidate>
           <div className="space-y-4">
-            <div>
-              <label htmlFor="TipoImovelDesejado" className="block text-sm font-medium text-gray-700">Tipo de Imóvel Desejado</label>
-              <input id="TipoImovelDesejado" type="text" name="TipoImovelDesejado" value={formData.TipoImovelDesejado} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required />
+            <div className="space-y-1.5">
+              <Label htmlFor="TipoImovelDesejado">Tipo de Imóvel Desejado</Label>
+              <Input id="TipoImovelDesejado" name="TipoImovelDesejado" value={formData.TipoImovelDesejado} onChange={handleInputChange} required />
             </div>
-            <div>
-              <label htmlFor="Finalidade" className="block text-sm font-medium text-gray-700">Finalidade</label>
-              <select id="Finalidade" name="Finalidade" value={formData.Finalidade} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required>
-                <option value={Finalidade.Venda}>Compra</option>
-                <option value={Finalidade.Aluguel}>Aluguel</option>
-              </select>
+            <div className="space-y-1.5">
+              <Label htmlFor="Finalidade">Finalidade</Label>
+              <Select name="Finalidade" value={formData.Finalidade} onValueChange={handleSelectChange('Finalidade')} required>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={Finalidade.Venda}>Compra</SelectItem>
+                  <SelectItem value={Finalidade.Aluguel}>Aluguel</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2">
-                    <label htmlFor="CidadeDesejada" className="block text-sm font-medium text-gray-700">Cidade Desejada</label>
-                    <input id="CidadeDesejada" type="text" name="CidadeDesejada" value={formData.CidadeDesejada} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required />
+                <div className="space-y-1.5 col-span-2">
+                    <Label htmlFor="CidadeDesejada">Cidade Desejada</Label>
+                    <Input id="CidadeDesejada" name="CidadeDesejada" value={formData.CidadeDesejada} onChange={handleInputChange} required />
                 </div>
-                <div>
-                    <label htmlFor="EstadoDesejado" className="block text-sm font-medium text-gray-700">Estado</label>
-                    <input id="EstadoDesejado" type="text" name="EstadoDesejado" value={formData.EstadoDesejado} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required maxLength={2} placeholder="UF" />
+                <div className="space-y-1.5">
+                    <Label htmlFor="EstadoDesejado">Estado</Label>
+                    <Input id="EstadoDesejado" name="EstadoDesejado" value={formData.EstadoDesejado} onChange={handleInputChange} required maxLength={2} placeholder="UF" />
                 </div>
             </div>
-            <div>
-              <label htmlFor="BairroRegiaoDesejada" className="block text-sm font-medium text-gray-700">Bairro/Região (separado por vírgula)</label>
-              <input id="BairroRegiaoDesejada" type="text" name="BairroRegiaoDesejada" value={formData.BairroRegiaoDesejada} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" />
+            <div className="space-y-1.5">
+              <Label htmlFor="BairroRegiaoDesejada">Bairro/Região (separado por vírgula)</Label>
+              <Input id="BairroRegiaoDesejada" name="BairroRegiaoDesejada" value={formData.BairroRegiaoDesejada} onChange={handleInputChange} />
             </div>
             <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <label htmlFor="FaixaValorMin" className="block text-sm font-medium text-gray-700">Valor Mínimo (R$)</label>
-                    <input id="FaixaValorMin" type="number" name="FaixaValorMin" min="0" value={formData.FaixaValorMin === 0 ? '' : formData.FaixaValorMin} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" />
+                <div className="space-y-1.5">
+                    <Label htmlFor="FaixaValorMin">Valor Mínimo (R$)</Label>
+                    <Input id="FaixaValorMin" type="number" name="FaixaValorMin" min="0" value={formData.FaixaValorMin === 0 ? '' : formData.FaixaValorMin} onChange={handleInputChange} />
                 </div>
-                <div>
-                    <label htmlFor="FaixaValorMax" className="block text-sm font-medium text-gray-700">Valor Máximo (R$)</label>
-                    <input id="FaixaValorMax" type="number" name="FaixaValorMax" min="1" value={formData.FaixaValorMax === 0 ? '' : formData.FaixaValorMax} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required />
+                <div className="space-y-1.5">
+                    <Label htmlFor="FaixaValorMax">Valor Máximo (R$)</Label>
+                    <Input id="FaixaValorMax" type="number" name="FaixaValorMax" min="1" value={formData.FaixaValorMax === 0 ? '' : formData.FaixaValorMax} onChange={handleInputChange} required />
                 </div>
             </div>
-            <div>
-              <label htmlFor="DormitoriosMinimos" className="block text-sm font-medium text-gray-700">Dormitórios Mínimos</label>
-              <input id="DormitoriosMinimos" type="number" name="DormitoriosMinimos" min="0" value={formData.DormitoriosMinimos} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required />
+            <div className="space-y-1.5">
+              <Label htmlFor="DormitoriosMinimos">Dormitórios Mínimos</Label>
+              <Input id="DormitoriosMinimos" type="number" name="DormitoriosMinimos" min="0" value={formData.DormitoriosMinimos} onChange={handleInputChange} required />
             </div>
             {isEditMode && (
-                <div>
-                    <label htmlFor="Status" className="block text-sm font-medium text-gray-700">Status</label>
-                    <select id="Status" name="Status" value={formData.Status} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required>
-                        <option value={ClienteStatus.Ativo}>Ativo</option>
-                        <option value={ClienteStatus.Inativo}>Inativo</option>
-                    </select>
+                <div className="space-y-1.5">
+                    <Label htmlFor="Status">Status</Label>
+                    <Select name="Status" value={formData.Status} onValueChange={handleSelectChange('Status')} required>
+                        <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={ClienteStatus.Ativo}>Ativo</SelectItem>
+                            <SelectItem value={ClienteStatus.Inativo}>Inativo</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             )}
           </div>
           <div className="mt-6 flex justify-end space-x-2">
-            <button type="button" onClick={onClose} className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-              Cancelar
-            </button>
-            <button type="submit" className="bg-primary hover:bg-primary-hover text-white font-bold py-2 px-4 rounded">
-              {isEditMode ? 'Salvar Alterações' : 'Salvar Cliente'}
-            </button>
+            <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
+            <Button type="submit">{isEditMode ? 'Salvar Alterações' : 'Salvar Cliente'}</Button>
           </div>
         </form>
       </div>

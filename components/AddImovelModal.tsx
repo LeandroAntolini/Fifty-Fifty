@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Imovel, Finalidade, ImovelStatus } from '../types';
 import toast from 'react-hot-toast';
+import { Button } from './ui/Button';
+import { Input } from './ui/Input';
+import { Label } from './ui/Label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/Select';
 
-type ImovelFormData = Omit<Imovel, 'ID_Imovel' | 'ID_Corretor' | 'Imagens'>;
+type ImovelFormData = Omit<Imovel, 'ID_Imovel' | 'ID_Corretor' | 'Imagens' | 'CreatedAt'>;
 
 export interface ImageChanges {
   newImagesBase64: string[];
@@ -28,7 +32,7 @@ const fileToBase64 = (file: File): Promise<string> => {
 const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave, imovelToEdit }) => {
   const isEditMode = !!imovelToEdit;
 
-  const getInitialFormData = () => ({
+  const getInitialFormData = (): ImovelFormData => ({
     Tipo: '',
     Finalidade: Finalidade.Venda,
     Cidade: '',
@@ -73,12 +77,16 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
 
   if (!isOpen) return null;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const numericFields = ['Valor', 'Dormitorios', 'Metragem'];
     const finalValue = name === 'Estado' ? value.toUpperCase() : value;
     const numericValue = numericFields.includes(name) ? parseFloat(finalValue) || 0 : finalValue;
     setFormData(prev => ({ ...prev, [name]: numericValue }));
+  };
+
+  const handleSelectChange = (name: 'Finalidade' | 'Status') => (value: string) => {
+    setFormData(prev => ({ ...prev, [name]: value as Finalidade | ImovelStatus }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,85 +134,89 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
         <h2 id="modal-title" className="text-2xl font-bold text-primary mb-4">{isEditMode ? 'Editar Imóvel' : 'Cadastrar Novo Imóvel'}</h2>
         <form onSubmit={handleSubmit} noValidate>
           <div className="space-y-4">
-            {/* Form fields remain the same */}
-            <div>
-              <label htmlFor="Tipo" className="block text-sm font-medium text-gray-700">Tipo (ex: Apartamento, Casa)</label>
-              <input id="Tipo" type="text" name="Tipo" value={formData.Tipo} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required />
+            <div className="space-y-1.5">
+              <Label htmlFor="Tipo">Tipo (ex: Apartamento, Casa)</Label>
+              <Input id="Tipo" name="Tipo" value={formData.Tipo} onChange={handleInputChange} required />
             </div>
-            <div>
-              <label htmlFor="Finalidade" className="block text-sm font-medium text-gray-700">Finalidade</label>
-              <select id="Finalidade" name="Finalidade" value={formData.Finalidade} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required>
-                <option value={Finalidade.Venda}>Venda</option>
-                <option value={Finalidade.Aluguel}>Aluguel</option>
-              </select>
+            <div className="space-y-1.5">
+              <Label htmlFor="Finalidade">Finalidade</Label>
+              <Select name="Finalidade" value={formData.Finalidade} onValueChange={handleSelectChange('Finalidade')} required>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={Finalidade.Venda}>Venda</SelectItem>
+                  <SelectItem value={Finalidade.Aluguel}>Aluguel</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2">
-                    <label htmlFor="Cidade" className="block text-sm font-medium text-gray-700">Cidade</label>
-                    <input id="Cidade" type="text" name="Cidade" value={formData.Cidade} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required />
+                <div className="space-y-1.5 col-span-2">
+                    <Label htmlFor="Cidade">Cidade</Label>
+                    <Input id="Cidade" name="Cidade" value={formData.Cidade} onChange={handleInputChange} required />
                 </div>
-                 <div>
-                    <label htmlFor="Estado" className="block text-sm font-medium text-gray-700">Estado</label>
-                    <input id="Estado" type="text" name="Estado" value={formData.Estado} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required maxLength={2} placeholder="UF" />
+                 <div className="space-y-1.5">
+                    <Label htmlFor="Estado">Estado</Label>
+                    <Input id="Estado" name="Estado" value={formData.Estado} onChange={handleInputChange} required maxLength={2} placeholder="UF" />
                 </div>
             </div>
-            <div>
-                <label htmlFor="Bairro" className="block text-sm font-medium text-gray-700">Bairro</label>
-                <input id="Bairro" type="text" name="Bairro" value={formData.Bairro} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required />
+            <div className="space-y-1.5">
+                <Label htmlFor="Bairro">Bairro</Label>
+                <Input id="Bairro" name="Bairro" value={formData.Bairro} onChange={handleInputChange} required />
             </div>
             <div className="grid grid-cols-3 gap-4">
-                <div>
-                    <label htmlFor="Valor" className="block text-sm font-medium text-gray-700">Valor (R$)</label>
-                    <input id="Valor" type="number" name="Valor" min="1" value={formData.Valor === 0 ? '' : formData.Valor} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required />
+                <div className="space-y-1.5">
+                    <Label htmlFor="Valor">Valor (R$)</Label>
+                    <Input id="Valor" type="number" name="Valor" min="1" value={formData.Valor === 0 ? '' : formData.Valor} onChange={handleInputChange} required />
                 </div>
-                <div>
-                    <label htmlFor="Dormitorios" className="block text-sm font-medium text-gray-700">Dorms</label>
-                    <input id="Dormitorios" type="number" name="Dormitorios" min="0" value={formData.Dormitorios} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required />
+                <div className="space-y-1.5">
+                    <Label htmlFor="Dormitorios">Dorms</Label>
+                    <Input id="Dormitorios" type="number" name="Dormitorios" min="0" value={formData.Dormitorios} onChange={handleInputChange} required />
                 </div>
-                <div>
-                    <label htmlFor="Metragem" className="block text-sm font-medium text-gray-700">Área (m²)</label>
-                    <input id="Metragem" type="number" name="Metragem" min="0" value={formData.Metragem === 0 ? '' : formData.Metragem} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" />
+                <div className="space-y-1.5">
+                    <Label htmlFor="Metragem">Área (m²)</Label>
+                    <Input id="Metragem" type="number" name="Metragem" min="0" value={formData.Metragem === 0 ? '' : formData.Metragem} onChange={handleInputChange} />
                 </div>
             </div>
             {isEditMode && (
-                <div>
-                    <label htmlFor="Status" className="block text-sm font-medium text-gray-700">Status</label>
-                    <select id="Status" name="Status" value={formData.Status} onChange={handleChange} className="mt-1 w-full px-3 py-2 border rounded" required>
-                        <option value={ImovelStatus.Ativo}>Ativo</option>
-                        <option value={ImovelStatus.Inativo}>Inativo</option>
-                        <option value={ImovelStatus.Vendido}>Vendido</option>
-                        <option value={ImovelStatus.Alugado}>Alugado</option>
-                    </select>
+                <div className="space-y-1.5">
+                    <Label htmlFor="Status">Status</Label>
+                    <Select name="Status" value={formData.Status} onValueChange={handleSelectChange('Status')} required>
+                        <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={ImovelStatus.Ativo}>Ativo</SelectItem>
+                            <SelectItem value={ImovelStatus.Inativo}>Inativo</SelectItem>
+                            <SelectItem value={ImovelStatus.Vendido}>Vendido</SelectItem>
+                            <SelectItem value={ImovelStatus.Alugado}>Alugado</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             )}
             
-            {/* Image Management Section */}
             <div>
-                <label className="block text-sm font-medium text-gray-700">Imagens do Imóvel</label>
+                <Label>Imagens do Imóvel</Label>
                 {(existingImages.length > 0 || newImagePreviews.length > 0) && (
                     <div className="grid grid-cols-3 gap-2 mt-2 mb-2">
                         {existingImages.map((url) => (
                             <div key={url} className="relative">
                                 <img src={url} alt="Imagem existente" className="h-24 w-full object-cover rounded-md" />
-                                <button
+                                <Button
                                     type="button"
+                                    variant="destructive"
+                                    size="icon"
                                     onClick={() => handleRemoveExistingImage(url)}
-                                    className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                                >
-                                    X
-                                </button>
+                                    className="absolute top-0 right-0 h-5 w-5 rounded-full"
+                                >X</Button>
                             </div>
                         ))}
                         {newImagePreviews.map((preview, index) => (
                             <div key={preview} className="relative">
                                 <img src={preview} alt={`Preview ${index}`} className="h-24 w-full object-cover rounded-md" />
-                                <button
+                                <Button
                                     type="button"
+                                    variant="destructive"
+                                    size="icon"
                                     onClick={() => handleRemoveNewImage(index)}
-                                    className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                                >
-                                    X
-                                </button>
+                                    className="absolute top-0 right-0 h-5 w-5 rounded-full"
+                                >X</Button>
                             </div>
                         ))}
                     </div>
@@ -213,10 +225,10 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
                     <div className="space-y-1 text-center">
                     <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     <div className="flex text-sm text-gray-600">
-                        <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-primary-hover focus-within:outline-none">
+                        <Label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-primary-hover focus-within:outline-none">
                         <span>Carregar novas imagens</span>
                         <input id="file-upload" name="file-upload" type="file" multiple accept="image/*" className="sr-only" onChange={handleImageChange} />
-                        </label>
+                        </Label>
                     </div>
                     <p className="text-xs text-gray-500">PNG, JPG, GIF até 10MB</p>
                     </div>
@@ -224,12 +236,8 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
             </div>
           </div>
           <div className="mt-6 flex justify-end space-x-2">
-            <button type="button" onClick={onClose} className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-              Cancelar
-            </button>
-            <button type="submit" className="bg-primary hover:bg-primary-hover text-white font-bold py-2 px-4 rounded">
-              {isEditMode ? 'Salvar Alterações' : 'Salvar Imóvel'}
-            </button>
+            <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
+            <Button type="submit">{isEditMode ? 'Salvar Alterações' : 'Salvar Imóvel'}</Button>
           </div>
         </form>
       </div>

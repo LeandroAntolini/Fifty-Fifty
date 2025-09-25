@@ -129,8 +129,9 @@ const ImoveisPage: React.FC = () => {
   ) => {
     if (!user) return;
     try {
+      let savedImovel: Imovel;
       if (id) {
-        await api.updateImovel(id, formData, imageChanges);
+        savedImovel = await api.updateImovel(id, formData, imageChanges);
         toast.success("Imóvel atualizado com sucesso!");
       } else {
         const imovelData = {
@@ -138,11 +139,17 @@ const ImoveisPage: React.FC = () => {
           ID_Corretor: user.corretorInfo.ID_Corretor,
           Imagens: imageChanges?.newImagesBase64 || [],
         };
-        await api.createImovel(imovelData as Omit<Imovel, 'ID_Imovel' | 'Status'> & { Imagens?: string[] });
+        savedImovel = await api.createImovel(imovelData as Omit<Imovel, 'ID_Imovel' | 'Status'> & { Imagens?: string[] });
         toast.success("Imóvel criado com sucesso!");
       }
       handleCloseModal();
       fetchImoveis(); // Manually refetch after saving
+      
+      // Automatically find matches in the background
+      if (savedImovel.Status === 'Ativo') {
+        api.findMatchesForImovel(savedImovel).catch(err => console.error("Background match finding failed:", err));
+      }
+
     } catch (error) {
       console.error("Failed to save imovel", error);
       toast.error((error as Error).message || "Falha ao salvar imóvel. Tente novamente.");

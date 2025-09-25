@@ -87,19 +87,26 @@ const ClientesPage: React.FC = () => {
   const handleSaveCliente = async (formData: Partial<Omit<Cliente, 'ID_Cliente' | 'ID_Corretor'>>, id?: string) => {
     if (!user) return;
     try {
+      let savedCliente: Cliente;
       if (id) {
-        await api.updateCliente(id, formData);
+        savedCliente = await api.updateCliente(id, formData);
         toast.success("Cliente atualizado com sucesso!");
       } else {
         const clienteData = {
           ...formData,
           ID_Corretor: user.corretorInfo.ID_Corretor,
         };
-        await api.createCliente(clienteData as Omit<Cliente, 'ID_Cliente' | 'Status'>);
+        savedCliente = await api.createCliente(clienteData as Omit<Cliente, 'ID_Cliente' | 'Status'>);
         toast.success("Cliente criado com sucesso!");
       }
       handleCloseModal();
       fetchClientes(); // Manually refetch after saving
+
+      // Automatically find matches in the background
+      if (savedCliente.Status === 'Ativo') {
+        api.findMatchesForCliente(savedCliente).catch(err => console.error("Background match finding failed:", err));
+      }
+
     } catch (error) {
       console.error("Failed to save cliente", error);
       toast.error("Falha ao salvar cliente. Tente novamente.");

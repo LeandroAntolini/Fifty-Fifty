@@ -56,14 +56,14 @@ const ChatPage: React.FC = () => {
 
   // Real-time subscriptions
   useEffect(() => {
-    if (!matchId) return;
+    if (!matchId || !user) return;
 
     const messagesChannel = supabase
       .channel(`chat-messages:${matchId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `id_match=eq.${matchId}` },
-        (payload) => {
+        async (payload) => {
           const newMessage = payload.new as any;
           const formattedMessage: Message = {
             ID_Message: newMessage.id,
@@ -75,12 +75,21 @@ const ChatPage: React.FC = () => {
             Message_Text: newMessage.message_text,
             Read_Status: newMessage.read_status,
           };
+          
           setMessages((prevMessages) => {
             if (prevMessages.some(msg => msg.ID_Message === formattedMessage.ID_Message)) {
               return prevMessages;
             }
             return [...prevMessages, formattedMessage];
           });
+
+          // If the message is for the current user, mark it as read immediately
+          // to prevent notifications for a chat that is currently open.
+          if (newMessage.to_corretor_id === user.id) {
+            await api.markMessagesAsRead(matchId, user.id);
+            // After marking as read, refresh the global notification count.
+            fetchNotifications();
+          }
         }
       )
       .subscribe();
@@ -101,7 +110,7 @@ const ChatPage: React.FC = () => {
       supabase.removeChannel(messagesChannel);
       supabase.removeChannel(matchChannel);
     };
-  }, [matchId]);
+  }, [matchId, user, fetchNotifications]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,8 +132,9 @@ const ChatPage: React.FC = () => {
 
     try {
         const sentMessage = await api.sendMessage(messageData);
+        // The websocket listener will now handle adding the message to the state for the sender too,
+        // but we can add it here for a slightly faster UI update.
         setMessages(prevMessages => [...prevMessages, sentMessage]);
-        fetchNotifications();
     } catch (error) {
         console.error("Failed to send message", error);
         toast.error("Falha ao enviar mensagem.");

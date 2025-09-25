@@ -7,6 +7,7 @@ import Spinner from '../components/Spinner';
 import AddImovelModal, { ImageChanges } from '../components/AddImovelModal';
 import { Edit, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { supabase } from '../src/integrations/supabase/client';
 
 // Image Carousel Component
 const ImageCarousel = ({ images, alt }: { images: string[] | undefined, alt: string }) => {
@@ -68,7 +69,6 @@ const ImoveisPage: React.FC = () => {
   const fetchImoveis = useCallback(async () => {
     if (user) {
       try {
-        setLoading(true);
         const data = await api.getImoveisByCorretor(user.corretorInfo.ID_Corretor);
         setImoveis(data);
       } catch (error) {
@@ -81,8 +81,29 @@ const ImoveisPage: React.FC = () => {
   }, [user]);
 
   useEffect(() => {
+    setLoading(true);
     fetchImoveis();
   }, [fetchImoveis]);
+
+  // Real-time subscription
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`imoveis-page-channel-for-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'imoveis', filter: `id_corretor=eq.${user.id}` },
+        () => {
+          fetchImoveis();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, fetchImoveis]);
 
   const filteredImoveis = useMemo(() => {
     return imoveis.filter(imovel => {
@@ -121,7 +142,7 @@ const ImoveisPage: React.FC = () => {
         toast.success("Imóvel criado com sucesso!");
       }
       handleCloseModal();
-      fetchImoveis();
+      // No need to call fetchImoveis() here, real-time will handle it
     } catch (error) {
       console.error("Failed to save imovel", error);
       toast.error((error as Error).message || "Falha ao salvar imóvel. Tente novamente.");
@@ -138,7 +159,7 @@ const ImoveisPage: React.FC = () => {
       try {
         await api.deleteImovel(imovel.ID_Imovel, imovel.Imagens);
         toast.success("Imóvel excluído com sucesso.");
-        fetchImoveis();
+        // No need to call fetchImoveis() here, real-time will handle it
       } catch (error) {
         console.error("Failed to delete imovel", error);
         toast.error("Falha ao excluir imóvel.");

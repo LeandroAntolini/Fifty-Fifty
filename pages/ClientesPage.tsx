@@ -7,6 +7,7 @@ import Spinner from '../components/Spinner';
 import AddClienteModal from '../components/AddClienteModal';
 import { Edit, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { supabase } from '../src/integrations/supabase/client';
 
 const ClientesPage: React.FC = () => {
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -27,7 +28,6 @@ const ClientesPage: React.FC = () => {
   const fetchClientes = useCallback(async () => {
     if (user) {
       try {
-        setLoading(true);
         const data = await api.getClientesByCorretor(user.corretorInfo.ID_Corretor);
         setClientes(data);
       } catch (error) {
@@ -40,8 +40,29 @@ const ClientesPage: React.FC = () => {
   }, [user]);
 
   useEffect(() => {
+    setLoading(true);
     fetchClientes();
   }, [fetchClientes]);
+
+  // Real-time subscription
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`clientes-page-channel-for-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'clientes', filter: `id_corretor=eq.${user.id}` },
+        () => {
+          fetchClientes();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, fetchClientes]);
 
   const filteredClientes = useMemo(() => {
     return clientes.filter(cliente => {
@@ -78,7 +99,7 @@ const ClientesPage: React.FC = () => {
         toast.success("Cliente criado com sucesso!");
       }
       handleCloseModal();
-      fetchClientes();
+      // No need to call fetchClientes() here, real-time will handle it
     } catch (error) {
       console.error("Failed to save cliente", error);
       toast.error("Falha ao salvar cliente. Tente novamente.");
@@ -95,7 +116,7 @@ const ClientesPage: React.FC = () => {
       try {
         await api.deleteCliente(cliente.ID_Cliente);
         toast.success("Cliente excluído com sucesso.");
-        fetchClientes();
+        // No need to call fetchClientes() here, real-time will handle it
       } catch (error) {
         console.error("Failed to delete cliente", error);
         toast.error("Falha ao excluir cliente.");

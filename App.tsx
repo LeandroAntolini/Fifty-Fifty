@@ -7,6 +7,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import MainLayout from './components/MainLayout';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import DashboardPage from './pages/DashboardPage';
 import ImoveisPage from './pages/ImoveisPage';
 import ClientesPage from './pages/ClientesPage';
 import MatchesPage from './pages/MatchesPage';
@@ -50,7 +51,8 @@ const AppContent: React.FC = () => {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="/imoveis" replace />} />
+        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route path="dashboard" element={<DashboardPage />} />
         <Route path="imoveis" element={<ImoveisPage />} />
         <Route path="clientes" element={<ClientesPage />} />
         <Route path="matches" element={<MatchesPage />} />

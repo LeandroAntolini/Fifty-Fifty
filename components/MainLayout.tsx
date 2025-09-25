@@ -53,7 +53,11 @@ const MainLayout: React.FC = () => {
   };
 
   const handleProfileClick = () => {
-    navigate('/profile');
+    if (location.pathname === '/profile') {
+      navigate(-1); // Go back
+    } else {
+      navigate('/profile');
+    }
   };
   
   const isModalOpen = isImovelModalOpen || isClienteModalOpen;

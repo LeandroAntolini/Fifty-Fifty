@@ -8,6 +8,9 @@ import AddClienteModal from '../components/AddClienteModal';
 import { Edit, Trash2, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../src/integrations/supabase/client';
+import { Button } from '../components/ui/Button';
+
+type SortCriteria = 'newest' | 'oldest' | 'highest_value' | 'lowest_value';
 
 const ClientesPage: React.FC = () => {
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -17,13 +20,14 @@ const ClientesPage: React.FC = () => {
   const [findingMatch, setFindingMatch] = useState<string | null>(null);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
 
-  // Filter states
+  // Filter and Sort states
   const [cidadeFilter, setCidadeFilter] = useState('');
   const [bairroFilter, setBairroFilter] = useState('');
   const [estadoFilter, setEstadoFilter] = useState('');
   const [valorMinFilter, setValorMinFilter] = useState('');
   const [valorMaxFilter, setValorMaxFilter] = useState('');
   const [dormitoriosFilter, setDormitoriosFilter] = useState('');
+  const [sortCriteria, setSortCriteria] = useState<SortCriteria>('newest');
 
   const fetchClientes = useCallback(async () => {
     if (user) {
@@ -64,12 +68,8 @@ const ClientesPage: React.FC = () => {
     };
   }, [user, fetchClientes]);
 
-  const filteredClientes = useMemo(() => {
-    return clientes.filter(cliente => {
-      if (cliente.Status !== ClienteStatus.Ativo) {
-        return false;
-      }
-
+  const processedClientes = useMemo(() => {
+    const filtered = clientes.filter(cliente => {
       const valorMin = parseFloat(valorMinFilter);
       const valorMax = parseFloat(valorMaxFilter);
       const dormitorios = parseInt(dormitoriosFilter, 10);
@@ -86,9 +86,29 @@ const ClientesPage: React.FC = () => {
         (isNaN(dormitorios) || cliente.DormitoriosMinimos >= dormitorios)
       );
     });
-  }, [clientes, cidadeFilter, bairroFilter, estadoFilter, valorMinFilter, valorMaxFilter, dormitoriosFilter]);
 
-  const handleSaveCliente = async (formData: Partial<Omit<Cliente, 'ID_Cliente' | 'ID_Corretor'>>, id?: string) => {
+    return filtered.sort((a, b) => {
+      // Primary sort: 'Ativo' status always comes first
+      if (a.Status === ClienteStatus.Ativo && b.Status !== ClienteStatus.Ativo) return -1;
+      if (a.Status !== ClienteStatus.Ativo && b.Status === ClienteStatus.Ativo) return 1;
+
+      // Secondary sort: based on user's choice
+      switch (sortCriteria) {
+        case 'newest':
+          return new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime();
+        case 'oldest':
+          return new Date(a.CreatedAt).getTime() - new Date(b.CreatedAt).getTime();
+        case 'highest_value':
+          return b.FaixaValorMax - a.FaixaValorMax;
+        case 'lowest_value':
+          return a.FaixaValorMax - b.FaixaValorMax;
+        default:
+          return 0;
+      }
+    });
+  }, [clientes, cidadeFilter, bairroFilter, estadoFilter, valorMinFilter, valorMaxFilter, dormitoriosFilter, sortCriteria]);
+
+  const handleSaveCliente = async (formData: Partial<Omit<Cliente, 'ID_Cliente' | 'ID_Corretor' | 'CreatedAt'>>, id?: string) => {
     if (!user) return;
     try {
       let savedCliente: Cliente;
@@ -100,7 +120,7 @@ const ClientesPage: React.FC = () => {
           ...formData,
           ID_Corretor: user.corretorInfo.ID_Corretor,
         };
-        savedCliente = await api.createCliente(clienteData as Omit<Cliente, 'ID_Cliente' | 'Status'>);
+        savedCliente = await api.createCliente(clienteData as Omit<Cliente, 'ID_Cliente' | 'Status' | 'CreatedAt'>);
         toast.success("Cliente criado com sucesso!");
       }
       handleCloseModal();
@@ -158,69 +178,51 @@ const ClientesPage: React.FC = () => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(value);
   }
 
+  const sortOptions: { label: string; value: SortCriteria }[] = [
+    { label: 'Recém Adicionados', value: 'newest' },
+    { label: 'Mais Antigos', value: 'oldest' },
+    { label: 'Maior Valor', value: 'highest_value' },
+    { label: 'Menor Valor', value: 'lowest_value' },
+  ];
+
   if (loading) {
     return <div className="flex justify-center mt-8"><Spinner /></div>;
   }
 
   return (
     <div>
-      <div className="bg-white p-4 rounded-lg shadow mb-4">
-        <h3 className="font-semibold text-gray-700 mb-2">Filtrar Clientes</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <input
-            type="text"
-            placeholder="Cidade Desejada"
-            value={cidadeFilter}
-            onChange={(e) => setCidadeFilter(e.target.value)}
-            className="w-full px-3 py-2 border rounded text-sm"
-          />
-          <input
-            type="text"
-            placeholder="Bairro Desejado"
-            value={bairroFilter}
-            onChange={(e) => setBairroFilter(e.target.value)}
-            className="w-full px-3 py-2 border rounded text-sm"
-          />
-          <input
-            type="text"
-            placeholder="Estado (UF)"
-            value={estadoFilter}
-            onChange={(e) => setEstadoFilter(e.target.value.toUpperCase())}
-            className="w-full px-3 py-2 border rounded text-sm"
-            maxLength={2}
-          />
-          <input
-            type="number"
-            placeholder="Dorms. Mín."
-            value={dormitoriosFilter}
-            onChange={(e) => setDormitoriosFilter(e.target.value)}
-            className="w-full px-3 py-2 border rounded text-sm"
-          />
-          <input
-            type="number"
-            placeholder="Valor Mín."
-            value={valorMinFilter}
-            onChange={(e) => setValorMinFilter(e.target.value)}
-            className="w-full px-3 py-2 border rounded text-sm"
-          />
-          <input
-            type="number"
-            placeholder="Valor Máx."
-            value={valorMaxFilter}
-            onChange={(e) => setValorMaxFilter(e.target.value)}
-            className="w-full px-3 py-2 border rounded text-sm"
-          />
+      <div className="bg-white p-4 rounded-lg shadow mb-4 space-y-4">
+        <div>
+          <h3 className="font-semibold text-gray-700 mb-2">Filtrar Clientes</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <input type="text" placeholder="Cidade Desejada" value={cidadeFilter} onChange={(e) => setCidadeFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+            <input type="text" placeholder="Bairro Desejado" value={bairroFilter} onChange={(e) => setBairroFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+            <input type="text" placeholder="Estado (UF)" value={estadoFilter} onChange={(e) => setEstadoFilter(e.target.value.toUpperCase())} className="w-full px-3 py-2 border rounded text-sm" maxLength={2} />
+            <input type="number" placeholder="Dorms. Mín." value={dormitoriosFilter} onChange={(e) => setDormitoriosFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+            <input type="number" placeholder="Valor Mín." value={valorMinFilter} onChange={(e) => setValorMinFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+            <input type="number" placeholder="Valor Máx." value={valorMaxFilter} onChange={(e) => setValorMaxFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+          </div>
+        </div>
+        <div>
+          <h3 className="font-semibold text-gray-700 mb-2">Ordenar por</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {sortOptions.map(option => (
+              <Button key={option.value} size="sm" variant={sortCriteria === option.value ? 'default' : 'ghost'} onClick={() => setSortCriteria(option.value)}>
+                {option.label}
+              </Button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {filteredClientes.length === 0 ? (
+      {processedClientes.length === 0 ? (
         <div className="text-center p-4 bg-white rounded-lg shadow">
             <p className="text-gray-600">Nenhum cliente encontrado.</p>
             <p className="text-sm text-gray-400 mt-2">{clientes.length > 0 ? "Tente ajustar seus filtros." : "Clique no botão '+' para começar."}</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredClientes.map(cliente => (
+          {processedClientes.map(cliente => (
             <div key={cliente.ID_Cliente} className="bg-white p-4 rounded-lg shadow">
               <div className="flex justify-between items-start">
                 <div>

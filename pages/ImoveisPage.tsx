@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Imovel } from '../types';
+import { Imovel, ImovelStatus } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useUI } from '../contexts/UIContext';
 import * as api from '../services/api';
@@ -8,6 +8,9 @@ import AddImovelModal, { ImageChanges } from '../components/AddImovelModal';
 import { Edit, Trash2, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../src/integrations/supabase/client';
+import { Button } from '../components/ui/Button';
+
+type SortCriteria = 'newest' | 'oldest' | 'highest_value' | 'lowest_value';
 
 // Image Carousel Component
 const ImageCarousel = ({ images, alt }: { images: string[] | undefined, alt: string }) => {
@@ -58,13 +61,14 @@ const ImoveisPage: React.FC = () => {
   const [findingMatch, setFindingMatch] = useState<string | null>(null);
   const [editingImovel, setEditingImovel] = useState<Imovel | null>(null);
 
-  // Filter states
+  // Filter and Sort states
   const [cidadeFilter, setCidadeFilter] = useState('');
   const [bairroFilter, setBairroFilter] = useState('');
   const [estadoFilter, setEstadoFilter] = useState('');
   const [valorMinFilter, setValorMinFilter] = useState('');
   const [valorMaxFilter, setValorMaxFilter] = useState('');
   const [dormitoriosFilter, setDormitoriosFilter] = useState('');
+  const [sortCriteria, setSortCriteria] = useState<SortCriteria>('newest');
 
   const fetchImoveis = useCallback(async () => {
     if (user) {
@@ -105,8 +109,8 @@ const ImoveisPage: React.FC = () => {
     };
   }, [user, fetchImoveis]);
 
-  const filteredImoveis = useMemo(() => {
-    return imoveis.filter(imovel => {
+  const processedImoveis = useMemo(() => {
+    const filtered = imoveis.filter(imovel => {
       const valorMin = parseFloat(valorMinFilter);
       const valorMax = parseFloat(valorMaxFilter);
       const dormitorios = parseInt(dormitoriosFilter, 10);
@@ -120,10 +124,30 @@ const ImoveisPage: React.FC = () => {
         (isNaN(dormitorios) || imovel.Dormitorios >= dormitorios)
       );
     });
-  }, [imoveis, cidadeFilter, bairroFilter, estadoFilter, valorMinFilter, valorMaxFilter, dormitoriosFilter]);
+
+    return filtered.sort((a, b) => {
+      // Primary sort: 'Ativo' status always comes first
+      if (a.Status === ImovelStatus.Ativo && b.Status !== ImovelStatus.Ativo) return -1;
+      if (a.Status !== ImovelStatus.Ativo && b.Status === ImovelStatus.Ativo) return 1;
+
+      // Secondary sort: based on user's choice
+      switch (sortCriteria) {
+        case 'newest':
+          return new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime();
+        case 'oldest':
+          return new Date(a.CreatedAt).getTime() - new Date(b.CreatedAt).getTime();
+        case 'highest_value':
+          return b.Valor - a.Valor;
+        case 'lowest_value':
+          return a.Valor - b.Valor;
+        default:
+          return 0;
+      }
+    });
+  }, [imoveis, cidadeFilter, bairroFilter, estadoFilter, valorMinFilter, valorMaxFilter, dormitoriosFilter, sortCriteria]);
 
   const handleSaveImovel = async (
-    formData: Partial<Omit<Imovel, 'ID_Imovel' | 'ID_Corretor' | 'Imagens'>>,
+    formData: Partial<Omit<Imovel, 'ID_Imovel' | 'ID_Corretor' | 'Imagens' | 'CreatedAt'>>,
     id?: string,
     imageChanges?: ImageChanges
   ) => {
@@ -139,7 +163,7 @@ const ImoveisPage: React.FC = () => {
           ID_Corretor: user.corretorInfo.ID_Corretor,
           Imagens: imageChanges?.newImagesBase64 || [],
         };
-        savedImovel = await api.createImovel(imovelData as Omit<Imovel, 'ID_Imovel' | 'Status'> & { Imagens?: string[] });
+        savedImovel = await api.createImovel(imovelData as Omit<Imovel, 'ID_Imovel' | 'Status' | 'CreatedAt'> & { Imagens?: string[] });
         toast.success("Imóvel criado com sucesso!");
       }
       handleCloseModal();
@@ -197,69 +221,51 @@ const ImoveisPage: React.FC = () => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   }
 
+  const sortOptions: { label: string; value: SortCriteria }[] = [
+    { label: 'Recém Adicionados', value: 'newest' },
+    { label: 'Mais Antigos', value: 'oldest' },
+    { label: 'Maior Valor', value: 'highest_value' },
+    { label: 'Menor Valor', value: 'lowest_value' },
+  ];
+
   if (loading) {
     return <div className="flex justify-center mt-8"><Spinner /></div>;
   }
 
   return (
     <div>
-      <div className="bg-white p-4 rounded-lg shadow mb-4">
-        <h3 className="font-semibold text-gray-700 mb-2">Filtrar Imóveis</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <input
-            type="text"
-            placeholder="Cidade"
-            value={cidadeFilter}
-            onChange={(e) => setCidadeFilter(e.target.value)}
-            className="w-full px-3 py-2 border rounded text-sm"
-          />
-           <input
-            type="text"
-            placeholder="Bairro"
-            value={bairroFilter}
-            onChange={(e) => setBairroFilter(e.target.value)}
-            className="w-full px-3 py-2 border rounded text-sm"
-          />
-          <input
-            type="text"
-            placeholder="Estado (UF)"
-            value={estadoFilter}
-            onChange={(e) => setEstadoFilter(e.target.value.toUpperCase())}
-            className="w-full px-3 py-2 border rounded text-sm"
-            maxLength={2}
-          />
-          <input
-            type="number"
-            placeholder="Dorms. Mín."
-            value={dormitoriosFilter}
-            onChange={(e) => setDormitoriosFilter(e.target.value)}
-            className="w-full px-3 py-2 border rounded text-sm"
-          />
-          <input
-            type="number"
-            placeholder="Valor Mín."
-            value={valorMinFilter}
-            onChange={(e) => setValorMinFilter(e.target.value)}
-            className="w-full px-3 py-2 border rounded text-sm"
-          />
-          <input
-            type="number"
-            placeholder="Valor Máx."
-            value={valorMaxFilter}
-            onChange={(e) => setValorMaxFilter(e.target.value)}
-            className="w-full px-3 py-2 border rounded text-sm"
-          />
+      <div className="bg-white p-4 rounded-lg shadow mb-4 space-y-4">
+        <div>
+          <h3 className="font-semibold text-gray-700 mb-2">Filtrar Imóveis</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <input type="text" placeholder="Cidade" value={cidadeFilter} onChange={(e) => setCidadeFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+            <input type="text" placeholder="Bairro" value={bairroFilter} onChange={(e) => setBairroFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+            <input type="text" placeholder="Estado (UF)" value={estadoFilter} onChange={(e) => setEstadoFilter(e.target.value.toUpperCase())} className="w-full px-3 py-2 border rounded text-sm" maxLength={2} />
+            <input type="number" placeholder="Dorms. Mín." value={dormitoriosFilter} onChange={(e) => setDormitoriosFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+            <input type="number" placeholder="Valor Mín." value={valorMinFilter} onChange={(e) => setValorMinFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+            <input type="number" placeholder="Valor Máx." value={valorMaxFilter} onChange={(e) => setValorMaxFilter(e.target.value)} className="w-full px-3 py-2 border rounded text-sm" />
+          </div>
+        </div>
+        <div>
+          <h3 className="font-semibold text-gray-700 mb-2">Ordenar por</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {sortOptions.map(option => (
+              <Button key={option.value} size="sm" variant={sortCriteria === option.value ? 'default' : 'ghost'} onClick={() => setSortCriteria(option.value)}>
+                {option.label}
+              </Button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {filteredImoveis.length === 0 ? (
+      {processedImoveis.length === 0 ? (
         <div className="text-center p-4 bg-white rounded-lg shadow">
             <p className="text-gray-600">Nenhum imóvel encontrado.</p>
             <p className="text-sm text-gray-400 mt-2">{imoveis.length > 0 ? "Tente ajustar seus filtros." : "Clique no botão '+' para começar."}</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredImoveis.map(imovel => (
+          {processedImoveis.map(imovel => (
             <div key={imovel.ID_Imovel} className="bg-white rounded-lg shadow overflow-hidden">
               <ImageCarousel images={imovel.Imagens} alt={imovel.Tipo} />
               <div className="p-4">

@@ -57,6 +57,7 @@ export interface Imovel {
   Metragem?: number;
   Status: ImovelStatus;
   Imagens?: string[];
+  CreatedAt: string;
 }
 
 export interface Cliente {
@@ -71,6 +72,7 @@ export interface Cliente {
   FaixaValorMax: number;
   DormitoriosMinimos: number;
   Status: ClienteStatus;
+  CreatedAt: string;
 }
 
 export interface Match {

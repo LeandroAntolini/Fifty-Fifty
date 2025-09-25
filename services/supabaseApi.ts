@@ -39,6 +39,7 @@ const mapSupabaseImovelToImovel = (imovel: any): Imovel => ({
     Metragem: imovel.metragem,
     Status: imovel.status,
     Imagens: imovel.imagens || [],
+    CreatedAt: imovel.created_at,
 });
 
 export const getImoveisByCorretor = async (corretorId: string): Promise<Imovel[]> => {
@@ -56,7 +57,7 @@ export const getImoveisByCorretor = async (corretorId: string): Promise<Imovel[]
     return data.map(mapSupabaseImovelToImovel);
 };
 
-export const createImovel = async (imovelData: Omit<Imovel, 'ID_Imovel' | 'Status'> & { Imagens?: string[] }): Promise<Imovel> => {
+export const createImovel = async (imovelData: Omit<Imovel, 'ID_Imovel' | 'Status' | 'CreatedAt'> & { Imagens?: string[] }): Promise<Imovel> => {
     const { Imagens, ID_Corretor, ...rest } = imovelData;
     let imageUrls: string[] = [];
 
@@ -121,7 +122,7 @@ export const createImovel = async (imovelData: Omit<Imovel, 'ID_Imovel' | 'Statu
 
 export const updateImovel = async (
     imovelId: string,
-    imovelData: Partial<Omit<Imovel, 'ID_Imovel' | 'ID_Corretor'>>,
+    imovelData: Partial<Omit<Imovel, 'ID_Imovel' | 'ID_Corretor' | 'CreatedAt'>>,
     imageChanges?: ImageChanges
 ): Promise<Imovel> => {
     const { newImagesBase64 = [], imagesToDelete = [] } = imageChanges || {};
@@ -239,6 +240,7 @@ const mapSupabaseClienteToCliente = (cliente: any): Cliente => ({
     FaixaValorMax: cliente.faixa_valor_max,
     DormitoriosMinimos: cliente.dormitorios_minimos,
     Status: cliente.status,
+    CreatedAt: cliente.created_at,
 });
 
 export const getClientesByCorretor = async (corretorId: string): Promise<Cliente[]> => {
@@ -256,7 +258,7 @@ export const getClientesByCorretor = async (corretorId: string): Promise<Cliente
     return data.map(mapSupabaseClienteToCliente);
 };
 
-export const createCliente = async (clienteData: Omit<Cliente, 'ID_Cliente' | 'Status'>): Promise<Cliente> => {
+export const createCliente = async (clienteData: Omit<Cliente, 'ID_Cliente' | 'Status' | 'CreatedAt'>): Promise<Cliente> => {
     const newClienteData = {
         id_corretor: clienteData.ID_Corretor,
         tipo_imovel_desejado: clienteData.TipoImovelDesejado,
@@ -284,7 +286,7 @@ export const createCliente = async (clienteData: Omit<Cliente, 'ID_Cliente' | 'S
     return mapSupabaseClienteToCliente(data);
 };
 
-export const updateCliente = async (clienteId: string, clienteData: Partial<Omit<Cliente, 'ID_Cliente' | 'ID_Corretor'>>): Promise<Cliente> => {
+export const updateCliente = async (clienteId: string, clienteData: Partial<Omit<Cliente, 'ID_Cliente' | 'ID_Corretor' | 'CreatedAt'>>): Promise<Cliente> => {
     const updateData = {
         tipo_imovel_desejado: clienteData.TipoImovelDesejado,
         finalidade: clienteData.Finalidade,

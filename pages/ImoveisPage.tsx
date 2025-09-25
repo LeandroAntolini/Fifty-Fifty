@@ -176,9 +176,8 @@ const ImoveisPage: React.FC = () => {
     setFindingMatch(imovel.ID_Imovel);
     try {
         const newMatches = await api.findMatchesForImovel(imovel);
-        if (newMatches.length > 0) {
-            toast.success(`${newMatches.length} novo(s) match(s) encontrado(s)!`);
-        } else {
+        // The success toast is now handled by the real-time NotificationContext
+        if (newMatches.length === 0) {
             toast('Nenhum novo match encontrado para este imóvel.', { icon: '🤷' });
         }
     } catch(error) {

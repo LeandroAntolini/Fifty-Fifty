@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, ReactNode, useCallback, use
 import { useAuth } from '../hooks/useAuth';
 import * as api from '../services/api';
 import { supabase } from '../src/integrations/supabase/client';
+import toast from 'react-hot-toast';
 
 interface NotificationContextType {
   notificationCount: number;
@@ -54,7 +55,10 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'matches', filter: `id_corretor_imovel=eq.${user.id}` },
-          () => {
+          (payload) => {
+            if (payload.eventType === 'INSERT') {
+              toast.success('Novo match encontrado!', { icon: '🤝' });
+            }
             fetchNotifications();
           }
         )
@@ -66,7 +70,10 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'matches', filter: `id_corretor_cliente=eq.${user.id}` },
-          () => {
+          (payload) => {
+            if (payload.eventType === 'INSERT') {
+              toast.success('Novo match encontrado!', { icon: '🤝' });
+            }
             fetchNotifications();
           }
         )

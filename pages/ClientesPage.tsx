@@ -133,9 +133,8 @@ const ClientesPage: React.FC = () => {
     setFindingMatch(cliente.ID_Cliente);
     try {
         const newMatches = await api.findMatchesForCliente(cliente);
-        if (newMatches.length > 0) {
-            toast.success(`${newMatches.length} novo(s) match(s) encontrado(s)!`);
-        } else {
+        // The success toast is now handled by the real-time NotificationContext
+        if (newMatches.length === 0) {
             toast('Nenhum novo match encontrado para este cliente.', { icon: '🤷' });
         }
     } catch(error) {

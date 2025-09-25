@@ -180,11 +180,11 @@ const ProfilePage: React.FC = () => {
                     </div>
                     <div className="flex justify-between items-center">
                         <p className="text-muted-foreground">Suporte Técnico</p>
-                        <a href="mailto:suporte@fiftyfifty.com" className="text-primary hover:underline">enviar e-mail</a>
+                        <a href="mailto:fiftyfiftyimob@gmail.com" className="text-primary hover:underline">enviar e-mail</a>
                     </div>
                     <div className="flex justify-between items-center">
                         <p className="text-muted-foreground">Enviar Feedback</p>
-                        <a href="mailto:feedback@fiftyfifty.com" className="text-primary hover:underline">enviar e-mail</a>
+                        <a href="mailto:fiftyfiftyimob@gmail.com" className="text-primary hover:underline">enviar e-mail</a>
                     </div>
                     <div className="flex justify-between items-center">
                         <p className="text-muted-foreground">Política de Privacidade</p>

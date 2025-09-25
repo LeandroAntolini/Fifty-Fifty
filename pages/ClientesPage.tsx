@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Cliente } from '../types';
+import { Cliente, ClienteStatus } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useUI } from '../contexts/UIContext';
 import * as api from '../services/api';
@@ -66,6 +66,10 @@ const ClientesPage: React.FC = () => {
 
   const filteredClientes = useMemo(() => {
     return clientes.filter(cliente => {
+      if (cliente.Status !== ClienteStatus.Ativo) {
+        return false;
+      }
+
       const valorMin = parseFloat(valorMinFilter);
       const valorMax = parseFloat(valorMaxFilter);
       const dormitorios = parseInt(dormitoriosFilter, 10);
@@ -118,15 +122,15 @@ const ClientesPage: React.FC = () => {
     openClienteModal();
   };
 
-  const handleDelete = async (cliente: Cliente) => {
-    if (window.confirm(`Tem certeza que deseja excluir o cliente que busca "${cliente.TipoImovelDesejado} em ${cliente.CidadeDesejada}"?`)) {
+  const handleArchive = async (cliente: Cliente) => {
+    if (window.confirm(`Tem certeza que deseja arquivar este cliente? Ele será removido da sua lista principal, mas o histórico de parcerias será mantido.`)) {
       try {
-        await api.deleteCliente(cliente.ID_Cliente);
-        toast.success("Cliente excluído com sucesso.");
-        fetchClientes(); // Manually refetch after deleting
+        await api.updateCliente(cliente.ID_Cliente, { Status: ClienteStatus.Inativo });
+        toast.success("Cliente arquivado com sucesso.");
+        fetchClientes();
       } catch (error) {
-        console.error("Failed to delete cliente", error);
-        toast.error("Falha ao excluir cliente.");
+        console.error("Failed to archive cliente", error);
+        toast.error("Falha ao arquivar o cliente.");
       }
     }
   };
@@ -246,7 +250,7 @@ const ClientesPage: React.FC = () => {
                         </button>
                     )}
                     <button onClick={() => handleEdit(cliente)} className="text-gray-500 hover:text-primary p-1"><Edit size={20} /></button>
-                    <button onClick={() => handleDelete(cliente)} className="text-gray-500 hover:text-destructive p-1"><Trash2 size={20} /></button>
+                    <button onClick={() => handleArchive(cliente)} className="text-gray-500 hover:text-destructive p-1"><Trash2 size={20} /></button>
                 </div>
               </div>
             </div>

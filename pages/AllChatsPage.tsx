@@ -6,6 +6,7 @@ import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { supabase } from '../src/integrations/supabase/client';
 
 interface ActiveChat {
     ID_Match: string;
@@ -24,7 +25,8 @@ const AllChatsPage: React.FC = () => {
 
     const fetchChats = useCallback(async () => {
         if (!user) return;
-        setLoading(true);
+        // Keep loading state only for the initial fetch
+        if (loading) setLoading(true);
         try {
             const chatsData = await api.getActiveChatsByCorretor(user.corretorInfo.ID_Corretor);
             setChats(chatsData || []);
@@ -34,10 +36,29 @@ const AllChatsPage: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, loading]);
 
     useEffect(() => {
         fetchChats();
+    }, [fetchChats]);
+
+    // Real-time subscription for new messages
+    useEffect(() => {
+        const channel = supabase
+            .channel('all-chats-page-messages')
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'messages' },
+                () => {
+                    // Refetch the chat list when any new message is inserted
+                    fetchChats();
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, [fetchChats]);
 
     const formatTimestamp = (timestamp: string) => {

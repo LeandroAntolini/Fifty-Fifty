@@ -19,6 +19,8 @@ import { NotificationProvider } from './contexts/NotificationContext';
 import AllChatsPage from './pages/AllChatsPage';
 import UpdatePasswordPage from './pages/UpdatePasswordPage';
 import UpdateProfilePasswordPage from './pages/UpdateProfilePasswordPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
 
 const AppContent: React.FC = () => {
   const { isPasswordRecovery } = useAuth();
@@ -58,6 +60,8 @@ const AppContent: React.FC = () => {
         <Route path="metricas" element={<MetricasPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="profile/update-password" element={<UpdateProfilePasswordPage />} />
+        <Route path="profile/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="profile/terms-of-service" element={<TermsOfServicePage />} />
       </Route>
     </Routes>
   );

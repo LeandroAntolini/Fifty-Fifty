@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../compone
 import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
 import { User as UserIcon, Edit2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const ProfilePage: React.FC = () => {
     const { user, updateProfile, loading: authLoading, deleteAccount } = useAuth();
@@ -188,11 +188,11 @@ const ProfilePage: React.FC = () => {
                     </div>
                     <div className="flex justify-between items-center">
                         <p className="text-muted-foreground">Política de Privacidade</p>
-                        <a href="#" className="text-primary hover:underline">ler documento</a>
+                        <Link to="/profile/privacy-policy" className="text-primary hover:underline">ler documento</Link>
                     </div>
                     <div className="flex justify-between items-center">
                         <p className="text-muted-foreground">Termos de Serviço</p>
-                        <a href="#" className="text-primary hover:underline">ler documento</a>
+                        <Link to="/profile/terms-of-service" className="text-primary hover:underline">ler documento</Link>
                     </div>
                 </CardContent>
             </Card>

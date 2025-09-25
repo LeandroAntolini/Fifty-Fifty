@@ -24,6 +24,9 @@ const pageTitles: { [key: string]: string } = {
   '/metricas': 'Ranking e Métricas',
   '/profile': 'Meu Perfil',
   '/chats': 'Conversas',
+  '/profile/privacy-policy': 'Política de Privacidade',
+  '/profile/terms-of-service': 'Termos de Serviço',
+  '/profile/update-password': 'Atualizar Senha',
 };
 
 const MainLayout: React.FC = () => {
@@ -34,7 +37,13 @@ const MainLayout: React.FC = () => {
   const { notificationCount } = useNotifications();
   
   const isSpecificChatPage = /^\/matches\/.+\/chat$/.test(location.pathname);
-  const isAllChatsPage = location.pathname === '/chats';
+  
+  const hasBackButton = isSpecificChatPage || 
+                        location.pathname === '/chats' ||
+                        location.pathname === '/profile/privacy-policy' ||
+                        location.pathname === '/profile/terms-of-service' ||
+                        location.pathname === '/profile/update-password';
+
   const showFabForImoveis = location.pathname === '/imoveis' || location.pathname === '/';
   const showFabForClientes = location.pathname === '/clientes';
   
@@ -61,12 +70,12 @@ const MainLayout: React.FC = () => {
   };
   
   const isModalOpen = isImovelModalOpen || isClienteModalOpen;
-  const hideBottomNav = isSpecificChatPage || isAllChatsPage;
+  const hideBottomNav = hasBackButton;
 
   return (
     <div className="flex flex-col h-screen max-w-lg mx-auto bg-neutral-light">
       <header className="bg-primary text-white p-4 flex items-center justify-between shadow-md sticky top-0 z-10">
-        {isSpecificChatPage || isAllChatsPage ? (
+        {hasBackButton ? (
           <button onClick={() => navigate(-1)} className="text-white p-1">
             <ChevronLeftIcon/>
           </button>

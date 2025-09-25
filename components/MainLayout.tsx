@@ -27,7 +27,7 @@ const pageTitles: { [key: string]: string } = {
 };
 
 const MainLayout: React.FC = () => {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { openImovelModal, openClienteModal, isImovelModalOpen, isClienteModalOpen } = useUI();
@@ -53,11 +53,7 @@ const MainLayout: React.FC = () => {
   };
 
   const handleProfileClick = () => {
-    if (location.pathname === '/profile') {
-      navigate(-1); // Go back to the previous page
-    } else {
-      navigate('/profile');
-    }
+    navigate('/profile');
   };
   
   const isModalOpen = isImovelModalOpen || isClienteModalOpen;
@@ -71,8 +67,12 @@ const MainLayout: React.FC = () => {
             <ChevronLeftIcon/>
           </button>
         ) : (
-          <button onClick={handleProfileClick} className="text-white hover:text-secondary p-1">
-            <ProfileIcon />
+          <button onClick={handleProfileClick} className="text-white hover:text-secondary">
+            {user?.corretorInfo.avatar_url ? (
+              <img src={user.corretorInfo.avatar_url} alt="Perfil" className="w-8 h-8 rounded-full object-cover" />
+            ) : (
+              <ProfileIcon />
+            )}
           </button>
         )}
         <h1 className="text-xl font-bold">{getTitle()}</h1>

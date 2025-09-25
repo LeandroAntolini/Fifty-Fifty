@@ -329,12 +329,35 @@ export const deleteCliente = async (clienteId: string) => {
 
 // --- CORRETORES ---
 
+export const uploadAvatar = async (userId: string, file: File): Promise<string> => {
+    const filePath = `${userId}/${Date.now()}_${file.name}`;
+    
+    const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true,
+        });
+
+    if (uploadError) {
+        console.error('Error uploading avatar:', uploadError);
+        throw uploadError;
+    }
+
+    const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+    return data.publicUrl;
+};
+
 export const updateCorretor = async (corretorId: string, corretorData: Partial<Omit<Corretor, 'ID_Corretor' | 'Email' | 'CRECI'>>): Promise<void> => {
     const updateData = {
         nome: corretorData.Nome,
         telefone: corretorData.Telefone,
         cidade: corretorData.Cidade,
         estado: corretorData.Estado,
+        avatar_url: corretorData.avatar_url,
     };
 
     // Remove undefined properties so they are not updated

@@ -42,6 +42,7 @@ export interface Corretor {
   Email: string;
   Cidade: string;
   Estado: string;
+  avatar_url?: string;
 }
 
 export interface Imovel {

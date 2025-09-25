@@ -10,7 +10,7 @@ interface AuthContextType {
   login: (email: string, pass: string) => Promise<void>;
   register: (corretorData: Omit<Corretor, 'ID_Corretor' | 'Email'> & {Email: string, password: string}) => Promise<void>;
   logout: () => void;
-  updateProfile: (profileData: Partial<Omit<Corretor, 'ID_Corretor' | 'Email' | 'CRECI'>>) => Promise<void>;
+  updateProfile: (profileData: Partial<Omit<Corretor, 'ID_Corretor' | 'Email' | 'CRECI'>>, avatarFile?: File | null) => Promise<void>;
   isPasswordRecovery: boolean;
   updatePassword: (password: string) => Promise<void>;
 }
@@ -38,6 +38,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         Email: sessionUser.email!,
         Cidade: corretorData.cidade,
         Estado: corretorData.estado,
+        avatar_url: corretorData.avatar_url,
       };
       const fullUser = {
         id: sessionUser.id,
@@ -111,10 +112,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
   };
 
-  const updateProfile = async (profileData: Partial<Omit<Corretor, 'ID_Corretor' | 'Email' | 'CRECI'>>) => {
+  const updateProfile = async (profileData: Partial<Omit<Corretor, 'ID_Corretor' | 'Email' | 'CRECI'>>, avatarFile?: File | null) => {
     if (!user) throw new Error("User not authenticated");
     
-    await api.updateCorretor(user.id, profileData);
+    let avatarUrl: string | undefined = undefined;
+    if (avatarFile) {
+        avatarUrl = await api.uploadAvatar(user.id, avatarFile);
+    }
+
+    const fullProfileData = {
+        ...profileData,
+        avatar_url: avatarUrl,
+    };
+
+    await api.updateCorretor(user.id, fullProfileData);
 
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {

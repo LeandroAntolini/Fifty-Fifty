@@ -3,13 +3,15 @@ import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../components/ui/Card';
 import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
 import { User as UserIcon, Edit2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const ProfilePage: React.FC = () => {
-    const { user, updateProfile, loading: authLoading } = useAuth();
+    const { user, updateProfile, loading: authLoading, deleteAccount } = useAuth();
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         Nome: '',
         Telefone: '',
@@ -59,6 +61,22 @@ const ProfilePage: React.FC = () => {
             console.error(err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (window.confirm("Tem certeza que deseja excluir sua conta? Esta ação é irreversível e todos os seus dados serão perdidos.")) {
+            setLoading(true);
+            try {
+                await deleteAccount();
+                toast.success('Conta excluída com sucesso.');
+                navigate('/login');
+            } catch (err) {
+                toast.error('Falha ao excluir a conta. Tente novamente.');
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -136,6 +154,19 @@ const ProfilePage: React.FC = () => {
                             {loading ? 'Salvando...' : 'Salvar Alterações'}
                         </Button>
                     </form>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Segurança</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <Button variant="outline" className="w-full" onClick={() => navigate('/profile/update-password')}>
+                        Atualizar Senha
+                    </Button>
+                    <Button variant="destructive" className="w-full" onClick={handleDeleteAccount} disabled={loading}>
+                        {loading ? 'Excluindo...' : 'Excluir Conta'}
+                    </Button>
                 </CardContent>
             </Card>
         </div>

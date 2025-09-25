@@ -13,6 +13,8 @@ interface AuthContextType {
   updateProfile: (profileData: Partial<Omit<Corretor, 'ID_Corretor' | 'Email' | 'CRECI'>>, avatarFile?: File | null) => Promise<void>;
   isPasswordRecovery: boolean;
   updatePassword: (password: string) => Promise<void>;
+  updateUserPassword: (password: string) => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -141,8 +143,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
   };
 
+  const updateUserPassword = async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw error;
+  };
+
+  const deleteAccount = async () => {
+    await api.deleteCurrentUserAccount();
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile, isPasswordRecovery, updatePassword }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile, isPasswordRecovery, updatePassword, updateUserPassword, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );

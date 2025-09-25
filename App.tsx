@@ -18,6 +18,7 @@ import ToastProvider from './components/ToastProvider';
 import { NotificationProvider } from './contexts/NotificationContext';
 import AllChatsPage from './pages/AllChatsPage';
 import UpdatePasswordPage from './pages/UpdatePasswordPage';
+import UpdateProfilePasswordPage from './pages/UpdateProfilePasswordPage';
 
 const AppContent: React.FC = () => {
   const { isPasswordRecovery } = useAuth();
@@ -56,6 +57,7 @@ const AppContent: React.FC = () => {
         <Route path="parcerias" element={<ParceriasPage />} />
         <Route path="metricas" element={<MetricasPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="profile/update-password" element={<UpdateProfilePasswordPage />} />
       </Route>
     </Routes>
   );

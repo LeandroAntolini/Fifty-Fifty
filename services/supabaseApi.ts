@@ -374,6 +374,15 @@ export const updateCorretor = async (corretorId: string, corretorData: Partial<O
     }
 };
 
+export const deleteCurrentUserAccount = async (): Promise<void> => {
+    const { error } = await supabase.functions.invoke('delete-user');
+
+    if (error) {
+        console.error('Error deleting user account:', error);
+        throw error;
+    }
+};
+
 // --- MATCHES ---
 
 const mapSupabaseMatchToMatch = (match: any): Match => ({

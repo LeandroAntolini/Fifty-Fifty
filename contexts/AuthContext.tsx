@@ -11,6 +11,8 @@ interface AuthContextType {
   register: (corretorData: Omit<Corretor, 'ID_Corretor' | 'Email'> & {Email: string, password: string}) => Promise<void>;
   logout: () => void;
   updateProfile: (profileData: Partial<Omit<Corretor, 'ID_Corretor' | 'Email' | 'CRECI'>>) => Promise<void>;
+  isPasswordRecovery: boolean;
+  updatePassword: (password: string) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,6 +20,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   const fetchCorretorProfile = async (sessionUser: SupabaseUser): Promise<User | null> => {
     const { data: corretorData, error } = await supabase
@@ -59,10 +62,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
+        if (session) {
+            await fetchCorretorProfile(session.user);
+        }
+      } else if (session) {
+        setIsPasswordRecovery(false);
         await fetchCorretorProfile(session.user);
       } else {
+        setIsPasswordRecovery(false);
         setUser(null);
       }
       setLoading(false);
@@ -112,8 +122,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const updatePassword = async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw error;
+    setIsPasswordRecovery(false);
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile, isPasswordRecovery, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );

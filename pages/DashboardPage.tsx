@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Button } from '../components/ui/Button';
 import Spinner from '../components/Spinner';
 import { ImovelStatus, ClienteStatus, MatchStatus } from '../types';
-import { Home, User, ThumbsUp, Handshake, PlusCircle, BarChart2, Bell } from 'lucide-react';
+import { Home, User, ThumbsUp, Handshake, PlusCircle, BarChart2, Bell, Users, Building, Briefcase, Award } from 'lucide-react';
 
 interface DashboardStats {
   imoveisAtivos: number;
@@ -22,16 +22,18 @@ const DashboardPage: React.FC = () => {
   const { openImovelModal, openClienteModal } = useUI();
   const { notificationCount } = useNotifications();
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [platformStats, setPlatformStats] = useState<api.PlatformStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = useCallback(async () => {
     if (!user) return;
     try {
-      const [imoveis, clientes, matches, parcerias] = await Promise.all([
+      const [imoveis, clientes, matches, parcerias, platformData] = await Promise.all([
         api.getImoveisByCorretor(user.id),
         api.getClientesByCorretor(user.id),
         api.getAugmentedMatchesByCorretor(user.id),
         api.getAugmentedParceriasByCorretor(user.id),
+        api.getPlatformStats(),
       ]);
 
       setStats({
@@ -40,6 +42,7 @@ const DashboardPage: React.FC = () => {
         matchesAbertos: matches.filter(m => m.Status === MatchStatus.Aberto).length,
         parceriasConcluidas: parcerias.length,
       });
+      setPlatformStats(platformData);
     } catch (error) {
       console.error("Failed to fetch dashboard data", error);
     } finally {
@@ -51,7 +54,7 @@ const DashboardPage: React.FC = () => {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
-  if (loading || !stats) {
+  if (loading || !stats || !platformStats) {
     return <div className="flex justify-center mt-8"><Spinner /></div>;
   }
 
@@ -99,6 +102,34 @@ const DashboardPage: React.FC = () => {
           <div className="p-2 rounded-lg bg-neutral-light">
             <Handshake className="mx-auto text-primary" />
             <p className="text-2xl font-bold">{stats.parceriasConcluidas}</p>
+            <p className="text-sm text-muted-foreground">Parcerias</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Estatísticas da Plataforma</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-4 text-center">
+          <div className="p-2 rounded-lg bg-neutral-light">
+            <Users className="mx-auto text-secondary" />
+            <p className="text-2xl font-bold">{platformStats.total_corretores}</p>
+            <p className="text-sm text-muted-foreground">Corretores</p>
+          </div>
+          <div className="p-2 rounded-lg bg-neutral-light">
+            <Building className="mx-auto text-secondary" />
+            <p className="text-2xl font-bold">{platformStats.total_imoveis_ativos}</p>
+            <p className="text-sm text-muted-foreground">Imóveis Ativos</p>
+          </div>
+          <div className="p-2 rounded-lg bg-neutral-light">
+            <Briefcase className="mx-auto text-secondary" />
+            <p className="text-2xl font-bold">{platformStats.total_clientes_ativos}</p>
+            <p className="text-sm text-muted-foreground">Clientes Ativos</p>
+          </div>
+          <div className="p-2 rounded-lg bg-neutral-light">
+            <Award className="mx-auto text-secondary" />
+            <p className="text-2xl font-bold">{platformStats.total_parcerias}</p>
             <p className="text-sm text-muted-foreground">Parcerias</p>
           </div>
         </CardContent>

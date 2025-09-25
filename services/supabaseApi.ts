@@ -23,6 +23,13 @@ export interface ImageChanges {
   imagesToDelete?: string[];
 }
 
+export interface PlatformStats {
+    total_corretores: number;
+    total_imoveis_ativos: number;
+    total_clientes_ativos: number;
+    total_parcerias: number;
+}
+
 
 // --- IMOVEIS ---
 
@@ -601,6 +608,17 @@ export const getMetricas = async (): Promise<Metric[]> => {
     
     // The data from RPC should match the Metric type, but we cast it to be safe.
     return data as Metric[];
+};
+
+export const getPlatformStats = async (): Promise<PlatformStats> => {
+    const { data, error } = await supabase.rpc('get_platform_stats').single();
+
+    if (error) {
+        console.error('Error fetching platform stats:', error);
+        throw error;
+    }
+
+    return data as PlatformStats;
 };
 
 // --- NOTIFICATIONS ---

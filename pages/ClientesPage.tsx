@@ -215,8 +215,12 @@ const ClientesPage: React.FC = () => {
             <div key={cliente.ID_Cliente} className="bg-white p-4 rounded-lg shadow">
               <div className="flex justify-between items-start">
                 <div>
-                    <h3 className="font-bold text-lg text-primary">{cliente.TipoImovelDesejado} em {cliente.CidadeDesejada} - {cliente.EstadoDesejado}</h3>
-                    <p className="text-sm text-gray-600">Busca em: {cliente.BairroRegiaoDesejada}</p>
+                    <div className="flex items-baseline space-x-2">
+                        <h3 className="font-bold text-lg text-primary">{cliente.TipoImovelDesejado}</h3>
+                        <span className={`text-xs font-semibold px-2 py-1 rounded-full text-white ${cliente.Finalidade === 'Venda' ? 'bg-blue-500' : 'bg-orange-500'}`}>{cliente.Finalidade === 'Venda' ? 'Compra' : 'Aluguel'}</span>
+                    </div>
+                    <p className="text-sm text-gray-600">{cliente.CidadeDesejada} - {cliente.EstadoDesejado}</p>
+                    <p className="text-sm text-gray-500">Busca em: {cliente.BairroRegiaoDesejada}</p>
                 </div>
                 <div className="flex space-x-2">
                     <button onClick={() => handleEdit(cliente)} className="text-gray-500 hover:text-primary p-1"><Edit size={20} /></button>

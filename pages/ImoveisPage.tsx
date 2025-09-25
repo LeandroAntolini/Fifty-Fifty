@@ -258,7 +258,10 @@ const ImoveisPage: React.FC = () => {
             <div key={imovel.ID_Imovel} className="bg-white rounded-lg shadow overflow-hidden">
               <ImageCarousel images={imovel.Imagens} alt={imovel.Tipo} />
               <div className="p-4">
-                <h3 className="font-bold text-lg text-primary">{imovel.Tipo} em {imovel.Bairro}</h3>
+                <div className="flex justify-between items-start">
+                    <h3 className="font-bold text-lg text-primary">{imovel.Tipo} em {imovel.Bairro}</h3>
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-full text-white ${imovel.Finalidade === 'Venda' ? 'bg-blue-500' : 'bg-orange-500'}`}>{imovel.Finalidade}</span>
+                </div>
                 <p className="text-sm text-gray-600">{imovel.Cidade} - {imovel.Estado}</p>
                 <div className="mt-2 text-sm">
                   <p>Valor: {formatCurrency(imovel.Valor)}</p>

@@ -5,7 +5,7 @@ import { useUI } from '../contexts/UIContext';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
 import AddClienteModal from '../components/AddClienteModal';
-import { Edit, Trash2, Sparkles } from 'lucide-react';
+import { Edit, Trash2, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../src/integrations/supabase/client';
 
@@ -235,7 +235,7 @@ const ClientesPage: React.FC = () => {
                             className="text-gray-500 hover:text-secondary p-1 disabled:opacity-50 disabled:cursor-wait"
                             title="Buscar Match"
                         >
-                            {findingMatch === cliente.ID_Cliente ? <Spinner size="sm" /> : <Sparkles size={20} />}
+                            {findingMatch === cliente.ID_Cliente ? <Spinner size="sm" /> : <Search size={20} />}
                         </button>
                     )}
                     <button onClick={() => handleEdit(cliente)} className="text-gray-500 hover:text-primary p-1"><Edit size={20} /></button>

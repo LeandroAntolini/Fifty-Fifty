@@ -38,7 +38,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
       // Listen for new messages or when messages are read/deleted
       const messagesChannel = supabase
-        .channel(`public:messages:to_corretor_id=eq.${user.id}`)
+        .channel(`messages-for-${user.id}`)
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'messages', filter: `to_corretor_id=eq.${user.id}` },
@@ -50,7 +50,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
       // Listen for ANY changes (insert, update) to matches where the user is the property owner
       const matchesAsImovelOwnerChannel = supabase
-        .channel(`public:matches:id_corretor_imovel=eq.${user.id}`)
+        .channel(`matches-imovel-owner-for-${user.id}`)
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'matches', filter: `id_corretor_imovel=eq.${user.id}` },
@@ -62,7 +62,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
       // Listen for ANY changes (insert, update) to matches where the user is the client owner
       const matchesAsClienteOwnerChannel = supabase
-        .channel(`public:matches:id_corretor_cliente=eq.${user.id}`)
+        .channel(`matches-cliente-owner-for-${user.id}`)
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'matches', filter: `id_corretor_cliente=eq.${user.id}` },

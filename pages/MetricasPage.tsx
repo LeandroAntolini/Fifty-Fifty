@@ -70,14 +70,13 @@ const MetricasPage: React.FC = () => {
         <div className="space-y-4">
             <h2 className="text-xl font-bold text-center text-primary mb-4">Ranking de Corretores</h2>
             
-            <div className="flex flex-wrap justify-center gap-2 mb-4 bg-white p-2 rounded-lg shadow">
+            <div className="grid grid-cols-3 gap-2 mb-4 bg-white p-2 rounded-lg shadow">
                 {filterOptions.map(option => (
                     <Button
                         key={option.value}
                         size="sm"
                         variant={sortCriteria === option.value ? 'default' : 'ghost'}
                         onClick={() => setSortCriteria(option.value)}
-                        className="flex-grow sm:flex-grow-0"
                     >
                         {option.label}
                     </Button>

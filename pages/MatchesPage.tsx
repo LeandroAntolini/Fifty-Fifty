@@ -6,6 +6,7 @@ import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
 import { Button } from '../components/ui/Button';
 import { MatchStatus } from '../types';
+import { supabase } from '../src/integrations/supabase/client';
 
 interface AugmentedMatch {
     ID_Match: string;
@@ -56,6 +57,30 @@ const MatchesPage: React.FC = () => {
     useEffect(() => {
         fetchMatches();
     }, [fetchMatches]);
+
+    // Real-time subscription for matches
+    useEffect(() => {
+        if (!user) return;
+
+        const handleMatchChange = () => {
+            fetchMatches();
+        };
+
+        const matchesAsImovelOwnerChannel = supabase
+            .channel(`matches-imovel-owner-for-matchespage-${user.id}`)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'matches', filter: `id_corretor_imovel=eq.${user.id}` }, handleMatchChange)
+            .subscribe();
+
+        const matchesAsClienteOwnerChannel = supabase
+            .channel(`matches-cliente-owner-for-matchespage-${user.id}`)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'matches', filter: `id_corretor_cliente=eq.${user.id}` }, handleMatchChange)
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(matchesAsImovelOwnerChannel);
+            supabase.removeChannel(matchesAsClienteOwnerChannel);
+        };
+    }, [user, fetchMatches]);
 
     const filteredMatches = useMemo(() => {
         if (statusFilter === MatchStatus.Aberto) {

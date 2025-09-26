@@ -5,7 +5,7 @@ import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/Select';
-import { formatBRLNumber, handleCurrencyInputChange } from '../utils/currency';
+import { formatBRLNumber, handleCurrencyInputChange } from '../src/utils/currency';
 
 type ClienteFormData = Omit<Cliente, 'ID_Cliente' | 'ID_Corretor' | 'CreatedAt'>;
 

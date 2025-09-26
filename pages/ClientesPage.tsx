@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import { supabase } from '../src/integrations/supabase/client';
 import ConfirmationModal from '../components/ConfirmationModal';
 import FilterSortControls from '../components/FilterSortControls';
+import { useNotifications } from '../contexts/NotificationContext';
 
 type SortCriteria = 'newest' | 'oldest' | 'highest_value' | 'lowest_value';
 
@@ -18,6 +19,7 @@ const ClientesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { isClienteModalOpen, openClienteModal, closeClienteModal } = useUI();
+  const { fetchNotifications } = useNotifications();
   const [findingMatch, setFindingMatch] = useState<string | null>(null);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [clienteToArchive, setClienteToArchive] = useState<Cliente | null>(null);
@@ -115,8 +117,17 @@ const ClientesPage: React.FC = () => {
       }
       handleCloseModal();
       fetchClientes();
+      
       if (savedCliente.Status === 'Ativo') {
-        api.findMatchesForCliente(savedCliente).catch(err => console.error("Background match finding failed:", err));
+        try {
+          const newMatches = await api.findMatchesForCliente(savedCliente);
+          if (newMatches.length > 0) {
+            toast.success(`${newMatches.length} novo(s) match(es) encontrado(s)!`, { icon: '🤝' });
+            fetchNotifications();
+          }
+        } catch (matchError) {
+          console.error("Background match finding failed:", matchError);
+        }
       }
     } catch (error) {
       console.error("Failed to save cliente", error);
@@ -159,7 +170,10 @@ const ClientesPage: React.FC = () => {
     setFindingMatch(cliente.ID_Cliente);
     try {
         const newMatches = await api.findMatchesForCliente(cliente);
-        if (newMatches.length === 0) {
+        if (newMatches.length > 0) {
+            toast.success(`${newMatches.length} novo(s) match(es) encontrado(s)!`, { icon: '🤝' });
+            fetchNotifications();
+        } else {
             toast('Nenhum novo match encontrado para este cliente.', { icon: '🤷' });
         }
     } catch(error) {

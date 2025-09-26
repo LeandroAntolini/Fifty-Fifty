@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import { supabase } from '../src/integrations/supabase/client';
 import ConfirmationModal from '../components/ConfirmationModal';
 import FilterSortControls from '../components/FilterSortControls';
+import { useNotifications } from '../contexts/NotificationContext';
 
 type SortCriteria = 'newest' | 'oldest' | 'highest_value' | 'lowest_value';
 
@@ -59,6 +60,7 @@ const ImoveisPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { isImovelModalOpen, openImovelModal, closeImovelModal } = useUI();
+  const { fetchNotifications } = useNotifications();
   const [findingMatch, setFindingMatch] = useState<string | null>(null);
   const [editingImovel, setEditingImovel] = useState<Imovel | null>(null);
   const [imovelToDelete, setImovelToDelete] = useState<Imovel | null>(null);
@@ -176,8 +178,17 @@ const ImoveisPage: React.FC = () => {
       }
       handleCloseModal();
       fetchImoveis();
+      
       if (savedImovel.Status === 'Ativo') {
-        api.findMatchesForImovel(savedImovel).catch(err => console.error("Background match finding failed:", err));
+        try {
+          const newMatches = await api.findMatchesForImovel(savedImovel);
+          if (newMatches.length > 0) {
+            toast.success(`${newMatches.length} novo(s) match(es) encontrado(s)!`, { icon: '🤝' });
+            fetchNotifications();
+          }
+        } catch (matchError) {
+          console.error("Background match finding failed:", matchError);
+        }
       }
     } catch (error) {
       console.error("Failed to save imovel", error);
@@ -220,7 +231,10 @@ const ImoveisPage: React.FC = () => {
     setFindingMatch(imovel.ID_Imovel);
     try {
         const newMatches = await api.findMatchesForImovel(imovel);
-        if (newMatches.length === 0) {
+        if (newMatches.length > 0) {
+            toast.success(`${newMatches.length} novo(s) match(es) encontrado(s)!`, { icon: '🤝' });
+            fetchNotifications();
+        } else {
             toast('Nenhum novo match encontrado para este imóvel.', { icon: '🤷' });
         }
     } catch(error) {

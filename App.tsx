@@ -71,12 +71,12 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <ToastProvider />
-      <HashRouter>
+    <HashRouter>
+      <AuthProvider>
+        <ToastProvider />
         <AppContent />
-      </HashRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </HashRouter>
   );
 };
 

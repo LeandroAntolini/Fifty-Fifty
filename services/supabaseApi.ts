@@ -473,11 +473,13 @@ export const requestFecharMatch = async (matchId: string, requesterId: string): 
 };
 
 export const cancelStatusChangeRequest = async (matchId: string): Promise<void> => {
-    const { error } = await supabase
-        .from('matches')
-        .update({ status: MatchStatus.Aberto, status_change_requester_id: null })
-        .eq('id', matchId);
-    if (error) throw error;
+    const { error } = await supabase.rpc('reject_match_status_change', {
+        p_match_id: matchId
+    });
+    if (error) {
+        console.error('Error rejecting match status change:', error);
+        throw error;
+    }
 };
 
 export const closeMatch = async (matchId: string): Promise<void> => {

@@ -9,7 +9,7 @@ const TermsOfServicePage: React.FC = () => {
                     <CardTitle>Termos de Serviço</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <p><strong>Última atualização:</strong> [Data]</p>
+                    <p><strong>Última atualização:</strong> 26 de Julho de 2024</p>
                     
                     <p>Ao acessar e usar o aplicativo Fifty-Fifty, você concorda em cumprir estes Termos de Serviço.</p>
 

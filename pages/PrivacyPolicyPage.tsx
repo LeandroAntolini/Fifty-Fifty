@@ -9,7 +9,7 @@ const PrivacyPolicyPage: React.FC = () => {
                     <CardTitle>Política de Privacidade</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <p><strong>Última atualização:</strong> [Data]</p>
+                    <p><strong>Última atualização:</strong> 26 de Julho de 2024</p>
                     
                     <p>A sua privacidade é importante para nós. É política do Fifty-Fifty respeitar a sua privacidade em relação a qualquer informação sua que possamos coletar no aplicativo Fifty-Fifty.</p>
 

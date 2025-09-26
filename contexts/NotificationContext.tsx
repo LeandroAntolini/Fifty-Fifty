@@ -49,18 +49,34 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         )
         .subscribe();
 
+      const handleMatchChange = (payload: any) => {
+        if (!user) return;
+
+        if (payload.eventType === 'INSERT') {
+          toast.success('Novo match encontrado!', { icon: '🤝' });
+        } else if (payload.eventType === 'UPDATE') {
+          const newRecord = payload.new;
+          const oldRecord = payload.old;
+
+          // A request was made by the other user
+          if (
+            (newRecord.status === 'conclusao_pendente' || newRecord.status === 'fechamento_pendente') &&
+            oldRecord.status === 'aberto' &&
+            newRecord.status_change_requester_id !== user.id
+          ) {
+            toast('Você tem uma nova solicitação em um match!', { icon: '🔔' });
+          }
+        }
+        fetchNotifications();
+      };
+
       // Listen for ANY changes (insert, update) to matches where the user is the property owner
       const matchesAsImovelOwnerChannel = supabase
         .channel(`matches-imovel-owner-for-${user.id}`)
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'matches', filter: `id_corretor_imovel=eq.${user.id}` },
-          (payload) => {
-            if (payload.eventType === 'INSERT') {
-              toast.success('Novo match encontrado!', { icon: '🤝' });
-            }
-            fetchNotifications();
-          }
+          handleMatchChange
         )
         .subscribe();
 
@@ -70,12 +86,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'matches', filter: `id_corretor_cliente=eq.${user.id}` },
-          (payload) => {
-            if (payload.eventType === 'INSERT') {
-              toast.success('Novo match encontrado!', { icon: '🤝' });
-            }
-            fetchNotifications();
-          }
+          handleMatchChange
         )
         .subscribe();
 

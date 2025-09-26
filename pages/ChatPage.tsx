@@ -93,24 +93,85 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  const handleAction = async (action: () => Promise<void>, successMessage: string, errorMessage: string) => {
+  const handleConfirmConclusao = async () => {
+    if (!matchDetails) return;
+
+    const previousMatchDetails = { ...matchDetails };
+    setMatchDetails(prev => prev ? { ...prev, Status: MatchStatus.Convertido } : null);
     setIsSubmitting(true);
+
     try {
-      await action();
-      toast.success(successMessage);
+      await api.createParceriaFromMatch(previousMatchDetails);
+      toast.success("Parabéns! Parceria concluída com sucesso.");
       fetchNotifications();
     } catch (error) {
-      toast.error(errorMessage);
+      toast.error("Ocorreu um erro ao concluir a parceria.");
+      setMatchDetails(previousMatchDetails);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleConfirmConclusao = () => handleAction(() => api.createParceriaFromMatch(matchDetails!), "Parabéns! Parceria concluída com sucesso.", "Ocorreu um erro ao concluir a parceria.");
-  const handleConfirmFechamento = () => handleAction(() => api.closeMatch(matchId!), "Match fechado com sucesso.", "Ocorreu um erro ao fechar o match.");
-  const handleRequestReopen = () => handleAction(() => api.requestReopenMatch(matchId!, user!.id), "Solicitação para reabrir enviada.", "Falha ao solicitar reabertura.");
-  const handleAcceptReopen = () => handleAction(() => api.acceptReopenMatch(matchId!), "Match reaberto com sucesso!", "Falha ao reabrir o match.");
-  const handleRejectReopen = () => handleAction(() => api.rejectReopenMatch(matchId!), "Solicitação de reabertura rejeitada.", "Falha ao rejeitar a reabertura.");
+  const handleConfirmFechamento = async () => {
+    if (!matchId || !matchDetails) return;
+
+    const previousMatchDetails = { ...matchDetails };
+    setMatchDetails(prev => prev ? { ...prev, Status: MatchStatus.Fechado } : null);
+    setIsSubmitting(true);
+
+    try {
+      await api.closeMatch(matchId);
+      toast.success("Match fechado com sucesso.");
+      fetchNotifications();
+    } catch (error) {
+      toast.error("Ocorreu um erro ao fechar o match.");
+      setMatchDetails(previousMatchDetails);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRequestReopen = async () => {
+    if (!matchId || !user) return;
+    setIsSubmitting(true);
+    try {
+      await api.requestReopenMatch(matchId, user.id);
+      toast.success("Solicitação para reabrir enviada.");
+      fetchNotifications();
+    } catch (error) {
+      toast.error("Falha ao solicitar reabertura.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAcceptReopen = async () => {
+    if (!matchId) return;
+    setIsSubmitting(true);
+    try {
+      await api.acceptReopenMatch(matchId);
+      toast.success("Match reaberto com sucesso!");
+      fetchNotifications();
+    } catch (error) {
+      toast.error("Falha ao reabrir o match.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRejectReopen = async () => {
+    if (!matchId) return;
+    setIsSubmitting(true);
+    try {
+      await api.rejectReopenMatch(matchId);
+      toast.success("Solicitação de reabertura rejeitada.");
+      fetchNotifications();
+    } catch (error) {
+      toast.error("Falha ao rejeitar a reabertura.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const renderActionUI = () => {
     if (!matchDetails || !user) return null;

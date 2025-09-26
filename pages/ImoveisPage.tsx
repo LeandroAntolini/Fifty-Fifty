@@ -180,14 +180,18 @@ const ImoveisPage: React.FC = () => {
       fetchImoveis();
       
       if (savedImovel.Status === 'Ativo') {
+        const toastId = toast.loading('Buscando novos matches...');
         try {
           const newMatches = await api.findMatchesForImovel(savedImovel);
           if (newMatches.length > 0) {
-            toast.success(`${newMatches.length} novo(s) match(es) encontrado(s)!`, { icon: '🤝' });
+            toast.success(`${newMatches.length} novo(s) match(es) encontrado(s)!`, { id: toastId, icon: '🤝' });
             fetchNotifications();
+          } else {
+            toast.success('Nenhum novo match encontrado.', { id: toastId });
           }
         } catch (matchError) {
           console.error("Background match finding failed:", matchError);
+          toast.error('Erro ao buscar por matches.', { id: toastId });
         }
       }
     } catch (error) {

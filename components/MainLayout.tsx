@@ -67,6 +67,15 @@ const MainLayout: React.FC = () => {
     }
   };
   
+  const handleProfileClick = () => {
+    const isProfilePage = location.pathname.startsWith('/profile');
+    if (isProfilePage) {
+      navigate('/dashboard');
+    } else {
+      navigate('/profile');
+    }
+  };
+
   const isModalOpen = isImovelModalOpen || isClienteModalOpen;
   const hideBottomNav = hasBackButton;
 
@@ -87,13 +96,13 @@ const MainLayout: React.FC = () => {
             <Link to="/chats" className="text-white hover:text-secondary p-1">
                 <MessageSquare />
             </Link>
-            <Link to="/profile" className="text-white hover:text-secondary">
+            <button onClick={handleProfileClick} className="text-white hover:text-secondary">
               {user?.corretorInfo.avatar_url ? (
                 <img src={user.corretorInfo.avatar_url} alt="Perfil" className="w-8 h-8 rounded-full object-cover" />
               ) : (
                 <User />
               )}
-            </Link>
+            </button>
         </div>
       </header>
       

@@ -8,6 +8,7 @@ import { Button } from '../components/ui/Button';
 import toast from 'react-hot-toast';
 import { supabase } from '../src/integrations/supabase/client';
 import { useNotifications } from '../contexts/NotificationContext';
+import { Send } from 'lucide-react';
 
 const ChatPage: React.FC = () => {
   const { matchId } = useParams<{ matchId: string }>();
@@ -324,7 +325,7 @@ const ChatPage: React.FC = () => {
             disabled={matchDetails?.Status !== MatchStatus.Aberto}
           />
           <button type="submit" className="bg-primary text-white rounded-full p-3 flex-shrink-0 disabled:bg-gray-400" disabled={matchDetails?.Status !== MatchStatus.Aberto}>
-             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+             <Send className="h-6 w-6" />
           </button>
         </form>
       </div>

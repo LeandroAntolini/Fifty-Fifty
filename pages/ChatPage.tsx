@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { Message, Match, MatchStatus } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import * as api from '../services/api';
@@ -276,7 +276,16 @@ const ChatPage: React.FC = () => {
         );
 
       case MatchStatus.Convertido:
-        return <div className="p-4 bg-green-100 text-center text-green-800 font-semibold">Parceria concluída com sucesso!</div>;
+        return (
+          <div className="p-4 bg-green-100 text-center space-y-2">
+            <p className="text-green-800 font-semibold">Parceria concluída com sucesso!</p>
+            <Link to="/parcerias">
+              <Button variant="link" className="text-green-800">
+                Ver na lista de Parcerias
+              </Button>
+            </Link>
+          </div>
+        );
       
       case MatchStatus.Fechado:
         return <div className="p-4 bg-gray-100 text-center text-gray-600 font-semibold">Match fechado.</div>;

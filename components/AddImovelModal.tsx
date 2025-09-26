@@ -5,6 +5,7 @@ import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/Select';
+import { formatBRLNumber, handleCurrencyInputChange } from '../utils/currency';
 
 type ImovelFormData = Omit<Imovel, 'ID_Imovel' | 'ID_Corretor' | 'Imagens' | 'CreatedAt'>;
 
@@ -79,10 +80,25 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const numericFields = ['Valor', 'Dormitorios', 'Metragem'];
-    const finalValue = name === 'Estado' ? value.toUpperCase() : value;
-    const numericValue = numericFields.includes(name) ? parseFloat(finalValue) || 0 : finalValue;
-    setFormData(prev => ({ ...prev, [name]: numericValue }));
+
+    if (name === 'Valor') {
+        const numericValue = handleCurrencyInputChange(e);
+        setFormData(prev => ({ ...prev, Valor: numericValue }));
+        return;
+    }
+
+    const numericFields = ['Dormitorios', 'Metragem'];
+    if (numericFields.includes(name)) {
+        setFormData(prev => ({ ...prev, [name]: parseInt(value, 10) || 0 }));
+        return;
+    }
+
+    if (name === 'Estado') {
+        setFormData(prev => ({ ...prev, [name]: value.toUpperCase() }));
+        return;
+    }
+
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSelectChange = (name: 'Finalidade' | 'Status') => (value: string) => {
@@ -165,7 +181,7 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
             <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                     <Label htmlFor="Valor">Valor (R$)</Label>
-                    <Input id="Valor" type="number" name="Valor" min="1" value={formData.Valor === 0 ? '' : formData.Valor} onChange={handleInputChange} required />
+                    <Input id="Valor" type="text" name="Valor" value={formData.Valor > 0 ? formatBRLNumber(formData.Valor) : ''} onChange={handleInputChange} required placeholder="0,00" />
                 </div>
                 <div className="space-y-1.5">
                     <Label htmlFor="Dormitorios">Dorms</Label>

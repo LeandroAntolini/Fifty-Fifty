@@ -59,20 +59,20 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-primary">Olá, {user?.corretorInfo.Nome.split(' ')[0]}!</h1>
-        <p className="text-muted-foreground">Bem-vindo(a) de volta.</p>
+        <h1 className="text-xl font-bold text-primary">Olá, {user?.corretorInfo.Nome.split(' ')[0]}!</h1>
+        <p className="text-sm text-muted-foreground">Bem-vindo(a) de volta.</p>
       </div>
 
       {notificationCount > 0 && (
         <Link to="/matches">
           <Card className="bg-secondary border-amber-500 hover:bg-amber-300 transition-colors">
-            <CardContent className="p-4 flex items-center space-x-4">
-              <Bell className="text-secondary-foreground" size={24} />
+            <CardContent className="p-3 flex items-center space-x-3">
+              <Bell className="text-secondary-foreground" size={20} />
               <div>
-                <p className="font-bold text-secondary-foreground">Você tem {notificationCount} nova(s) notificação(ões)!</p>
-                <p className="text-sm text-secondary-foreground/80">Novos matches ou mensagens esperam por você.</p>
+                <p className="font-semibold text-secondary-foreground">Você tem {notificationCount} nova(s) notificação(ões)!</p>
+                <p className="text-xs text-secondary-foreground/80">Novos matches ou mensagens esperam por você.</p>
               </div>
             </CardContent>
           </Card>
@@ -80,75 +80,75 @@ const DashboardPage: React.FC = () => {
       )}
 
       <Card>
-        <CardHeader>
-          <CardTitle>Suas Métricas</CardTitle>
+        <CardHeader className="p-4 pb-2">
+          <CardTitle className="text-base font-semibold">Suas Métricas</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4 text-center">
+        <CardContent className="p-4 pt-2 grid grid-cols-2 gap-2 text-center">
           <div className="p-2 rounded-lg bg-neutral-light">
-            <Home className="mx-auto text-primary" />
-            <p className="text-2xl font-bold">{stats.imoveisAtivos}</p>
-            <p className="text-sm text-muted-foreground">Imóveis Ativos</p>
+            <Home className="mx-auto text-primary" size={20} />
+            <p className="text-xl font-bold">{stats.imoveisAtivos}</p>
+            <p className="text-xs text-muted-foreground">Imóveis Ativos</p>
           </div>
           <div className="p-2 rounded-lg bg-neutral-light">
-            <User className="mx-auto text-primary" />
-            <p className="text-2xl font-bold">{stats.clientesAtivos}</p>
-            <p className="text-sm text-muted-foreground">Clientes Ativos</p>
+            <User className="mx-auto text-primary" size={20} />
+            <p className="text-xl font-bold">{stats.clientesAtivos}</p>
+            <p className="text-xs text-muted-foreground">Clientes Ativos</p>
           </div>
           <div className="p-2 rounded-lg bg-neutral-light">
-            <ThumbsUp className="mx-auto text-primary" />
-            <p className="text-2xl font-bold">{stats.matchesAbertos}</p>
-            <p className="text-sm text-muted-foreground">Matches Abertos</p>
+            <ThumbsUp className="mx-auto text-primary" size={20} />
+            <p className="text-xl font-bold">{stats.matchesAbertos}</p>
+            <p className="text-xs text-muted-foreground">Matches Abertos</p>
           </div>
           <div className="p-2 rounded-lg bg-neutral-light">
-            <Handshake className="mx-auto text-primary" />
-            <p className="text-2xl font-bold">{stats.parceriasConcluidas}</p>
-            <p className="text-sm text-muted-foreground">Parcerias</p>
+            <Handshake className="mx-auto text-primary" size={20} />
+            <p className="text-xl font-bold">{stats.parceriasConcluidas}</p>
+            <p className="text-xs text-muted-foreground">Parcerias</p>
           </div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Estatísticas da Plataforma</CardTitle>
+        <CardHeader className="p-4 pb-2">
+          <CardTitle className="text-base font-semibold">Estatísticas da Plataforma</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4 text-center">
+        <CardContent className="p-4 pt-2 grid grid-cols-2 gap-2 text-center">
           <div className="p-2 rounded-lg bg-neutral-light">
-            <Users className="mx-auto text-secondary" />
-            <p className="text-2xl font-bold">{platformStats.total_corretores}</p>
-            <p className="text-sm text-muted-foreground">Corretores</p>
+            <Users className="mx-auto text-secondary" size={20} />
+            <p className="text-xl font-bold">{platformStats.total_corretores}</p>
+            <p className="text-xs text-muted-foreground">Corretores</p>
           </div>
           <div className="p-2 rounded-lg bg-neutral-light">
-            <Building className="mx-auto text-secondary" />
-            <p className="text-2xl font-bold">{platformStats.total_imoveis_ativos}</p>
-            <p className="text-sm text-muted-foreground">Imóveis Ativos</p>
+            <Building className="mx-auto text-secondary" size={20} />
+            <p className="text-xl font-bold">{platformStats.total_imoveis_ativos}</p>
+            <p className="text-xs text-muted-foreground">Imóveis Ativos</p>
           </div>
           <div className="p-2 rounded-lg bg-neutral-light">
-            <Briefcase className="mx-auto text-secondary" />
-            <p className="text-2xl font-bold">{platformStats.total_clientes_ativos}</p>
-            <p className="text-sm text-muted-foreground">Clientes Ativos</p>
+            <Briefcase className="mx-auto text-secondary" size={20} />
+            <p className="text-xl font-bold">{platformStats.total_clientes_ativos}</p>
+            <p className="text-xs text-muted-foreground">Clientes Ativos</p>
           </div>
           <div className="p-2 rounded-lg bg-neutral-light">
-            <Award className="mx-auto text-secondary" />
-            <p className="text-2xl font-bold">{platformStats.total_parcerias}</p>
-            <p className="text-sm text-muted-foreground">Parcerias</p>
+            <Award className="mx-auto text-secondary" size={20} />
+            <p className="text-xl font-bold">{platformStats.total_parcerias}</p>
+            <p className="text-xs text-muted-foreground">Parcerias</p>
           </div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Ações Rápidas</CardTitle>
+        <CardHeader className="p-4 pb-2">
+          <CardTitle className="text-base font-semibold">Ações Rápidas</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <Button onClick={openImovelModal} className="w-full justify-start" variant="ghost">
-            <PlusCircle className="mr-2" size={20} /> Adicionar Novo Imóvel
+        <CardContent className="p-4 pt-2 space-y-2">
+          <Button onClick={openImovelModal} className="w-full justify-start h-9" variant="ghost">
+            <PlusCircle className="mr-2" size={18} /> Adicionar Novo Imóvel
           </Button>
-          <Button onClick={openClienteModal} className="w-full justify-start" variant="ghost">
-            <PlusCircle className="mr-2" size={20} /> Adicionar Novo Cliente
+          <Button onClick={openClienteModal} className="w-full justify-start h-9" variant="ghost">
+            <PlusCircle className="mr-2" size={18} /> Adicionar Novo Cliente
           </Button>
           <Link to="/metricas">
-            <Button className="w-full justify-start" variant="ghost">
-              <BarChart2 className="mr-2" size={20} /> Ver Ranking de Corretores
+            <Button className="w-full justify-start h-9" variant="ghost">
+              <BarChart2 className="mr-2" size={18} /> Ver Ranking de Corretores
             </Button>
           </Link>
         </CardContent>

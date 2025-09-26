@@ -5,6 +5,7 @@ import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/Select';
+import { formatBRLNumber, handleCurrencyInputChange } from '../utils/currency';
 
 type ClienteFormData = Omit<Cliente, 'ID_Cliente' | 'ID_Corretor' | 'CreatedAt'>;
 
@@ -56,10 +57,24 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const numericFields = ['FaixaValorMin', 'FaixaValorMax', 'DormitoriosMinimos'];
-    const finalValue = name === 'EstadoDesejado' ? value.toUpperCase() : value;
-    const numericValue = numericFields.includes(name) ? parseFloat(finalValue) || 0 : finalValue;
-    setFormData(prev => ({ ...prev, [name]: numericValue }));
+
+    if (name === 'FaixaValorMin' || name === 'FaixaValorMax') {
+        const numericValue = handleCurrencyInputChange(e);
+        setFormData(prev => ({ ...prev, [name]: numericValue }));
+        return;
+    }
+
+    if (name === 'DormitoriosMinimos') {
+        setFormData(prev => ({ ...prev, [name]: parseInt(value, 10) || 0 }));
+        return;
+    }
+
+    if (name === 'EstadoDesejado') {
+        setFormData(prev => ({ ...prev, [name]: value.toUpperCase() }));
+        return;
+    }
+
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSelectChange = (name: 'Finalidade' | 'Status') => (value: string) => {
@@ -112,11 +127,11 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                     <Label htmlFor="FaixaValorMin">Valor Mínimo (R$)</Label>
-                    <Input id="FaixaValorMin" type="number" name="FaixaValorMin" min="0" value={formData.FaixaValorMin === 0 ? '' : formData.FaixaValorMin} onChange={handleInputChange} />
+                    <Input id="FaixaValorMin" type="text" name="FaixaValorMin" value={formData.FaixaValorMin > 0 ? formatBRLNumber(formData.FaixaValorMin) : ''} onChange={handleInputChange} placeholder="0,00" />
                 </div>
                 <div className="space-y-1.5">
                     <Label htmlFor="FaixaValorMax">Valor Máximo (R$)</Label>
-                    <Input id="FaixaValorMax" type="number" name="FaixaValorMax" min="1" value={formData.FaixaValorMax === 0 ? '' : formData.FaixaValorMax} onChange={handleInputChange} required />
+                    <Input id="FaixaValorMax" type="text" name="FaixaValorMax" value={formData.FaixaValorMax > 0 ? formatBRLNumber(formData.FaixaValorMax) : ''} onChange={handleInputChange} required placeholder="0,00" />
                 </div>
             </div>
             <div className="space-y-1.5">

@@ -50,8 +50,11 @@ const MainLayout: React.FC = () => {
   const showFabForClientes = location.pathname === '/clientes';
   
   const getTitle = () => {
-    if (isSpecificChatPage) return "Chat da Parceria";
     const path = location.pathname;
+    if (path === '/dashboard' && user) {
+      return `Olá, ${user.corretorInfo.Nome.split(' ')[0]}!`;
+    }
+    if (isSpecificChatPage) return "Chat da Parceria";
     return pageTitles[path] || 'Meu Perfil';
   };
 

@@ -71,11 +71,6 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="text-center">
-        <h1 className="text-xl font-bold text-primary">Olá, {user?.corretorInfo.Nome.split(' ')[0]}!</h1>
-        <p className="text-sm text-muted-foreground">Bem-vindo(a) de volta.</p>
-      </div>
-
       {notificationCount > 0 && (
         <Link to="/matches">
           <Card className="bg-secondary border-amber-500 hover:bg-amber-300 transition-colors">

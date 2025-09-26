@@ -6,6 +6,7 @@ import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/Card';
 import toast from 'react-hot-toast';
+import { Eye, EyeOff } from 'lucide-react';
 
 const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -18,6 +19,7 @@ const RegisterPage: React.FC = () => {
         password: '',
     });
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const { register } = useAuth();
     const navigate = useNavigate();
 
@@ -64,7 +66,26 @@ const RegisterPage: React.FC = () => {
                         </div>
                         <div className="space-y-1.5">
                             <Label htmlFor="password">Senha</Label>
-                            <Input id="password" name="password" type="password" placeholder="Mínimo 6 caracteres" onChange={handleChange} required minLength={6} />
+                            <div className="relative">
+                                <Input
+                                    id="password"
+                                    name="password"
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="Mínimo 6 caracteres"
+                                    onChange={handleChange}
+                                    required
+                                    minLength={6}
+                                    className="pr-10"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400"
+                                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
                         </div>
                         <div className="space-y-1.5">
                             <Label htmlFor="Telefone">Telefone / WhatsApp</Label>

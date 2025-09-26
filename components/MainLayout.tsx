@@ -18,7 +18,7 @@ const BarChart2Icon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" h
 
 
 const pageTitles: { [key: string]: string } = {
-  '/dashboard': 'Dashboard',
+  '/dashboard': 'Início',
   '/imoveis': 'Meus Imóveis',
   '/clientes': 'Meus Clientes',
   '/matches': 'Matches',
@@ -120,7 +120,7 @@ const MainLayout: React.FC = () => {
           <div className="flex justify-around h-16">
             <NavLink to="/dashboard" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-neutral-dark hover:text-primary'}`}>
               <LayoutDashboardIcon />
-              <span>Dashboard</span>
+              <span>Início</span>
             </NavLink>
             <NavLink to="/imoveis" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-neutral-dark hover:text-primary'}`}>
               <HomeIcon />

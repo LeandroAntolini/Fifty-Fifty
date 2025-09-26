@@ -20,6 +20,7 @@ export enum MatchStatus {
   Aberto = 'aberto',
   Convertido = 'convertido',
   Fechado = 'fechado',
+  ReaberturaPendente = 'reabertura_pendente',
 }
 
 export enum ReadStatus {
@@ -84,6 +85,7 @@ export interface Match {
   Corretor_B_ID: string;
   Match_Timestamp: string;
   Status: MatchStatus;
+  status_change_requester_id?: string;
 }
 
 export interface Message {

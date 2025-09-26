@@ -28,10 +28,9 @@ const ChatPage: React.FC = () => {
   const fetchChatData = useCallback(async () => {
     if (!matchId || !user) return;
     try {
-      // Mark the match as viewed and messages as read
       await api.markMatchAsViewed(matchId, user.id);
       await api.markMessagesAsRead(matchId, user.id);
-      fetchNotifications(); // Refresh notification count immediately
+      fetchNotifications();
 
       const [msgs, match] = await Promise.all([
         api.getMessagesByMatch(matchId),
@@ -55,54 +54,23 @@ const ChatPage: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Real-time subscriptions
   useEffect(() => {
     if (!matchId || !user) return;
 
-    const messagesChannel = supabase
-      .channel(`chat-messages:${matchId}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages', filter: `id_match=eq.${matchId}` },
-        async (payload) => {
-          const newMessage = payload.new as any;
-          const formattedMessage: Message = {
-            ID_Message: newMessage.id,
-            ID_Match: newMessage.id_match,
-            ID_Parceria: null,
-            From_Corretor_ID: newMessage.from_corretor_id,
-            To_Corretor_ID: newMessage.to_corretor_id,
-            Timestamp: newMessage.created_at,
-            Message_Text: newMessage.message_text,
-            Read_Status: newMessage.read_status,
-          };
-          
-          setMessages((prevMessages) => {
-            if (prevMessages.some(msg => msg.ID_Message === formattedMessage.ID_Message)) {
-              return prevMessages;
-            }
-            return [...prevMessages, formattedMessage];
-          });
+    const messagesChannel = supabase.channel(`chat-messages:${matchId}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `id_match=eq.${matchId}` }, async (payload) => {
+      const newMessage = payload.new as any;
+      const formattedMessage: Message = { ID_Message: newMessage.id, ID_Match: newMessage.id_match, ID_Parceria: null, From_Corretor_ID: newMessage.from_corretor_id, To_Corretor_ID: newMessage.to_corretor_id, Timestamp: newMessage.created_at, Message_Text: newMessage.message_text, Read_Status: newMessage.read_status };
+      setMessages((prev) => prev.some(msg => msg.ID_Message === formattedMessage.ID_Message) ? prev : [...prev, formattedMessage]);
+      if (newMessage.to_corretor_id === user.id) {
+        await api.markMessagesAsRead(matchId, user.id);
+        fetchNotifications();
+      }
+    }).subscribe();
 
-          if (newMessage.to_corretor_id === user.id) {
-            await api.markMessagesAsRead(matchId, user.id);
-            fetchNotifications();
-          }
-        }
-      )
-      .subscribe();
-
-    const matchChannel = supabase
-      .channel(`match-status:${matchId}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'matches', filter: `id=eq.${matchId}` },
-        (payload) => {
-          const updatedMatch = payload.new as any;
-          setMatchDetails(prev => prev ? { ...prev, Status: updatedMatch.status } : null);
-        }
-      )
-      .subscribe();
+    const matchChannel = supabase.channel(`match-status:${matchId}`).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'matches', filter: `id=eq.${matchId}` }, (payload) => {
+      const updatedMatch = payload.new as any;
+      setMatchDetails(prev => prev ? { ...prev, Status: updatedMatch.status, status_change_requester_id: updatedMatch.status_change_requester_id } : null);
+    }).subscribe();
 
     return () => {
       supabase.removeChannel(messagesChannel);
@@ -113,75 +81,36 @@ const ChatPage: React.FC = () => {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !user || !matchId || !matchDetails) return;
-
-    const toCorretorId = user.corretorInfo.ID_Corretor === matchDetails.Corretor_A_ID
-      ? matchDetails.Corretor_B_ID
-      : matchDetails.Corretor_A_ID;
-
-    const messageData = {
-      ID_Match: matchId,
-      ID_Parceria: null,
-      From_Corretor_ID: user.corretorInfo.ID_Corretor,
-      To_Corretor_ID: toCorretorId,
-      Message_Text: newMessage,
-    };
-    
+    const toCorretorId = user.id === matchDetails.Corretor_A_ID ? matchDetails.Corretor_B_ID : matchDetails.Corretor_A_ID;
+    const messageData = { ID_Match: matchId, ID_Parceria: null, From_Corretor_ID: user.id, To_Corretor_ID: toCorretorId, Message_Text: newMessage };
     setNewMessage('');
-
     try {
-        const sentMessage = await api.sendMessage(messageData);
-        setMessages(prevMessages => [...prevMessages, sentMessage]);
+      await api.sendMessage(messageData);
     } catch (error) {
-        console.error("Failed to send message", error);
-        toast.error("Falha ao enviar mensagem.");
-        setNewMessage(messageData.Message_Text);
+      console.error("Failed to send message", error);
+      toast.error("Falha ao enviar mensagem.");
+      setNewMessage(messageData.Message_Text);
     }
   };
 
-  const handleConfirmConclusao = async () => {
-    if (!matchDetails) return;
+  const handleAction = async (action: () => Promise<void>, successMessage: string, errorMessage: string) => {
     setIsSubmitting(true);
     try {
-      await api.createParceriaFromMatch(matchDetails);
-      toast.success("Parabéns! Parceria concluída com sucesso.");
-      setMatchDetails(prev => prev ? { ...prev, Status: MatchStatus.Convertido } : null);
+      await action();
+      toast.success(successMessage);
       fetchNotifications();
     } catch (error) {
-      toast.error("Ocorreu um erro ao concluir a parceria.");
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleConfirmFechamento = async () => {
-    if (!matchId) return;
-    setIsSubmitting(true);
-    try {
-      await api.closeMatch(matchId);
-      toast.success("Match fechado com sucesso.");
-      setMatchDetails(prev => prev ? { ...prev, Status: MatchStatus.Fechado } : null);
-      fetchNotifications();
-    } catch (error) {
-      toast.error("Ocorreu um erro ao fechar o match.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleReopenMatch = async () => {
-    if (!matchId) return;
-    setIsSubmitting(true);
-    try {
-        await api.reopenMatch(matchId);
-        toast.success("Match reaberto com sucesso!");
-        setMatchDetails(prev => prev ? { ...prev, Status: MatchStatus.Aberto } : null);
-        fetchNotifications();
-    } catch (error) {
-        toast.error("Falha ao reabrir o match.");
-    } finally {
-        setIsSubmitting(false);
-    }
-  };
+  const handleConfirmConclusao = () => handleAction(() => api.createParceriaFromMatch(matchDetails!), "Parabéns! Parceria concluída com sucesso.", "Ocorreu um erro ao concluir a parceria.");
+  const handleConfirmFechamento = () => handleAction(() => api.closeMatch(matchId!), "Match fechado com sucesso.", "Ocorreu um erro ao fechar o match.");
+  const handleRequestReopen = () => handleAction(() => api.requestReopenMatch(matchId!, user!.id), "Solicitação para reabrir enviada.", "Falha ao solicitar reabertura.");
+  const handleAcceptReopen = () => handleAction(() => api.acceptReopenMatch(matchId!), "Match reaberto com sucesso!", "Falha ao reabrir o match.");
+  const handleRejectReopen = () => handleAction(() => api.rejectReopenMatch(matchId!), "Solicitação de reabertura rejeitada.", "Falha ao rejeitar a reabertura.");
 
   const renderActionUI = () => {
     if (!matchDetails || !user) return null;
@@ -190,56 +119,47 @@ const ChatPage: React.FC = () => {
       case MatchStatus.Aberto:
         return (
           <div className="p-4 border-b bg-white space-y-2">
-            <Button onClick={handleConfirmConclusao} disabled={isSubmitting} className="w-full bg-accent hover:bg-green-700">
-              {isSubmitting ? 'Concluindo...' : 'Concluir Parceria'}
-            </Button>
-            <Button onClick={handleConfirmFechamento} disabled={isSubmitting} variant="destructive" className="w-full">
-              {isSubmitting ? 'Fechando...' : 'Fechar Match (Sem Parceria)'}
-            </Button>
+            <Button onClick={handleConfirmConclusao} disabled={isSubmitting} className="w-full bg-accent hover:bg-green-700">{isSubmitting ? 'Concluindo...' : 'Concluir Parceria'}</Button>
+            <Button onClick={handleConfirmFechamento} disabled={isSubmitting} variant="destructive" className="w-full">{isSubmitting ? 'Fechando...' : 'Fechar Match (Sem Parceria)'}</Button>
           </div>
         );
-
       case MatchStatus.Convertido:
-        return (
-          <div className="p-4 bg-green-100 text-center space-y-2">
-            <p className="text-green-800 font-semibold">Parceria concluída com sucesso!</p>
-            <Button onClick={handleReopenMatch} disabled={isSubmitting} variant="outline" className="w-full bg-white">
-                {isSubmitting ? 'Reabrindo...' : 'Retornar Tratativa'}
-            </Button>
-            <Link to="/parcerias">
-              <Button variant="link" className="text-green-800">
-                Ver na lista de Parcerias
-              </Button>
-            </Link>
-          </div>
-        );
-      
       case MatchStatus.Fechado:
         return (
-            <div className="p-4 bg-gray-100 text-center space-y-2">
-                <p className="text-gray-600 font-semibold">Match fechado.</p>
-                <Button onClick={handleReopenMatch} disabled={isSubmitting} variant="outline" className="w-full bg-white">
-                    {isSubmitting ? 'Reabrindo...' : 'Retornar Tratativa'}
-                </Button>
-            </div>
+          <div className={`p-4 text-center space-y-2 ${matchDetails.Status === MatchStatus.Convertido ? 'bg-green-100' : 'bg-gray-100'}`}>
+            <p className={`font-semibold ${matchDetails.Status === MatchStatus.Convertido ? 'text-green-800' : 'text-gray-600'}`}>
+              {matchDetails.Status === MatchStatus.Convertido ? 'Parceria concluída com sucesso!' : 'Match fechado.'}
+            </p>
+            <Button onClick={handleRequestReopen} disabled={isSubmitting} variant="outline" className="w-full bg-white">{isSubmitting ? 'Enviando...' : 'Solicitar Retorno da Tratativa'}</Button>
+            {matchDetails.Status === MatchStatus.Convertido && <Link to="/parcerias"><Button variant="link" className="text-green-800">Ver na lista de Parcerias</Button></Link>}
+          </div>
         );
-
-      default:
-        return null;
+      case MatchStatus.ReaberturaPendente:
+        const isRequester = matchDetails.status_change_requester_id === user.id;
+        return (
+          <div className="p-4 bg-yellow-100 text-center space-y-2">
+            <p className="font-semibold text-yellow-800">{isRequester ? 'Aguardando aprovação do outro corretor para reabrir.' : 'O outro corretor solicitou reabrir esta tratativa.'}</p>
+            {!isRequester && (
+              <div className="flex justify-center space-x-2">
+                <Button onClick={handleAcceptReopen} disabled={isSubmitting} className="bg-accent hover:bg-green-700">{isSubmitting ? 'Aceitando...' : 'Aceitar Retorno'}</Button>
+                <Button onClick={handleRejectReopen} disabled={isSubmitting} variant="destructive">{isSubmitting ? 'Rejeitando...' : 'Rejeitar Retorno'}</Button>
+              </div>
+            )}
+          </div>
+        );
+      default: return null;
     }
   };
 
-  if (loading) {
-    return <div className="flex justify-center mt-8"><Spinner /></div>;
-  }
+  if (loading) return <div className="flex justify-center mt-8"><Spinner /></div>;
   
   return (
     <div className="flex flex-col h-full bg-neutral-light">
       {renderActionUI()}
       <div className="flex-grow p-4 space-y-4 overflow-y-auto">
         {messages.map(msg => (
-          <div key={msg.ID_Message} className={`flex ${msg.From_Corretor_ID === user?.corretorInfo.ID_Corretor ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-xs md:max-w-md p-3 rounded-lg ${msg.From_Corretor_ID === user?.corretorInfo.ID_Corretor ? 'bg-primary text-white' : 'bg-white text-neutral-dark'}`}>
+          <div key={msg.ID_Message} className={`flex ${msg.From_Corretor_ID === user?.id ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-xs md:max-w-md p-3 rounded-lg ${msg.From_Corretor_ID === user?.id ? 'bg-primary text-white' : 'bg-white text-neutral-dark'}`}>
               <p>{msg.Message_Text}</p>
               <p className="text-xs text-right mt-1 opacity-75">{new Date(msg.Timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
             </div>
@@ -249,14 +169,7 @@ const ChatPage: React.FC = () => {
       </div>
       <div className="p-4 bg-white border-t">
         <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Digite sua mensagem..."
-            className="flex-grow p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-primary-focus"
-            disabled={matchDetails?.Status !== MatchStatus.Aberto}
-          />
+          <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Digite sua mensagem..." className="flex-grow p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-primary-focus" disabled={matchDetails?.Status !== MatchStatus.Aberto} />
           <button type="submit" className="bg-primary text-white rounded-full p-3 flex-shrink-0 disabled:bg-gray-400" disabled={matchDetails?.Status !== MatchStatus.Aberto}>
              <Send className="h-6 w-6" />
           </button>

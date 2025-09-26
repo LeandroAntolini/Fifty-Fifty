@@ -400,6 +400,7 @@ const mapSupabaseMatchToMatch = (match: any): Match => ({
     Corretor_B_ID: match.id_corretor_cliente,
     Match_Timestamp: match.created_at,
     Status: match.status,
+    status_change_requester_id: match.status_change_requester_id,
 });
 
 export const getAugmentedMatchesByCorretor = async (corretorId: string) => {
@@ -446,7 +447,6 @@ export const getMatchById = async (matchId: string): Promise<Match | undefined> 
         .single();
 
     if (error) {
-        // Supabase throws an error if no row is found, which is expected.
         if (error.code !== 'PGRST116') {
             console.error('Error fetching match by id:', error);
             throw error;
@@ -467,12 +467,29 @@ export const closeMatch = async (matchId: string): Promise<void> => {
     }
 };
 
-export const reopenMatch = async (matchId: string): Promise<void> => {
-    const { error } = await supabase.rpc('reopen_match', {
-        p_match_id: matchId
+export const requestReopenMatch = async (matchId: string, requesterId: string): Promise<void> => {
+    const { error } = await supabase.rpc('request_reopen_match', {
+        p_match_id: matchId,
+        p_requester_id: requesterId
     });
     if (error) {
-        console.error('Error reopening match:', error);
+        console.error('Error requesting reopen match:', error);
+        throw error;
+    }
+};
+
+export const acceptReopenMatch = async (matchId: string): Promise<void> => {
+    const { error } = await supabase.rpc('accept_reopen_match', { p_match_id: matchId });
+    if (error) {
+        console.error('Error accepting reopen match:', error);
+        throw error;
+    }
+};
+
+export const rejectReopenMatch = async (matchId: string): Promise<void> => {
+    const { error } = await supabase.rpc('reject_reopen_match', { p_match_id: matchId });
+    if (error) {
+        console.error('Error rejecting reopen match:', error);
         throw error;
     }
 };

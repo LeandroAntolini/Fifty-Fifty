@@ -3,7 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useUI } from '../contexts/UIContext';
 import { useNotifications } from '../contexts/NotificationContext';
 import * as api from '../services/api';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import Spinner from '../components/Spinner';
@@ -24,6 +24,7 @@ const DashboardPage: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [platformStats, setPlatformStats] = useState<api.PlatformStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const fetchDashboardData = useCallback(async () => {
     if (!user) return;
@@ -53,6 +54,16 @@ const DashboardPage: React.FC = () => {
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
+
+  const handleAddImovel = () => {
+    navigate('/imoveis');
+    openImovelModal();
+  };
+
+  const handleAddCliente = () => {
+    navigate('/clientes');
+    openClienteModal();
+  };
 
   if (loading || !stats || !platformStats) {
     return <div className="flex justify-center mt-8"><Spinner /></div>;
@@ -140,10 +151,10 @@ const DashboardPage: React.FC = () => {
           <CardTitle className="text-base font-semibold">Ações Rápidas</CardTitle>
         </CardHeader>
         <CardContent className="p-4 pt-2 space-y-2">
-          <Button onClick={openImovelModal} className="w-full justify-start h-9" variant="ghost">
+          <Button onClick={handleAddImovel} className="w-full justify-start h-9" variant="ghost">
             <PlusCircle className="mr-2" size={18} /> Adicionar Novo Imóvel
           </Button>
-          <Button onClick={openClienteModal} className="w-full justify-start h-9" variant="ghost">
+          <Button onClick={handleAddCliente} className="w-full justify-start h-9" variant="ghost">
             <PlusCircle className="mr-2" size={18} /> Adicionar Novo Cliente
           </Button>
           <Link to="/metricas">

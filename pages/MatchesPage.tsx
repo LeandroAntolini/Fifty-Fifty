@@ -25,6 +25,8 @@ const statusTextMap: { [key in MatchStatus]: string } = {
     [MatchStatus.Aberto]: 'Aberto',
     [MatchStatus.Convertido]: 'Convertido',
     [MatchStatus.Fechado]: 'Fechado',
+    [MatchStatus.ConclusaoPendente]: 'Pendente',
+    [MatchStatus.FechamentoPendente]: 'Pendente',
 };
 
 const MatchesPage: React.FC = () => {
@@ -56,6 +58,13 @@ const MatchesPage: React.FC = () => {
     }, [fetchMatches]);
 
     const filteredMatches = useMemo(() => {
+        if (statusFilter === MatchStatus.Aberto) {
+            return matches.filter(match => 
+                match.Status === MatchStatus.Aberto || 
+                match.Status === MatchStatus.ConclusaoPendente ||
+                match.Status === MatchStatus.FechamentoPendente
+            );
+        }
         return matches.filter(match => match.Status === statusFilter);
     }, [matches, statusFilter]);
 
@@ -64,6 +73,8 @@ const MatchesPage: React.FC = () => {
             case MatchStatus.Aberto: return 'bg-blue-500';
             case MatchStatus.Convertido: return 'bg-accent';
             case MatchStatus.Fechado: return 'bg-gray-500';
+            case MatchStatus.ConclusaoPendente: return 'bg-yellow-500';
+            case MatchStatus.FechamentoPendente: return 'bg-yellow-500';
             default: return 'bg-gray-500';
         }
     };

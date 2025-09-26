@@ -72,8 +72,7 @@ const AllChatsPage: React.FC = () => {
             aberto: { text: 'Ativa', color: 'bg-blue-500' },
             convertido: { text: 'Concluída', color: 'bg-accent' },
             fechado: { text: 'Fechada', color: 'bg-gray-500' },
-            conclusao_pendente: { text: 'Pendente', color: 'bg-yellow-500' },
-            fechamento_pendente: { text: 'Pendente', color: 'bg-yellow-500' },
+            reabertura_pendente: { text: 'Pendente', color: 'bg-yellow-500' },
         };
         const display = statusMap[status];
         if (!display) return null;

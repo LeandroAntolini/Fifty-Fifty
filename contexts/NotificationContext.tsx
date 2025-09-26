@@ -58,13 +58,13 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
           const newRecord = payload.new;
           const oldRecord = payload.old;
 
-          // A request was made by the other user
+          // A request to reopen was made by the other user
           if (
-            (newRecord.status === 'conclusao_pendente' || newRecord.status === 'fechamento_pendente') &&
-            oldRecord.status === 'aberto' &&
+            newRecord.status === 'reabertura_pendente' &&
+            (oldRecord.status === 'convertido' || oldRecord.status === 'fechado') &&
             newRecord.status_change_requester_id !== user.id
           ) {
-            toast('Você tem uma nova solicitação em um match!', { icon: '🔔' });
+            toast('Você tem uma nova solicitação para reabrir um match!', { icon: '🔔' });
           }
         }
         fetchNotifications();

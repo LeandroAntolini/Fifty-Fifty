@@ -84,11 +84,8 @@ const ChatPage: React.FC = () => {
             return [...prevMessages, formattedMessage];
           });
 
-          // If the message is for the current user, mark it as read immediately
-          // to prevent notifications for a chat that is currently open.
           if (newMessage.to_corretor_id === user.id) {
             await api.markMessagesAsRead(matchId, user.id);
-            // After marking as read, refresh the global notification count.
             fetchNotifications();
           }
         }
@@ -102,7 +99,7 @@ const ChatPage: React.FC = () => {
         { event: 'UPDATE', schema: 'public', table: 'matches', filter: `id=eq.${matchId}` },
         (payload) => {
           const updatedMatch = payload.new as any;
-          setMatchDetails(prev => prev ? { ...prev, Status: updatedMatch.status, StatusChangeRequesterID: updatedMatch.status_change_requester_id } : null);
+          setMatchDetails(prev => prev ? { ...prev, Status: updatedMatch.status } : null);
         }
       )
       .subscribe();
@@ -133,39 +130,11 @@ const ChatPage: React.FC = () => {
 
     try {
         const sentMessage = await api.sendMessage(messageData);
-        // The websocket listener will now handle adding the message to the state for the sender too,
-        // but we can add it here for a slightly faster UI update.
         setMessages(prevMessages => [...prevMessages, sentMessage]);
     } catch (error) {
         console.error("Failed to send message", error);
         toast.error("Falha ao enviar mensagem.");
         setNewMessage(messageData.Message_Text);
-    }
-  };
-
-  const handleRequestConcluir = async () => {
-    if (!matchId || !user) return;
-    setIsSubmitting(true);
-    try {
-      await api.requestConcluirParceria(matchId, user.id);
-      toast('Solicitação para concluir parceria enviada.', { icon: '👍' });
-    } catch (error) {
-      toast.error("Falha ao enviar solicitação.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleRequestFechar = async () => {
-    if (!matchId || !user) return;
-    setIsSubmitting(true);
-    try {
-      await api.requestFecharMatch(matchId, user.id);
-      toast('Solicitação para fechar match enviada.', { icon: '👍' });
-    } catch (error) {
-      toast.error("Falha ao enviar solicitação.");
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -199,79 +168,33 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  const handleCancelOrReject = async () => {
+  const handleReopenMatch = async () => {
     if (!matchId) return;
     setIsSubmitting(true);
     try {
-      await api.cancelStatusChangeRequest(matchId);
-      toast.info("A solicitação foi cancelada/rejeitada.");
+        await api.reopenMatch(matchId);
+        toast.success("Match reaberto com sucesso!");
+        setMatchDetails(prev => prev ? { ...prev, Status: MatchStatus.Aberto } : null);
+        fetchNotifications();
     } catch (error) {
-      toast.error("Falha ao cancelar a solicitação.");
+        toast.error("Falha ao reabrir o match.");
     } finally {
-      setIsSubmitting(false);
+        setIsSubmitting(false);
     }
   };
 
   const renderActionUI = () => {
     if (!matchDetails || !user) return null;
 
-    const isRequester = matchDetails.StatusChangeRequesterID === user.id;
-
     switch (matchDetails.Status) {
       case MatchStatus.Aberto:
         return (
           <div className="p-4 border-b bg-white space-y-2">
-            <Button onClick={handleRequestConcluir} disabled={isSubmitting} className="w-full bg-accent hover:bg-green-700">
-              {isSubmitting ? 'Enviando...' : 'Concluir Parceria'}
-            </Button>
-            <Button onClick={handleRequestFechar} disabled={isSubmitting} variant="destructive" className="w-full">
-              {isSubmitting ? 'Enviando...' : 'Fechar Match (Sem Parceria)'}
-            </Button>
-          </div>
-        );
-      
-      case MatchStatus.ConclusaoPendente:
-        if (isRequester) {
-          return (
-            <div className="p-4 border-b bg-white text-center space-y-2">
-              <p className="text-sm text-gray-600">Aguardando confirmação do outro corretor para concluir a parceria.</p>
-              <Button onClick={handleCancelOrReject} disabled={isSubmitting} variant="ghost" className="w-full">
-                {isSubmitting ? 'Cancelando...' : 'Cancelar Solicitação'}
-              </Button>
-            </div>
-          );
-        }
-        return (
-          <div className="p-4 border-b bg-yellow-100 text-center space-y-2">
-            <p className="font-semibold">O outro corretor solicitou a conclusão da parceria.</p>
             <Button onClick={handleConfirmConclusao} disabled={isSubmitting} className="w-full bg-accent hover:bg-green-700">
-              {isSubmitting ? 'Confirmando...' : 'Confirmar Conclusão'}
+              {isSubmitting ? 'Concluindo...' : 'Concluir Parceria'}
             </Button>
-            <Button onClick={handleCancelOrReject} disabled={isSubmitting} variant="destructive" className="w-full">
-              {isSubmitting ? 'Rejeitando...' : 'Rejeitar'}
-            </Button>
-          </div>
-        );
-
-      case MatchStatus.FechamentoPendente:
-        if (isRequester) {
-          return (
-            <div className="p-4 border-b bg-white text-center space-y-2">
-              <p className="text-sm text-gray-600">Aguardando confirmação do outro corretor para fechar o match.</p>
-              <Button onClick={handleCancelOrReject} disabled={isSubmitting} variant="ghost" className="w-full">
-                {isSubmitting ? 'Cancelando...' : 'Cancelar Solicitação'}
-              </Button>
-            </div>
-          );
-        }
-        return (
-          <div className="p-4 border-b bg-yellow-100 text-center space-y-2">
-            <p className="font-semibold">O outro corretor solicitou o fechamento do match.</p>
-            <Button onClick={handleConfirmFechamento} disabled={isSubmitting} className="w-full">
-              {isSubmitting ? 'Confirmando...' : 'Confirmar Fechamento'}
-            </Button>
-            <Button onClick={handleCancelOrReject} disabled={isSubmitting} variant="destructive" className="w-full">
-              {isSubmitting ? 'Rejeitando...' : 'Rejeitar'}
+            <Button onClick={handleConfirmFechamento} disabled={isSubmitting} variant="destructive" className="w-full">
+              {isSubmitting ? 'Fechando...' : 'Fechar Match (Sem Parceria)'}
             </Button>
           </div>
         );
@@ -280,6 +203,9 @@ const ChatPage: React.FC = () => {
         return (
           <div className="p-4 bg-green-100 text-center space-y-2">
             <p className="text-green-800 font-semibold">Parceria concluída com sucesso!</p>
+            <Button onClick={handleReopenMatch} disabled={isSubmitting} variant="outline" className="w-full bg-white">
+                {isSubmitting ? 'Reabrindo...' : 'Retornar Tratativa'}
+            </Button>
             <Link to="/parcerias">
               <Button variant="link" className="text-green-800">
                 Ver na lista de Parcerias
@@ -289,7 +215,14 @@ const ChatPage: React.FC = () => {
         );
       
       case MatchStatus.Fechado:
-        return <div className="p-4 bg-gray-100 text-center text-gray-600 font-semibold">Match fechado.</div>;
+        return (
+            <div className="p-4 bg-gray-100 text-center space-y-2">
+                <p className="text-gray-600 font-semibold">Match fechado.</p>
+                <Button onClick={handleReopenMatch} disabled={isSubmitting} variant="outline" className="w-full bg-white">
+                    {isSubmitting ? 'Reabrindo...' : 'Retornar Tratativa'}
+                </Button>
+            </div>
+        );
 
       default:
         return null;

@@ -400,7 +400,6 @@ const mapSupabaseMatchToMatch = (match: any): Match => ({
     Corretor_B_ID: match.id_corretor_cliente,
     Match_Timestamp: match.created_at,
     Status: match.status,
-    StatusChangeRequesterID: match.status_change_requester_id,
 });
 
 export const getAugmentedMatchesByCorretor = async (corretorId: string) => {
@@ -456,40 +455,24 @@ export const getMatchById = async (matchId: string): Promise<Match | undefined> 
     return data ? mapSupabaseMatchToMatch(data) : undefined;
 };
 
-export const requestConcluirParceria = async (matchId: string, requesterId: string): Promise<void> => {
-    const { error } = await supabase
-        .from('matches')
-        .update({ status: MatchStatus.ConclusaoPendente, status_change_requester_id: requesterId })
-        .eq('id', matchId);
-    if (error) throw error;
-};
-
-export const requestFecharMatch = async (matchId: string, requesterId: string): Promise<void> => {
-    const { error } = await supabase
-        .from('matches')
-        .update({ status: MatchStatus.FechamentoPendente, status_change_requester_id: requesterId })
-        .eq('id', matchId);
-    if (error) throw error;
-};
-
-export const cancelStatusChangeRequest = async (matchId: string): Promise<void> => {
-    const { error } = await supabase.rpc('reject_match_status_change', {
-        p_match_id: matchId
-    });
-    if (error) {
-        console.error('Error rejecting match status change:', error);
-        throw error;
-    }
-};
-
 export const closeMatch = async (matchId: string): Promise<void> => {
     const { error } = await supabase
         .from('matches')
-        .update({ status: MatchStatus.Fechado, status_change_requester_id: null })
+        .update({ status: MatchStatus.Fechado })
         .eq('id', matchId);
 
     if (error) {
         console.error('Error closing match:', error);
+        throw error;
+    }
+};
+
+export const reopenMatch = async (matchId: string): Promise<void> => {
+    const { error } = await supabase.rpc('reopen_match', {
+        p_match_id: matchId
+    });
+    if (error) {
+        console.error('Error reopening match:', error);
         throw error;
     }
 };

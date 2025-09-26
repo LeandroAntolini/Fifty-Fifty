@@ -11,7 +11,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import ConfirmationModal from '../components/ConfirmationModal';
 
 const ProfilePage: React.FC = () => {
-    const { user, updateProfile, loading: authLoading, deleteAccount } = useAuth();
+    const { user, updateProfile, loading: authLoading, deleteAccount, logout } = useAuth();
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         Nome: '',
@@ -168,6 +168,9 @@ const ProfilePage: React.FC = () => {
                 <CardContent className="space-y-4">
                     <Button variant="outline" className="w-full" onClick={() => navigate('/profile/update-password')}>
                         Atualizar Senha
+                    </Button>
+                    <Button variant="outline" className="w-full" onClick={logout}>
+                        Sair (Logout)
                     </Button>
                     <Button variant="destructive" className="w-full" onClick={handleDeleteAccount} disabled={loading}>
                         {loading ? 'Excluindo...' : 'Excluir Conta'}

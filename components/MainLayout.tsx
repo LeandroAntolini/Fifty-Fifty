@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useUI } from '../contexts/UIContext';
 import { useNotifications } from '../contexts/NotificationContext';
@@ -9,7 +9,6 @@ import {
   Users,
   ThumbsUp,
   Handshake,
-  LogOut,
   ChevronLeft,
   User,
   MessageSquare,
@@ -31,7 +30,7 @@ const pageTitles: { [key: string]: string } = {
 };
 
 const MainLayout: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { openImovelModal, openClienteModal, isImovelModalOpen, isClienteModalOpen } = useUI();
@@ -39,11 +38,14 @@ const MainLayout: React.FC = () => {
   
   const isSpecificChatPage = /^\/matches\/.+\/chat$/.test(location.pathname);
   
+  const profileSubPages = [
+    '/profile/privacy-policy',
+    '/profile/terms-of-service',
+    '/profile/update-password',
+  ];
   const hasBackButton = isSpecificChatPage || 
                         location.pathname === '/chats' ||
-                        location.pathname === '/profile/privacy-policy' ||
-                        location.pathname === '/profile/terms-of-service' ||
-                        location.pathname === '/profile/update-password';
+                        profileSubPages.includes(location.pathname);
 
   const showFabForImoveis = location.pathname === '/imoveis';
   const showFabForClientes = location.pathname === '/clientes';
@@ -64,14 +66,6 @@ const MainLayout: React.FC = () => {
       openClienteModal();
     }
   };
-
-  const handleProfileClick = () => {
-    if (location.pathname === '/profile') {
-      navigate(-1); // Go back
-    } else {
-      navigate('/profile');
-    }
-  };
   
   const isModalOpen = isImovelModalOpen || isClienteModalOpen;
   const hideBottomNav = hasBackButton;
@@ -79,27 +73,27 @@ const MainLayout: React.FC = () => {
   return (
     <div className="flex flex-col h-screen max-w-lg mx-auto bg-neutral-light">
       <header className="bg-primary text-white p-4 flex items-center justify-between shadow-md sticky top-0 z-10">
-        {hasBackButton ? (
-          <button onClick={() => navigate(-1)} className="text-white p-1">
-            <ChevronLeft/>
-          </button>
-        ) : (
-          <button onClick={handleProfileClick} className="text-white hover:text-secondary">
-            {user?.corretorInfo.avatar_url ? (
-              <img src={user.corretorInfo.avatar_url} alt="Perfil" className="w-8 h-8 rounded-full object-cover" />
-            ) : (
-              <User />
-            )}
-          </button>
-        )}
-        <h1 className="text-xl font-bold">{getTitle()}</h1>
-        <div className="flex items-center space-x-2">
-            <button onClick={() => navigate('/chats')} className="text-white hover:text-secondary p-1">
+        <div className="flex-1 flex justify-start">
+          {hasBackButton && (
+            <button onClick={() => navigate(-1)} className="text-white p-1 -ml-1">
+              <ChevronLeft size={28}/>
+            </button>
+          )}
+        </div>
+        
+        <h1 className="text-xl font-bold whitespace-nowrap px-2 text-center">{getTitle()}</h1>
+
+        <div className="flex-1 flex justify-end items-center space-x-2">
+            <Link to="/chats" className="text-white hover:text-secondary p-1">
                 <MessageSquare />
-            </button>
-            <button onClick={logout} className="text-white hover:text-secondary p-1">
-              <LogOut/>
-            </button>
+            </Link>
+            <Link to="/profile" className="text-white hover:text-secondary">
+              {user?.corretorInfo.avatar_url ? (
+                <img src={user.corretorInfo.avatar_url} alt="Perfil" className="w-8 h-8 rounded-full object-cover" />
+              ) : (
+                <User />
+              )}
+            </Link>
         </div>
       </header>
       

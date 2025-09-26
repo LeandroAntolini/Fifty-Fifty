@@ -174,6 +174,7 @@ const ChatPage: React.FC = () => {
     try {
       await api.createParceriaFromMatch(matchDetails);
       toast.success("Parabéns! Parceria concluída com sucesso.");
+      setMatchDetails(prev => prev ? { ...prev, Status: MatchStatus.Convertido } : null);
       fetchNotifications();
     } catch (error) {
       toast.error("Ocorreu um erro ao concluir a parceria.");
@@ -188,6 +189,7 @@ const ChatPage: React.FC = () => {
     try {
       await api.closeMatch(matchId);
       toast.success("Match fechado com sucesso.");
+      setMatchDetails(prev => prev ? { ...prev, Status: MatchStatus.Fechado } : null);
       fetchNotifications();
     } catch (error) {
       toast.error("Ocorreu um erro ao fechar o match.");

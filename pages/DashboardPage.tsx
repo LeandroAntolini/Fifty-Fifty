@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Button } from '../components/ui/Button';
 import Spinner from '../components/Spinner';
 import { ImovelStatus, ClienteStatus, MatchStatus } from '../types';
-import { Home, User, ThumbsUp, Handshake, PlusCircle, BarChart2, Bell, Users, Building, Briefcase, Award, ChevronRight } from 'lucide-react';
+import { Home, User, ThumbsUp, Handshake, PlusCircle, BarChart2, Bell, Users, Building, Briefcase, Award } from 'lucide-react';
 
 interface DashboardStats {
   imoveisAtivos: number;
@@ -17,29 +17,19 @@ interface DashboardStats {
   parceriasConcluidas: number;
 }
 
-interface AugmentedMatch {
-    ID_Match: string;
-    Status: MatchStatus;
-    imovel_tipo: string;
-    imovel_bairro: string;
-    other_corretor_name: string;
-    imovel_id_corretor: string;
-}
-
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { openImovelModal, openClienteModal } = useUI();
   const { notificationCount } = useNotifications();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [platformStats, setPlatformStats] = useState<api.PlatformStats | null>(null);
-  const [recentMatches, setRecentMatches] = useState<AugmentedMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   const fetchDashboardData = useCallback(async () => {
     if (!user) return;
     try {
-      const [imoveis, clientes, allMatches, parcerias, platformData] = await Promise.all([
+      const [imoveis, clientes, matches, parcerias, platformData] = await Promise.all([
         api.getImoveisByCorretor(user.id),
         api.getClientesByCorretor(user.id),
         api.getAugmentedMatchesByCorretor(user.id),
@@ -50,11 +40,10 @@ const DashboardPage: React.FC = () => {
       setStats({
         imoveisAtivos: imoveis.filter(i => i.Status === ImovelStatus.Ativo).length,
         clientesAtivos: clientes.filter(c => c.Status === ClienteStatus.Ativo).length,
-        matchesAbertos: allMatches.filter(m => [MatchStatus.Aberto, MatchStatus.ConclusaoPendente, MatchStatus.FechamentoPendente].includes(m.Status)).length,
+        matchesAbertos: matches.filter(m => m.Status === MatchStatus.Aberto).length,
         parceriasConcluidas: parcerias.length,
       });
       setPlatformStats(platformData);
-      setRecentMatches(allMatches.slice(0, 5));
     } catch (error) {
       console.error("Failed to fetch dashboard data", error);
     } finally {
@@ -121,41 +110,6 @@ const DashboardPage: React.FC = () => {
             <p className="text-xl font-bold">{stats.parceriasConcluidas}</p>
             <p className="text-xs text-muted-foreground">Parcerias</p>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-base font-semibold">Matches Recentes</CardTitle>
-            {recentMatches.length > 0 && (
-                <Link to="/matches">
-                    <Button variant="link" className="p-0 h-auto text-sm">Ver todos</Button>
-                </Link>
-            )}
-        </CardHeader>
-        <CardContent className="p-4 pt-2">
-            {recentMatches.length > 0 ? (
-            <div className="space-y-3">
-                {recentMatches.map(match => {
-                const isMyImovel = match.imovel_id_corretor === user?.id;
-                return (
-                    <Link to={`/matches/${match.ID_Match}/chat`} key={match.ID_Match} className="block p-3 rounded-lg bg-neutral-light hover:bg-neutral-DEFAULT transition-colors">
-                    <div className="flex justify-between items-center">
-                        <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-primary truncate">{match.imovel_tipo} em {match.imovel_bairro}</p>
-                        <p className="text-xs text-muted-foreground truncate">
-                            {isMyImovel ? `Cliente de ${match.other_corretor_name}` : `Imóvel de ${match.other_corretor_name}`}
-                        </p>
-                        </div>
-                        <ChevronRight className="h-5 w-5 text-gray-400 flex-shrink-0 ml-2" />
-                    </div>
-                    </Link>
-                );
-                })}
-            </div>
-            ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">Você ainda não tem nenhum match.</p>
-            )}
         </CardContent>
       </Card>
 

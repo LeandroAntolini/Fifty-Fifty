@@ -14,7 +14,7 @@ interface AuthContextType {
   isPasswordRecovery: boolean;
   updatePassword: (password: string) => Promise<void>;
   updateUserPassword: (password: string) => Promise<void>;
-  deleteAccount: (password: string) => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -148,23 +148,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (error) throw error;
   };
 
-  const deleteAccount = async (password: string) => {
-    if (!user) throw new Error("Usuário não autenticado.");
-
-    // 1. Re-authenticate to verify password
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password: password,
-    });
-
-    if (signInError) {
-      if (signInError.message.includes('Invalid login credentials')) {
-        throw new Error('Senha incorreta. A exclusão da conta foi cancelada.');
-      }
-      throw signInError;
-    }
-
-    // 2. If re-authentication is successful, proceed with deletion
+  const deleteAccount = async () => {
     await api.deleteCurrentUserAccount();
     await supabase.auth.signOut();
     setUser(null);

@@ -152,6 +152,11 @@ const DashboardPage: React.FC = () => {
           <Button onClick={handleAddCliente} className="w-full justify-start h-9" variant="ghost">
             <PlusCircle className="mr-2" size={18} /> Adicionar Novo Cliente
           </Button>
+          <Link to="/parcerias">
+            <Button className="w-full justify-start h-9" variant="ghost">
+              <Handshake className="mr-2" size={18} /> Ver Parcerias Concluídas
+            </Button>
+          </Link>
           <Link to="/metricas">
             <Button className="w-full justify-start h-9" variant="ghost">
               <BarChart2 className="mr-2" size={18} /> Ver Ranking de Corretores

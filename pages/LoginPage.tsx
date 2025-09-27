@@ -21,8 +21,12 @@ const LoginPage: React.FC = () => {
     setLoading(true);
     try {
       await login(email, password);
-    } catch (err) {
-      toast.error('Falha ao fazer login. Verifique suas credenciais.');
+    } catch (err: any) {
+      if (err.message && err.message.includes('Email not confirmed')) {
+        toast.error('Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada (e spam) para o link de confirmação.', { duration: 6000 });
+      } else {
+        toast.error('Falha ao fazer login. Verifique suas credenciais.');
+      }
     } finally {
       setLoading(false);
     }

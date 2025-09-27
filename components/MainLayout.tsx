@@ -8,9 +8,11 @@ import {
   Home,
   Users,
   ThumbsUp,
+  Handshake,
   ChevronLeft,
   User,
   MessageSquare,
+  BarChart2,
 } from 'lucide-react';
 
 const pageTitles: { [key: string]: string } = {
@@ -149,6 +151,14 @@ const MainLayout: React.FC = () => {
                 )}
               </div>
               <span>Matches</span>
+            </NavLink>
+            <NavLink to="/parcerias" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-neutral-dark hover:text-primary'}`}>
+              <Handshake />
+              <span>Parcerias</span>
+            </NavLink>
+            <NavLink to="/metricas" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-neutral-dark hover:text-primary'}`}>
+              <BarChart2 />
+              <span>Ranking</span>
             </NavLink>
           </div>
         </nav>

@@ -22,6 +22,7 @@ const RegisterPage: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [registrationComplete, setRegistrationComplete] = useState(false);
     const { register } = useAuth();
     const navigate = useNavigate();
 
@@ -41,14 +42,41 @@ const RegisterPage: React.FC = () => {
         }
         setLoading(true);
         try {
-            await register(formData);
-            navigate('/');
+            const result = await register(formData);
+            if (result.needsConfirmation) {
+                setRegistrationComplete(true);
+            } else {
+                navigate('/');
+            }
         } catch (err) {
             toast.error((err as Error).message || 'Falha ao registrar. Tente novamente.');
         } finally {
             setLoading(false);
         }
     };
+
+    if (registrationComplete) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-neutral-light p-4">
+                <Card className="w-full max-w-md text-center">
+                    <CardHeader>
+                        <CardTitle className="text-2xl font-bold text-primary">Cadastro Realizado!</CardTitle>
+                        <CardDescription>Verifique seu e-mail</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-sm text-neutral-dark">
+                            Enviamos um link de confirmação para o seu e-mail. Por favor, clique no link para ativar sua conta antes de fazer o login.
+                        </p>
+                    </CardContent>
+                    <CardFooter>
+                        <Link to="/login" className="w-full">
+                            <Button className="w-full">Ir para Login</Button>
+                        </Link>
+                    </CardFooter>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-neutral-light p-4">

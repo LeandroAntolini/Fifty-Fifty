@@ -4,11 +4,15 @@ import { User, Corretor } from '../types';
 import { supabase } from '../src/integrations/supabase/client';
 import * as api from '../services/api';
 
+interface RegisterResult {
+  needsConfirmation: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, pass: string) => Promise<void>;
-  register: (corretorData: Omit<Corretor, 'ID_Corretor' | 'Email'> & {Email: string, password: string}) => Promise<void>;
+  register: (corretorData: Omit<Corretor, 'ID_Corretor' | 'Email'> & {Email: string, password: string}) => Promise<RegisterResult>;
   logout: () => void;
   updateProfile: (profileData: Partial<Omit<Corretor, 'ID_Corretor' | 'Email' | 'CRECI'>>, avatarFile?: File | null) => Promise<void>;
   isPasswordRecovery: boolean;
@@ -82,9 +86,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (error) throw error;
   };
 
-  const register = async (formData: Omit<Corretor, 'ID_Corretor' | 'Email'> & {Email: string, password: string}) => {
+  const register = async (formData: Omit<Corretor, 'ID_Corretor' | 'Email'> & {Email: string, password: string}): Promise<RegisterResult> => {
     const { password, Email, Nome, CRECI, Telefone, Cidade, Estado } = formData;
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: Email,
       password: password,
       options: {
@@ -98,6 +102,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       },
     });
     if (error) throw error;
+    // Se a sessão for nula após o cadastro, significa que a confirmação por e-mail é necessária.
+    const needsConfirmation = !data.session;
+    return { needsConfirmation };
   };
   
   const logout = async () => {

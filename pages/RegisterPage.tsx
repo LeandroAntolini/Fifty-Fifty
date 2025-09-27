@@ -6,6 +6,7 @@ import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/Card';
 import toast from 'react-hot-toast';
+import { Eye, EyeOff } from 'lucide-react';
 
 const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -17,6 +18,9 @@ const RegisterPage: React.FC = () => {
         Estado: '',
         password: '',
     });
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const { register } = useAuth();
     const navigate = useNavigate();
@@ -29,6 +33,10 @@ const RegisterPage: React.FC = () => {
         e.preventDefault();
         if (!formData.CRECI) {
             toast.error("O CRECI é obrigatório.");
+            return;
+        }
+        if (formData.password !== confirmPassword) {
+            toast.error("As senhas não coincidem.");
             return;
         }
         setLoading(true);
@@ -64,7 +72,50 @@ const RegisterPage: React.FC = () => {
                         </div>
                         <div className="space-y-1.5">
                             <Label htmlFor="password">Senha</Label>
-                            <Input id="password" name="password" type="password" placeholder="Mínimo 6 caracteres" onChange={handleChange} required minLength={6} />
+                            <div className="relative">
+                                <Input
+                                    id="password"
+                                    name="password"
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="Mínimo 6 caracteres"
+                                    onChange={handleChange}
+                                    required
+                                    minLength={6}
+                                    className="pr-10"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400"
+                                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                            <div className="relative">
+                                <Input
+                                    id="confirmPassword"
+                                    name="confirmPassword"
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    placeholder="Repita a senha"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    required
+                                    minLength={6}
+                                    className="pr-10"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400"
+                                    aria-label={showConfirmPassword ? "Ocultar senha" : "Mostrar senha"}
+                                >
+                                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
                         </div>
                         <div className="space-y-1.5">
                             <Label htmlFor="Telefone">Telefone / WhatsApp</Label>

@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import { User as SupabaseUser } from '@supabase/supabase-js';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { User, Corretor } from '../types';
 import { supabase } from '../src/integrations/supabase/client';
 import * as api from '../services/api';
@@ -29,7 +29,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
-  const fetchCorretorProfile = async (sessionUser: SupabaseUser): Promise<User | null> => {
+  const fetchCorretorProfile = async (sessionUser: SupabaseUser): Promise<User> => {
     for (let i = 0; i < 6; i++) { // Retry up to 6 times (total of ~3 seconds)
       const { data: corretorData, error } = await supabase
         .from('corretores')
@@ -49,13 +49,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           avatar_url: corretorData.avatar_url,
           whatsapp_notifications_enabled: corretorData.whatsapp_notifications_enabled,
         };
-        const fullUser = {
+        return {
           id: sessionUser.id,
           email: sessionUser.email!,
           corretorInfo: corretorInfo,
         };
-        setUser(fullUser);
-        return fullUser;
       }
 
       if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
@@ -63,25 +61,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw new Error("Ocorreu um erro ao carregar seu perfil.");
       }
       
-      // If no data and it's a 'not found' error, wait and retry
       await new Promise(resolve => setTimeout(resolve, 500));
     }
 
-    // If all retries fail
-    await supabase.auth.signOut();
-    setUser(null);
     throw new Error("Seu perfil de corretor não foi encontrado. O cadastro pode não ter sido finalizado corretamente. Por favor, entre em contato com o suporte.");
   };
 
   useEffect(() => {
     setLoading(true);
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+
+    const handleSession = async (session: Session | null) => {
       try {
-        if (event === 'PASSWORD_RECOVERY') {
-          setIsPasswordRecovery(true);
-          setUser(null);
-        } else if (session) {
-          await fetchCorretorProfile(session.user);
+        if (session) {
+          const fullUser = await fetchCorretorProfile(session.user);
+          setUser(fullUser);
           setIsPasswordRecovery(false);
         } else {
           setUser(null);
@@ -89,8 +82,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       } catch (e) {
         toast.error((e as Error).message);
-      } finally {
+        await supabase.auth.signOut();
+        setUser(null);
+      }
+    };
+
+    // Initial session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      handleSession(session).finally(() => {
         setLoading(false);
+      });
+    });
+
+    // Listen for future changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
+        setUser(null);
+      } else {
+        handleSession(session);
       }
     });
 
@@ -146,7 +156,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
-        await fetchCorretorProfile(session.user);
+        const updatedUser = await fetchCorretorProfile(session.user);
+        setUser(updatedUser);
     }
   };
 

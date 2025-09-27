@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -24,7 +24,6 @@ const RegisterPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [registrationComplete, setRegistrationComplete] = useState(false);
     const { register } = useAuth();
-    const navigate = useNavigate();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -45,8 +44,6 @@ const RegisterPage: React.FC = () => {
             const result = await register(formData);
             if (result.needsConfirmation) {
                 setRegistrationComplete(true);
-            } else {
-                navigate('/');
             }
         } catch (err) {
             toast.error((err as Error).message || 'Falha ao registrar. Tente novamente.');

@@ -44,6 +44,7 @@ export interface Corretor {
   Cidade: string;
   Estado: string;
   avatar_url?: string;
+  whatsapp_notifications_enabled?: boolean;
 }
 
 export interface Imovel {

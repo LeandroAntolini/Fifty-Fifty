@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import { User as UserIcon, Edit2 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import ConfirmationModal from '../components/ConfirmationModal';
+import { Switch } from '../components/ui/Switch';
 
 const ProfilePage: React.FC = () => {
     const { user, updateProfile, loading: authLoading, deleteAccount, logout } = useAuth();
@@ -24,6 +25,7 @@ const ProfilePage: React.FC = () => {
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
+    const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
     useEffect(() => {
         if (user) {
@@ -34,6 +36,7 @@ const ProfilePage: React.FC = () => {
                 Estado: user.corretorInfo.Estado,
             });
             setAvatarPreview(user.corretorInfo.avatar_url || null);
+            setNotificationsEnabled(user.corretorInfo.whatsapp_notifications_enabled ?? true);
         }
     }, [user]);
 
@@ -55,7 +58,7 @@ const ProfilePage: React.FC = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            await updateProfile(formData, avatarFile);
+            await updateProfile({ ...formData, whatsapp_notifications_enabled: notificationsEnabled }, avatarFile);
             toast.success('Perfil atualizado com sucesso!');
             setAvatarFile(null);
         } catch (err) {
@@ -159,6 +162,26 @@ const ProfilePage: React.FC = () => {
                             {loading ? 'Salvando...' : 'Salvar Alterações'}
                         </Button>
                     </form>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Notificações</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="whatsapp-notifications" className="flex flex-col space-y-1 pr-4">
+                            <span>Notificações via WhatsApp</span>
+                            <span className="font-normal leading-snug text-muted-foreground text-sm">
+                                Receba alertas de novos matches e mensagens.
+                            </span>
+                        </Label>
+                        <Switch
+                            id="whatsapp-notifications"
+                            checked={notificationsEnabled}
+                            onCheckedChange={setNotificationsEnabled}
+                        />
+                    </div>
                 </CardContent>
             </Card>
             <Card>

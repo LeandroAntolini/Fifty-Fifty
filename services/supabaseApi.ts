@@ -365,6 +365,7 @@ export const updateCorretor = async (corretorId: string, corretorData: Partial<O
         cidade: corretorData.Cidade,
         estado: corretorData.Estado,
         avatar_url: corretorData.avatar_url,
+        whatsapp_notifications_enabled: corretorData.whatsapp_notifications_enabled,
     };
 
     // Remove undefined properties so they are not updated

@@ -56,27 +56,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }
 
   useEffect(() => {
-    const checkSession = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-            await fetchCorretorProfile(session.user);
-        }
-        setLoading(false);
-    };
-    checkSession();
-
+    setLoading(true);
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
         setIsPasswordRecovery(true);
-        if (session) {
-            await fetchCorretorProfile(session.user);
-        }
-      } else if (session) {
-        setIsPasswordRecovery(false);
-        await fetchCorretorProfile(session.user);
-      } else {
-        setIsPasswordRecovery(false);
         setUser(null);
+      } else if (session) {
+        await fetchCorretorProfile(session.user);
+        setIsPasswordRecovery(false);
+      } else {
+        setUser(null);
+        setIsPasswordRecovery(false);
       }
       setLoading(false);
     });

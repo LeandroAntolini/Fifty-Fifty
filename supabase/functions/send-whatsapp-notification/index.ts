@@ -9,6 +9,7 @@ const corsHeaders = {
 // Você DEVE configurar seus secrets no painel do Supabase:
 // 1. WHATSAPP_API_TOKEN: Seu token de acesso da API da Meta.
 // 2. WHATSAPP_PHONE_NUMBER_ID: O ID do número de telefone que enviará a mensagem.
+// 3. INTERNAL_TRIGGER_SECRET: Um segredo compartilhado com os gatilhos do banco de dados para segurança.
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -16,6 +17,24 @@ serve(async (req) => {
   }
 
   try {
+    // Security check
+    const INTERNAL_TRIGGER_SECRET = Deno.env.get('INTERNAL_TRIGGER_SECRET');
+    if (!INTERNAL_TRIGGER_SECRET) {
+        console.error("INTERNAL_TRIGGER_SECRET not set in Edge Function secrets.");
+        return new Response(JSON.stringify({ error: "Internal server configuration error." }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 500,
+        });
+    }
+    const authHeader = req.headers.get('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    if (token !== INTERNAL_TRIGGER_SECRET) {
+        return new Response(JSON.stringify({ error: "Unauthorized." }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 401,
+        });
+    }
+
     const { to_phone, message_text, link } = await req.json()
     if (!to_phone || !message_text) {
       throw new Error("'to_phone' e 'message_text' são obrigatórios.")
@@ -26,8 +45,7 @@ serve(async (req) => {
 
     if (!WHATSAPP_API_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
       console.error("Secrets do WhatsApp não configurados no Supabase.");
-      // Em um ambiente real, você pode querer não falhar silenciosamente.
-      // Por enquanto, retornamos sucesso para não quebrar o fluxo do banco de dados.
+      // Fail gracefully so the DB trigger doesn't error out
       return new Response(JSON.stringify({ message: "Configuração do WhatsApp incompleta." }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,

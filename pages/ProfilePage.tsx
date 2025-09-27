@@ -6,10 +6,11 @@ import { Label } from '../components/ui/Label';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../components/ui/Card';
 import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
-import { User as UserIcon, Edit2 } from 'lucide-react';
+import { User as UserIcon, Edit2, AlertCircle } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { Switch } from '../components/ui/Switch';
+import * as api from '../services/api';
 
 const ProfilePage: React.FC = () => {
     const { user, updateProfile, loading: authLoading, deleteAccount, logout } = useAuth();
@@ -26,6 +27,8 @@ const ProfilePage: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+    const [isWhatsAppConfigured, setIsWhatsAppConfigured] = useState(true);
+    const [checkingConfig, setCheckingConfig] = useState(true);
 
     useEffect(() => {
         if (user) {
@@ -39,6 +42,21 @@ const ProfilePage: React.FC = () => {
             setNotificationsEnabled(user.corretorInfo.whatsapp_notifications_enabled ?? true);
         }
     }, [user]);
+
+    useEffect(() => {
+        const checkConfig = async () => {
+            setCheckingConfig(true);
+            try {
+                const { isConfigured } = await api.checkWhatsAppConfig();
+                setIsWhatsAppConfigured(isConfigured);
+            } catch (e) {
+                setIsWhatsAppConfigured(false); 
+            } finally {
+                setCheckingConfig(false);
+            }
+        };
+        checkConfig();
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -169,8 +187,19 @@ const ProfilePage: React.FC = () => {
                     <CardTitle>Notificações</CardTitle>
                 </CardHeader>
                 <CardContent>
+                    {checkingConfig ? (
+                        <div className="flex justify-center"><Spinner size="sm" /></div>
+                    ) : !isWhatsAppConfigured ? (
+                        <div className="mb-4 p-3 rounded-md bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm flex items-start">
+                            <AlertCircle className="h-5 w-5 mr-3 flex-shrink-0" />
+                            <div>
+                                <p className="font-semibold">Ação necessária</p>
+                                <p>As notificações por WhatsApp não estão ativas na plataforma. Para habilitá-las, o administrador precisa configurar as chaves da API do WhatsApp no painel do sistema.</p>
+                            </div>
+                        </div>
+                    ) : null}
                     <div className="flex items-center justify-between">
-                        <Label htmlFor="whatsapp-notifications" className="flex flex-col space-y-1 pr-4">
+                        <Label htmlFor="whatsapp-notifications" className={`flex flex-col space-y-1 pr-4 ${!isWhatsAppConfigured ? 'opacity-50' : ''}`}>
                             <span>Notificações via WhatsApp</span>
                             <span className="font-normal leading-snug text-muted-foreground text-sm">
                                 Receba alertas de novos matches e mensagens.
@@ -180,6 +209,7 @@ const ProfilePage: React.FC = () => {
                             id="whatsapp-notifications"
                             checked={notificationsEnabled}
                             onCheckedChange={setNotificationsEnabled}
+                            disabled={!isWhatsAppConfigured}
                         />
                     </div>
                 </CardContent>

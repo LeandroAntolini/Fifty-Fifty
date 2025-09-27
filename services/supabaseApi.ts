@@ -706,3 +706,15 @@ export const markMatchAsViewed = async (matchId: string, userId: string): Promis
         }
     }
 };
+
+// --- WHATSAPP CONFIG ---
+export const checkWhatsAppConfig = async (): Promise<{ isConfigured: boolean }> => {
+    const { data, error } = await supabase.functions.invoke('check-whatsapp-config');
+
+    if (error) {
+        console.error('Error checking WhatsApp config:', error);
+        // Assume not configured if there's an error to be safe
+        return { isConfigured: false };
+    }
+    return data;
+};

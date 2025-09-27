@@ -30,41 +30,48 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   const fetchCorretorProfile = async (sessionUser: SupabaseUser): Promise<User | null> => {
-    const { data: corretorData, error } = await supabase
-      .from('corretores')
-      .select('*')
-      .eq('id', sessionUser.id)
-      .single();
+    for (let i = 0; i < 6; i++) { // Retry up to 6 times (total of ~3 seconds)
+      const { data: corretorData, error } = await supabase
+        .from('corretores')
+        .select('*')
+        .eq('id', sessionUser.id)
+        .single();
 
-    if (error) {
-      console.error('Error fetching corretor profile:', error);
-      await supabase.auth.signOut();
-      setUser(null);
-      throw new Error("Não foi possível carregar seu perfil. Tente fazer login novamente.");
+      if (corretorData) {
+        const corretorInfo: Corretor = {
+          ID_Corretor: corretorData.id,
+          Nome: corretorData.nome,
+          CRECI: corretorData.creci,
+          Telefone: corretorData.telefone,
+          Email: sessionUser.email!,
+          Cidade: corretorData.cidade,
+          Estado: corretorData.estado,
+          avatar_url: corretorData.avatar_url,
+          whatsapp_notifications_enabled: corretorData.whatsapp_notifications_enabled,
+        };
+        const fullUser = {
+          id: sessionUser.id,
+          email: sessionUser.email!,
+          corretorInfo: corretorInfo,
+        };
+        setUser(fullUser);
+        return fullUser;
+      }
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+        console.error('Error fetching corretor profile:', error);
+        throw new Error("Ocorreu um erro ao carregar seu perfil.");
+      }
+      
+      // If no data and it's a 'not found' error, wait and retry
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
 
-    if (corretorData) {
-      const corretorInfo: Corretor = {
-        ID_Corretor: corretorData.id,
-        Nome: corretorData.nome,
-        CRECI: corretorData.creci,
-        Telefone: corretorData.telefone,
-        Email: sessionUser.email!,
-        Cidade: corretorData.cidade,
-        Estado: corretorData.estado,
-        avatar_url: corretorData.avatar_url,
-        whatsapp_notifications_enabled: corretorData.whatsapp_notifications_enabled,
-      };
-      const fullUser = {
-        id: sessionUser.id,
-        email: sessionUser.email!,
-        corretorInfo: corretorInfo,
-      };
-      setUser(fullUser);
-      return fullUser;
-    }
-    return null;
-  }
+    // If all retries fail
+    await supabase.auth.signOut();
+    setUser(null);
+    throw new Error("Seu perfil de corretor não foi encontrado. O cadastro pode não ter sido finalizado corretamente. Por favor, entre em contato com o suporte.");
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -113,7 +120,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       },
     });
     if (error) throw error;
-    // Se a sessão for nula após o cadastro, significa que a confirmação por e-mail é necessária.
     const needsConfirmation = !data.session;
     return { needsConfirmation };
   };

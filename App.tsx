@@ -22,6 +22,7 @@ import UpdatePasswordPage from './pages/UpdatePasswordPage';
 import UpdateProfilePasswordPage from './pages/UpdateProfilePasswordPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
+import ScrollToTop from './components/ScrollToTop';
 
 const AppContent: React.FC = () => {
   const { isPasswordRecovery } = useAuth();
@@ -72,6 +73,7 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <HashRouter>
+      <ScrollToTop />
       <AuthProvider>
         <ToastProvider />
         <AppContent />

@@ -23,17 +23,24 @@ serve(async (req) => {
     )
 
     // 1. Find potential property matches
-    const { data: potentialImoveis, error: imoveisError } = await supabaseAdmin
+    let imoveisQuery = supabaseAdmin
       .from('imoveis')
       .select('*')
       .eq('status', 'Ativo')
       .eq('finalidade', cliente.Finalidade)
       .eq('cidade', cliente.CidadeDesejada)
-      .eq('estado', cliente.EstadoDesejado)
       .gte('valor', cliente.FaixaValorMin)
       .lte('valor', cliente.FaixaValorMax)
       .gte('dormitorios', cliente.DormitoriosMinimos)
-      .neq('id_corretor', cliente.ID_Corretor); // Don't match with own properties
+      .neq('id_corretor', cliente.ID_Corretor);
+
+    if (cliente.EstadoDesejado) {
+      imoveisQuery = imoveisQuery.eq('estado', cliente.EstadoDesejado);
+    } else {
+      imoveisQuery = imoveisQuery.is('estado', null);
+    }
+
+    const { data: potentialImoveis, error: imoveisError } = await imoveisQuery;
 
     if (imoveisError) throw imoveisError;
     if (!potentialImoveis || potentialImoveis.length === 0) {

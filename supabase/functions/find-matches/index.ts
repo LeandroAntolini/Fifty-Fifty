@@ -24,17 +24,24 @@ serve(async (req) => {
     )
 
     // 1. Find potential client matches
-    const { data: potentialClients, error: clientsError } = await supabaseAdmin
+    let clientsQuery = supabaseAdmin
       .from('clientes')
       .select('*')
       .eq('status', 'Ativo')
       .eq('finalidade', imovel.Finalidade)
       .eq('cidade_desejada', imovel.Cidade)
-      .eq('estado_desejado', imovel.Estado)
       .lte('faixa_valor_min', imovel.Valor)
       .gte('faixa_valor_max', imovel.Valor)
       .lte('dormitorios_minimos', imovel.Dormitorios)
-      .neq('id_corretor', imovel.ID_Corretor); // Don't match with own clients
+      .neq('id_corretor', imovel.ID_Corretor);
+
+    if (imovel.Estado) {
+      clientsQuery = clientsQuery.eq('estado_desejado', imovel.Estado);
+    } else {
+      clientsQuery = clientsQuery.is('estado_desejado', null);
+    }
+
+    const { data: potentialClients, error: clientsError } = await clientsQuery;
 
     if (clientsError) throw clientsError;
     if (!potentialClients || potentialClients.length === 0) {

@@ -3,6 +3,7 @@ import { User as SupabaseUser } from '@supabase/supabase-js';
 import { User, Corretor } from '../types';
 import { supabase } from '../src/integrations/supabase/client';
 import * as api from '../services/api';
+import toast from 'react-hot-toast';
 
 interface RegisterResult {
   needsConfirmation: boolean;
@@ -35,6 +36,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .eq('id', sessionUser.id)
       .single();
 
+    if (error) {
+      console.error('Error fetching corretor profile:', error);
+      await supabase.auth.signOut();
+      setUser(null);
+      throw new Error("Não foi possível carregar seu perfil. Tente fazer login novamente.");
+    }
+
     if (corretorData) {
       const corretorInfo: Corretor = {
         ID_Corretor: corretorData.id,
@@ -54,8 +62,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       };
       setUser(fullUser);
       return fullUser;
-    } else if (error) {
-      console.error('Error fetching corretor profile:', error);
     }
     return null;
   }
@@ -63,17 +69,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     setLoading(true);
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setIsPasswordRecovery(true);
-        setUser(null);
-      } else if (session) {
-        await fetchCorretorProfile(session.user);
-        setIsPasswordRecovery(false);
-      } else {
-        setUser(null);
-        setIsPasswordRecovery(false);
+      try {
+        if (event === 'PASSWORD_RECOVERY') {
+          setIsPasswordRecovery(true);
+          setUser(null);
+        } else if (session) {
+          await fetchCorretorProfile(session.user);
+          setIsPasswordRecovery(false);
+        } else {
+          setUser(null);
+          setIsPasswordRecovery(false);
+        }
+      } catch (e) {
+        toast.error((e as Error).message);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => {

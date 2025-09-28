@@ -11,6 +11,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { Switch } from '../components/ui/Switch';
 import * as api from '../services/api';
+import { formatPhoneNumber } from '../src/utils/formatters';
 
 const ProfilePage: React.FC = () => {
     const { user, updateProfile, loading: authLoading, deleteAccount, logout } = useAuth();
@@ -34,7 +35,7 @@ const ProfilePage: React.FC = () => {
         if (user) {
             setFormData({
                 Nome: user.corretorInfo.Nome,
-                Telefone: user.corretorInfo.Telefone,
+                Telefone: formatPhoneNumber(user.corretorInfo.Telefone),
                 Cidade: user.corretorInfo.Cidade,
                 Estado: user.corretorInfo.Estado,
             });
@@ -60,6 +61,12 @@ const ProfilePage: React.FC = () => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
+
+        if (name === 'Telefone') {
+            setFormData({ ...formData, [name]: formatPhoneNumber(value) });
+            return;
+        }
+
         const finalValue = name === 'Estado' ? value.toUpperCase() : value;
         setFormData({ ...formData, [name]: finalValue });
     };
@@ -76,7 +83,12 @@ const ProfilePage: React.FC = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            await updateProfile({ ...formData, whatsapp_notifications_enabled: notificationsEnabled }, avatarFile);
+            const profileDataToSave = {
+                ...formData,
+                Telefone: formData.Telefone.replace(/\D/g, ''), // Salva apenas os dígitos
+                whatsapp_notifications_enabled: notificationsEnabled
+            };
+            await updateProfile(profileDataToSave, avatarFile);
             toast.success('Perfil atualizado com sucesso!');
             setAvatarFile(null);
         } catch (err) {
@@ -162,7 +174,7 @@ const ProfilePage: React.FC = () => {
 
                         <div className="space-y-1.5">
                             <Label htmlFor="Telefone">Telefone / WhatsApp</Label>
-                            <Input id="Telefone" name="Telefone" value={formData.Telefone} onChange={handleChange} required />
+                            <Input id="Telefone" name="Telefone" value={formData.Telefone} onChange={handleChange} required maxLength={15} />
                         </div>
 
                         <div className="grid grid-cols-3 gap-4">
@@ -254,6 +266,10 @@ const ProfilePage: React.FC = () => {
                     <div className="flex justify-between items-center">
                         <p className="text-muted-foreground">Termos de Serviço</p>
                         <Link to="/profile/terms-of-service" className="text-primary hover:underline">ler documento</Link>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t mt-2">
+                        <p className="text-muted-foreground">Criado por</p>
+                        <p className="font-medium">Leandro Antolini</p>
                     </div>
                 </CardContent>
             </Card>

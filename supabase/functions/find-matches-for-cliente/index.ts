@@ -25,7 +25,7 @@ serve(async (req) => {
     // 1. Find potential property matches
     let imoveisQuery = supabaseAdmin
       .from('imoveis')
-      .select('*')
+      .select('id, id_corretor, finalidade, cidade, estado, valor, dormitorios')
       .eq('status', 'Ativo')
       .eq('finalidade', cliente.Finalidade)
       .eq('cidade', cliente.CidadeDesejada)

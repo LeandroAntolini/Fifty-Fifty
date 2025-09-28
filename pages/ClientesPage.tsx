@@ -5,7 +5,7 @@ import { useUI } from '../contexts/UIContext';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
 import AddClienteModal from '../components/AddClienteModal';
-import { Edit, Trash2, Search } from 'lucide-react';
+import { Edit, Trash2, Search, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../src/integrations/supabase/client';
 import ConfirmationModal from '../components/ConfirmationModal';
@@ -231,6 +231,14 @@ const ClientesPage: React.FC = () => {
                 <p>Faixa de Valor: {formatCurrency(cliente.FaixaValorMin)} - {formatCurrency(cliente.FaixaValorMax)}</p>
                 <p>Dormitórios: {cliente.DormitoriosMinimos}+</p>
               </div>
+              {cliente.detalhes_privados && (
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                      <div className="flex items-start text-xs text-gray-500">
+                          <Lock size={12} className="mr-2 mt-0.5 flex-shrink-0" />
+                          <p><span className="font-semibold">Notas Privadas:</span> {cliente.detalhes_privados}</p>
+                      </div>
+                  </div>
+              )}
               <div className="flex items-center justify-between mt-4">
                 <span className={`px-2 py-1 rounded-full text-white text-sm ${cliente.Status === 'Ativo' ? 'bg-green-500' : 'bg-gray-500'}`}>{cliente.Status}</span>
                 <div className="flex space-x-2 items-center">

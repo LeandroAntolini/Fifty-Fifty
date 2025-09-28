@@ -46,6 +46,7 @@ const mapSupabaseImovelToImovel = (imovel: any): Imovel => ({
     Metragem: imovel.metragem,
     Status: imovel.status,
     Imagens: imovel.imagens || [],
+    detalhes_privados: imovel.detalhes_privados,
     CreatedAt: imovel.created_at,
 });
 
@@ -110,6 +111,7 @@ export const createImovel = async (imovelData: Omit<Imovel, 'ID_Imovel' | 'Statu
         dormitorios: rest.Dormitorios,
         metragem: rest.Metragem,
         imagens: imageUrls,
+        detalhes_privados: rest.detalhes_privados,
         status: ImovelStatus.Ativo,
     };
 
@@ -189,6 +191,7 @@ export const updateImovel = async (
         metragem: imovelData.Metragem,
         status: imovelData.Status,
         imagens: updatedImageUrls,
+        detalhes_privados: imovelData.detalhes_privados,
     };
     Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
 
@@ -247,6 +250,7 @@ const mapSupabaseClienteToCliente = (cliente: any): Cliente => ({
     FaixaValorMax: cliente.faixa_valor_max,
     DormitoriosMinimos: cliente.dormitorios_minimos,
     Status: cliente.status,
+    detalhes_privados: cliente.detalhes_privados,
     CreatedAt: cliente.created_at,
 });
 
@@ -276,6 +280,7 @@ export const createCliente = async (clienteData: Omit<Cliente, 'ID_Cliente' | 'S
         faixa_valor_min: clienteData.FaixaValorMin,
         faixa_valor_max: clienteData.FaixaValorMax,
         dormitorios_minimos: clienteData.DormitoriosMinimos,
+        detalhes_privados: clienteData.detalhes_privados,
         status: ClienteStatus.Ativo,
     };
 
@@ -304,6 +309,7 @@ export const updateCliente = async (clienteId: string, clienteData: Partial<Omit
         faixa_valor_max: clienteData.FaixaValorMax,
         dormitorios_minimos: clienteData.DormitoriosMinimos,
         status: clienteData.Status,
+        detalhes_privados: clienteData.detalhes_privados,
     };
 
     Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);

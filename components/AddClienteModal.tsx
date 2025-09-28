@@ -29,6 +29,7 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
     FaixaValorMax: 0,
     DormitoriosMinimos: 1,
     Status: ClienteStatus.Ativo,
+    detalhes_privados: '',
   });
 
   const [formData, setFormData] = useState(getInitialFormData());
@@ -46,6 +47,7 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
           FaixaValorMax: clienteToEdit.FaixaValorMax,
           DormitoriosMinimos: clienteToEdit.DormitoriosMinimos,
           Status: clienteToEdit.Status,
+          detalhes_privados: clienteToEdit.detalhes_privados || '',
         });
       } else {
         setFormData(getInitialFormData());
@@ -96,6 +98,10 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
         <h2 id="modal-title" className="text-2xl font-bold text-primary mb-4">{isEditMode ? 'Editar Cliente' : 'Cadastrar Novo Cliente'}</h2>
         <form onSubmit={handleSubmit} noValidate>
           <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="detalhes_privados">Nome / Contato do Cliente (Privado)</Label>
+              <Input id="detalhes_privados" name="detalhes_privados" value={formData.detalhes_privados} onChange={handleInputChange} placeholder="Esta informação é visível apenas para você." />
+            </div>
             <div className="space-y-1.5">
               <Label htmlFor="TipoImovelDesejado">Tipo de Imóvel Desejado</Label>
               <Input id="TipoImovelDesejado" name="TipoImovelDesejado" value={formData.TipoImovelDesejado} onChange={handleInputChange} required />

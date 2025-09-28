@@ -7,6 +7,7 @@ import { Label } from './ui/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/Select';
 import { formatBRLNumber, handleCurrencyInputChange } from '../src/utils/currency';
 import { Image } from 'lucide-react';
+import { Textarea } from './ui/Textarea';
 
 type ImovelFormData = Omit<Imovel, 'ID_Imovel' | 'ID_Corretor' | 'Imagens' | 'CreatedAt'>;
 
@@ -44,6 +45,7 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
     Dormitorios: 1,
     Metragem: 0,
     Status: ImovelStatus.Ativo,
+    detalhes_privados: '',
   });
 
   const [formData, setFormData] = useState(getInitialFormData());
@@ -65,6 +67,7 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
           Dormitorios: imovelToEdit.Dormitorios,
           Metragem: imovelToEdit.Metragem || 0,
           Status: imovelToEdit.Status,
+          detalhes_privados: imovelToEdit.detalhes_privados || '',
         });
         setExistingImages(imovelToEdit.Imagens || []);
       } else {
@@ -79,11 +82,11 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
 
   if (!isOpen) return null;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
 
     if (name === 'Valor') {
-        const numericValue = handleCurrencyInputChange(e);
+        const numericValue = handleCurrencyInputChange(e as React.ChangeEvent<HTMLInputElement>);
         setFormData(prev => ({ ...prev, Valor: numericValue }));
         return;
     }
@@ -208,6 +211,11 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
                 </div>
             )}
             
+            <div className="space-y-1.5">
+              <Label htmlFor="detalhes_privados">Endereço / Edifício / Unidade (Privado)</Label>
+              <Textarea id="detalhes_privados" name="detalhes_privados" value={formData.detalhes_privados} onChange={handleInputChange} placeholder="Esta informação é visível apenas para você." />
+            </div>
+
             <div>
                 <Label>Imagens do Imóvel</Label>
                 {(existingImages.length > 0 || newImagePreviews.length > 0) && (

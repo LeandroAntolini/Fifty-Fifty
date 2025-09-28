@@ -26,7 +26,7 @@ serve(async (req) => {
     // 1. Find potential client matches
     let clientsQuery = supabaseAdmin
       .from('clientes')
-      .select('*')
+      .select('id, id_corretor, finalidade, cidade_desejada, estado_desejado, faixa_valor_min, faixa_valor_max, dormitorios_minimos')
       .eq('status', 'Ativo')
       .eq('finalidade', imovel.Finalidade)
       .eq('cidade_desejada', imovel.Cidade)

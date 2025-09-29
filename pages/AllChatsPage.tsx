@@ -32,7 +32,7 @@ const AllChatsPage: React.FC = () => {
         try {
             const chatsData = filter === 'ativas'
                 ? await api.getActiveChatsByCorretor(user.corretorInfo.ID_Corretor)
-                : await api.getAllChatsByCorretor(user.corretorInfo.ID_Corretor);
+                : await api.getArchivedChatsByCorretor(user.corretorInfo.ID_Corretor);
             setChats(chatsData || []);
         } catch (error) {
             console.error("Failed to fetch chats", error);
@@ -52,6 +52,11 @@ const AllChatsPage: React.FC = () => {
             .on(
                 'postgres_changes',
                 { event: 'INSERT', schema: 'public', table: 'messages' },
+                () => { fetchChats(); }
+            )
+            .on(
+                'postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'matches' },
                 () => { fetchChats(); }
             )
             .subscribe();
@@ -122,7 +127,7 @@ const AllChatsPage: React.FC = () => {
                                         {chat.Last_Message_Text}
                                     </p>
                                     <div className="flex items-center space-x-2">
-                                        {filter === 'arquivadas' && getStatusDisplay(chat.Match_Status)}
+                                        {getStatusDisplay(chat.Match_Status)}
                                         {chat.Unread_Count > 0 && (
                                             <span className="bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                                                 {chat.Unread_Count}

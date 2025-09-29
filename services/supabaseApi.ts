@@ -605,13 +605,13 @@ export const getActiveChatsByCorretor = async (corretorId: string) => {
     return data;
 };
 
-export const getAllChatsByCorretor = async (corretorId: string) => {
-    const { data, error } = await supabase.rpc('get_all_chats_for_corretor', {
+export const getArchivedChatsByCorretor = async (corretorId: string) => {
+    const { data, error } = await supabase.rpc('get_archived_chats_for_corretor', {
         p_corretor_id: corretorId,
     });
 
     if (error) {
-        console.error('Error fetching all chats:', error);
+        console.error('Error fetching archived chats:', error);
         throw error;
     }
     return data;

@@ -113,13 +113,47 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   }, [user, fetchNotifications]);
 
   const markAllNotificationsForMatchAsRead = (matchId: string) => {
+    // Update UI immediately for responsiveness
     setGeneralNotifications(prev => prev.map(n => (n.matchId === matchId ? { ...n, isRead: true } : n)));
     setChatNotifications(prev => prev.map(n => (n.matchId === matchId ? { ...n, isRead: true } : n)));
+    // Re-sync with the database to get the definitive state
+    fetchNotifications();
   };
 
-  const clearAllNotifications = () => {
+  const clearAllNotifications = async () => {
+    if (!user) return;
+    
+    // Provide immediate UI feedback
     setGeneralNotifications([]);
     setChatNotifications([]);
+
+    // Find unique match IDs that need to be marked as read in the database
+    const unreadChatMatchIds = new Set(chatNotifications.filter(n => !n.isRead).map(n => n.matchId));
+    const unreadGeneralMatchIds = new Set(generalNotifications.filter(n => !n.isRead).map(n => n.matchId));
+
+    try {
+      // Mark all chat messages as read
+      if (unreadChatMatchIds.size > 0) {
+        await Promise.all(
+          Array.from(unreadChatMatchIds).map(matchId =>
+            api.markMessagesAsRead(matchId, user.id)
+          )
+        );
+      }
+      // Mark all general matches as viewed
+      if (unreadGeneralMatchIds.size > 0) {
+        await Promise.all(
+          Array.from(unreadGeneralMatchIds).map(matchId =>
+            api.markMatchAsViewed(matchId, user.id)
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Failed to mark all notifications as read", error);
+    } finally {
+      // Re-sync with the source of truth after updating the database
+      fetchNotifications();
+    }
   };
 
   const generalUnreadCount = generalNotifications.filter(n => !n.isRead).length;

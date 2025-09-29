@@ -11,7 +11,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { Switch } from '../components/ui/Switch';
 import * as api from '../services/api';
-import { formatPhoneNumber } from '../src/utils/formatters';
+import { formatPhoneNumber, toTitleCase } from '../src/utils/formatters';
 
 const ProfilePage: React.FC = () => {
     const { user, updateProfile, loading: authLoading, deleteAccount, logout } = useAuth();
@@ -67,7 +67,13 @@ const ProfilePage: React.FC = () => {
             return;
         }
 
-        const finalValue = name === 'Estado' ? value.toUpperCase() : value;
+        let finalValue = value;
+        if (name === 'Estado') {
+            finalValue = value.toUpperCase();
+        } else if (name === 'Nome' || name === 'Cidade') {
+            finalValue = toTitleCase(value);
+        }
+
         setFormData({ ...formData, [name]: finalValue });
     };
 

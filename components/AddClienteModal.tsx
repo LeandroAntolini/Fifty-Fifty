@@ -6,6 +6,7 @@ import { Input } from './ui/Input';
 import { Label } from './ui/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/Select';
 import { formatBRLNumber, handleCurrencyInputChange } from '../src/utils/currency';
+import { toTitleCase } from '../src/utils/formatters';
 
 type ClienteFormData = Omit<Cliente, 'ID_Cliente' | 'ID_Corretor' | 'CreatedAt'>;
 
@@ -71,12 +72,14 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
         return;
     }
 
+    let finalValue = value;
     if (name === 'EstadoDesejado') {
-        setFormData(prev => ({ ...prev, [name]: value.toUpperCase() }));
-        return;
+        finalValue = value.toUpperCase();
+    } else if (['TipoImovelDesejado', 'CidadeDesejada', 'BairroRegiaoDesejada'].includes(name)) {
+        finalValue = toTitleCase(value);
     }
 
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: finalValue }));
   };
 
   const handleSelectChange = (name: 'Finalidade' | 'Status') => (value: string) => {

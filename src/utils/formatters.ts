@@ -18,3 +18,18 @@ export const formatPhoneNumber = (value: string): string => {
 
   return formatted;
 };
+
+export const toTitleCase = (str: string): string => {
+  if (!str) return "";
+  const lowerCaseWords = ['de', 'da', 'do', 'dos', 'das', 'e'];
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map((word, index) => {
+      if (index > 0 && lowerCaseWords.includes(word)) {
+        return word;
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+};

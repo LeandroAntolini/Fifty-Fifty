@@ -7,6 +7,7 @@ import { Label } from '../components/ui/Label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/Card';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff } from 'lucide-react';
+import { toTitleCase } from '../src/utils/formatters';
 
 const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -26,7 +27,16 @@ const RegisterPage: React.FC = () => {
     const { register } = useAuth();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        let finalValue = value;
+
+        if (name === 'Nome' || name === 'Cidade') {
+            finalValue = toTitleCase(value);
+        } else if (name === 'Estado') {
+            finalValue = value.toUpperCase();
+        }
+        
+        setFormData({ ...formData, [name]: finalValue });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -85,7 +95,7 @@ const RegisterPage: React.FC = () => {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-1.5">
                             <Label htmlFor="Nome">Nome Completo</Label>
-                            <Input id="Nome" name="Nome" placeholder="Seu nome completo" onChange={handleChange} required />
+                            <Input id="Nome" name="Nome" value={formData.Nome} placeholder="Seu nome completo" onChange={handleChange} required />
                         </div>
                         <div className="space-y-1.5">
                             <Label htmlFor="CRECI">CRECI</Label>
@@ -149,11 +159,11 @@ const RegisterPage: React.FC = () => {
                         <div className="grid grid-cols-3 gap-4">
                             <div className="space-y-1.5 col-span-2">
                                 <Label htmlFor="Cidade">Cidade</Label>
-                                <Input id="Cidade" name="Cidade" placeholder="Sua cidade" onChange={handleChange} required />
+                                <Input id="Cidade" name="Cidade" value={formData.Cidade} placeholder="Sua cidade" onChange={handleChange} required />
                             </div>
                             <div className="space-y-1.5">
                                 <Label htmlFor="Estado">Estado</Label>
-                                <Input id="Estado" name="Estado" placeholder="UF" onChange={handleChange} required maxLength={2} />
+                                <Input id="Estado" name="Estado" value={formData.Estado} placeholder="UF" onChange={handleChange} required maxLength={2} />
                             </div>
                         </div>
 

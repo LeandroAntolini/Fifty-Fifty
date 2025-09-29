@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { formatBRLNumber, handleCurrencyInputChange } from '../src/utils/currency';
 import { Image } from 'lucide-react';
 import { Textarea } from './ui/Textarea';
+import { toTitleCase } from '../src/utils/formatters';
 
 type ImovelFormData = Omit<Imovel, 'ID_Imovel' | 'ID_Corretor' | 'Imagens' | 'CreatedAt'>;
 
@@ -97,12 +98,14 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
         return;
     }
 
+    let finalValue = value;
     if (name === 'Estado') {
-        setFormData(prev => ({ ...prev, [name]: value.toUpperCase() }));
-        return;
+        finalValue = value.toUpperCase();
+    } else if (['Tipo', 'Cidade', 'Bairro'].includes(name)) {
+        finalValue = toTitleCase(value);
     }
 
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: finalValue }));
   };
 
   const handleSelectChange = (name: 'Finalidade' | 'Status') => (value: string) => {

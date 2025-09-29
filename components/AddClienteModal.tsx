@@ -89,7 +89,17 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
         toast.error("Verifique os campos obrigatórios e a faixa de valor.");
         return;
     }
-    onSave(formData, clienteToEdit?.ID_Cliente);
+
+    const trimmedFormData = {
+      ...formData,
+      TipoImovelDesejado: formData.TipoImovelDesejado.trim(),
+      CidadeDesejada: formData.CidadeDesejada.trim(),
+      EstadoDesejado: formData.EstadoDesejado.trim(),
+      BairroRegiaoDesejada: formData.BairroRegiaoDesejada.trim(),
+      detalhes_privados: formData.detalhes_privados?.trim(),
+    };
+
+    onSave(trimmedFormData, clienteToEdit?.ID_Cliente);
   };
 
   return (

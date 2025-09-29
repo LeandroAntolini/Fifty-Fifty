@@ -141,8 +141,17 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
     
     const newImagesBase64 = await Promise.all(newImageFiles.map(file => fileToBase64(file)));
     
+    const trimmedFormData = {
+      ...formData,
+      Tipo: formData.Tipo.trim(),
+      Cidade: formData.Cidade.trim(),
+      Estado: formData.Estado.trim(),
+      Bairro: formData.Bairro.trim(),
+      detalhes_privados: formData.detalhes_privados?.trim(),
+    };
+
     onSave(
-      formData,
+      trimmedFormData,
       imovelToEdit?.ID_Imovel,
       { newImagesBase64, imagesToDelete }
     );

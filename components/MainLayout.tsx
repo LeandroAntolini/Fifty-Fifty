@@ -65,7 +65,7 @@ const MainLayout: React.FC = () => {
   };
 
   const isModalOpen = isImovelModalOpen || isClienteModalOpen;
-  const hideBottomNav = hasBackButton || location.pathname === '/chats';
+  const hideBottomNav = hasBackButton;
 
   return (
     <div className="flex flex-col h-screen max-w-lg mx-auto bg-neutral-light">

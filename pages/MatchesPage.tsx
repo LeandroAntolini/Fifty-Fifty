@@ -24,6 +24,7 @@ interface AugmentedMatch {
     viewed_by_corretor_imovel: boolean;
     viewed_by_corretor_cliente: boolean;
     status_change_requester_id: string | null;
+    has_messages: boolean;
 }
 
 const statusTextMap: { [key in MatchStatus]: string } = {
@@ -134,6 +135,8 @@ const MatchesPage: React.FC = () => {
             ) : (
                 filteredMatches.map(match => {
                     const isMyImovel = match.imovel_id_corretor === user?.corretorInfo.ID_Corretor;
+                    const isChatActive = match.Status === MatchStatus.Aberto || match.Status === MatchStatus.ReaberturaPendente;
+                    
                     return (
                         <div key={match.ID_Match} className="bg-white p-4 rounded-lg shadow">
                             <div className="flex justify-between items-start">
@@ -151,7 +154,7 @@ const MatchesPage: React.FC = () => {
                             </div>
                             <Link to={`/matches/${match.ID_Match}/chat`}>
                                 <button className="mt-4 w-full bg-secondary hover:bg-amber-500 text-primary font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                                    {match.Status === MatchStatus.Aberto || match.Status === MatchStatus.ReaberturaPendente ? 'Abrir Chat' : 'Ver Histórico'}
+                                    {isChatActive ? (match.has_messages ? 'Continuar Chat' : 'Abrir Chat') : 'Ver Histórico'}
                                 </button>
                             </Link>
                         </div>

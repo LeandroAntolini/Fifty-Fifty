@@ -12,23 +12,23 @@ interface NotificationListProps {
 }
 
 const NotificationList: React.FC<NotificationListProps> = ({ onClose }) => {
-  const { notifications, markNotificationAsRead, clearAllNotifications } = useNotifications();
+  const { notifications, markNotificationAsRead, clearAllNotifications, fetchNotifications } = useNotifications();
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const handleNotificationClick = async (notification: Notification) => {
     if (!user) return;
 
-    // Mark the underlying resource as "viewed"
-    if (notification.type === 'new_match') {
-      await api.markMatchAsViewed(notification.matchId, user.id);
-    } else if (notification.type === 'new_message') {
-      await api.markMessagesAsRead(notification.matchId, user.id);
-    }
+    // Mark both the match as viewed and messages as read to clear all related notifications
+    await api.markMatchAsViewed(notification.matchId, user.id);
+    await api.markMessagesAsRead(notification.matchId, user.id);
     
-    // Mark notification as read in the context state
+    // Mark notification as read in the local state to update UI immediately
     markNotificationAsRead(notification.id);
     
+    // Refetch notifications to ensure state is in sync with backend
+    fetchNotifications();
+
     // Navigate and close the list
     navigate(notification.link);
     onClose();

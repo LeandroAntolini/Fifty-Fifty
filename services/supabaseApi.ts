@@ -423,8 +423,8 @@ export const getAugmentedMatchesByCorretor = async (corretorId: string) => {
 };
 
 export const findMatchesForImovel = async (imovel: Imovel): Promise<Match[]> => {
-    const { data, error } = await supabase.functions.invoke('find-matches', {
-        body: { imovel },
+    const { data, error } = await supabase.rpc('create_matches_for_imovel', {
+        p_imovel_id: imovel.ID_Imovel,
     });
 
     if (error) {
@@ -435,8 +435,8 @@ export const findMatchesForImovel = async (imovel: Imovel): Promise<Match[]> => 
 };
 
 export const findMatchesForCliente = async (cliente: Cliente): Promise<Match[]> => {
-    const { data, error } = await supabase.functions.invoke('find-matches-for-cliente', {
-        body: { cliente },
+    const { data, error } = await supabase.rpc('create_matches_for_cliente', {
+        p_cliente_id: cliente.ID_Cliente,
     });
 
     if (error) {

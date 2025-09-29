@@ -103,12 +103,32 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   useEffect(() => {
     if (user) {
       fetchNotifications();
-      const channel = supabase
-        .channel(`notifications-for-${user.id}`)
+      
+      // Channel for match updates (new matches, status changes, etc.)
+      const matchesChannel = supabase
+        .channel(`notifications-matches-for-${user.id}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, fetchNotifications)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, fetchNotifications)
         .subscribe();
-      return () => { supabase.removeChannel(channel); };
+
+      // Channel specifically for incoming messages
+      const messagesChannel = supabase
+        .channel(`notifications-messages-for-${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'messages',
+            filter: `to_corretor_id=eq.${user.id}`,
+          },
+          fetchNotifications
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(matchesChannel);
+        supabase.removeChannel(messagesChannel);
+      };
     }
   }, [user, fetchNotifications]);
 

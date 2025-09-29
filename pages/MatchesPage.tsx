@@ -20,12 +20,16 @@ interface AugmentedMatch {
     cliente_dormitorios_minimos: number;
     cliente_faixa_valor_max: number;
     other_corretor_name: string;
+    viewed_by_corretor_imovel: boolean;
+    viewed_by_corretor_cliente: boolean;
+    status_change_requester_id: string | null;
 }
 
 const statusTextMap: { [key in MatchStatus]: string } = {
     [MatchStatus.Aberto]: 'Aberto',
     [MatchStatus.Convertido]: 'Convertido',
     [MatchStatus.Fechado]: 'Fechado',
+    [MatchStatus.ReaberturaPendente]: 'Pendente',
 };
 
 const MatchesPage: React.FC = () => {
@@ -81,6 +85,9 @@ const MatchesPage: React.FC = () => {
     }, [user, fetchMatches]);
 
     const filteredMatches = useMemo(() => {
+        if (statusFilter === MatchStatus.Aberto) {
+            return matches.filter(match => match.Status === MatchStatus.Aberto || match.Status === MatchStatus.ReaberturaPendente);
+        }
         return matches.filter(match => match.Status === statusFilter);
     }, [matches, statusFilter]);
 
@@ -89,6 +96,7 @@ const MatchesPage: React.FC = () => {
             case MatchStatus.Aberto: return 'bg-blue-500';
             case MatchStatus.Convertido: return 'bg-accent';
             case MatchStatus.Fechado: return 'bg-gray-500';
+            case MatchStatus.ReaberturaPendente: return 'bg-yellow-500';
             default: return 'bg-gray-500';
         }
     };
@@ -107,7 +115,7 @@ const MatchesPage: React.FC = () => {
 
             {filteredMatches.length === 0 ? (
                 <div className="text-center p-4 bg-white rounded-lg shadow">
-                    <p className="text-gray-600">Nenhum match encontrado com o status "{statusTextMap[statusFilter]}".</p>
+                    <p className="text-gray-600">Nenhum match encontrado com o status selecionado.</p>
                 </div>
             ) : (
                 filteredMatches.map(match => {
@@ -129,7 +137,7 @@ const MatchesPage: React.FC = () => {
                             </div>
                             <Link to={`/matches/${match.ID_Match}/chat`}>
                                 <button className="mt-4 w-full bg-secondary hover:bg-amber-500 text-primary font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                                    {match.Status === MatchStatus.Aberto ? 'Abrir Chat' : 'Ver Histórico'}
+                                    {match.Status === MatchStatus.Aberto || match.Status === MatchStatus.ReaberturaPendente ? 'Abrir Chat' : 'Ver Histórico'}
                                 </button>
                             </Link>
                         </div>

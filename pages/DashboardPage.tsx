@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useUI } from '../contexts/UIContext';
-import { useNotifications } from '../contexts/NotificationContext';
 import * as api from '../services/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import Spinner from '../components/Spinner';
 import { ImovelStatus, ClienteStatus, MatchStatus } from '../types';
-import { Home, User, ThumbsUp, Handshake, PlusCircle, BarChart2, Bell, Users, Building, Briefcase, Award } from 'lucide-react';
+import { Home, User, ThumbsUp, Handshake, PlusCircle, BarChart2, Users, Building, Briefcase, Award } from 'lucide-react';
 
 interface DashboardStats {
   imoveisAtivos: number;
@@ -20,7 +19,6 @@ interface DashboardStats {
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { openImovelModal, openClienteModal } = useUI();
-  const { notificationCount } = useNotifications();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [platformStats, setPlatformStats] = useState<api.PlatformStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,20 +69,6 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {notificationCount > 0 && (
-        <Link to="/matches">
-          <Card className="bg-secondary border-amber-500 hover:bg-amber-300 transition-colors">
-            <CardContent className="p-3 flex items-center space-x-3">
-              <Bell className="text-secondary-foreground" size={20} />
-              <div>
-                <p className="font-semibold text-secondary-foreground">Você tem {notificationCount} nova(s) notificação(ões)!</p>
-                <p className="text-xs text-secondary-foreground/80">Novos matches ou mensagens esperam por você.</p>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-      )}
-
       <Card>
         <CardHeader className="p-4 pb-2">
           <CardTitle className="text-base font-semibold">Suas Métricas</CardTitle>

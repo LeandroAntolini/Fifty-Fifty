@@ -116,8 +116,8 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     // Update UI immediately for responsiveness
     setGeneralNotifications(prev => prev.map(n => (n.matchId === matchId ? { ...n, isRead: true } : n)));
     setChatNotifications(prev => prev.map(n => (n.matchId === matchId ? { ...n, isRead: true } : n)));
-    // Re-sync with the database to get the definitive state
-    fetchNotifications();
+    // By removing the immediate re-fetch, we prevent a race condition where the UI
+    // would re-fetch the unread count before the database had time to mark messages as read.
   };
 
   const clearAllNotifications = async () => {

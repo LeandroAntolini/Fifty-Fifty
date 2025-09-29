@@ -104,13 +104,30 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     if (user) {
       fetchNotifications();
       
-      // Channel for match updates (new matches, status changes, etc.)
       const matchesChannel = supabase
         .channel(`notifications-matches-for-${user.id}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, fetchNotifications)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'matches',
+            filter: `or(id_corretor_imovel.eq.${user.id},id_corretor_cliente.eq.${user.id})`,
+          },
+          fetchNotifications
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'matches',
+            filter: `or(id_corretor_imovel.eq.${user.id},id_corretor_cliente.eq.${user.id})`,
+          },
+          fetchNotifications
+        )
         .subscribe();
 
-      // Channel specifically for incoming messages
       const messagesChannel = supabase
         .channel(`notifications-messages-for-${user.id}`)
         .on(
@@ -133,26 +150,20 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   }, [user, fetchNotifications]);
 
   const markAllNotificationsForMatchAsRead = (matchId: string) => {
-    // Update UI immediately for responsiveness
     setGeneralNotifications(prev => prev.map(n => (n.matchId === matchId ? { ...n, isRead: true } : n)));
     setChatNotifications(prev => prev.map(n => (n.matchId === matchId ? { ...n, isRead: true } : n)));
-    // By removing the immediate re-fetch, we prevent a race condition where the UI
-    // would re-fetch the unread count before the database had time to mark messages as read.
   };
 
   const clearAllNotifications = async () => {
     if (!user) return;
     
-    // Provide immediate UI feedback
     setGeneralNotifications([]);
     setChatNotifications([]);
 
-    // Find unique match IDs that need to be marked as read in the database
     const unreadChatMatchIds = new Set(chatNotifications.filter(n => !n.isRead).map(n => n.matchId));
     const unreadGeneralMatchIds = new Set(generalNotifications.filter(n => !n.isRead).map(n => n.matchId));
 
     try {
-      // Mark all chat messages as read
       if (unreadChatMatchIds.size > 0) {
         await Promise.all(
           Array.from(unreadChatMatchIds).map(matchId =>
@@ -160,7 +171,6 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
           )
         );
       }
-      // Mark all general matches as viewed
       if (unreadGeneralMatchIds.size > 0) {
         await Promise.all(
           Array.from(unreadGeneralMatchIds).map(matchId =>
@@ -171,7 +181,6 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     } catch (error) {
       console.error("Failed to mark all notifications as read", error);
     } finally {
-      // Re-sync with the source of truth after updating the database
       fetchNotifications();
     }
   };

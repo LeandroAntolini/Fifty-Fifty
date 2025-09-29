@@ -46,6 +46,16 @@ const ChatPage: React.FC = () => {
     }
   }, [matchId, user, fetchNotifications]);
 
+  const refreshMatchDetails = useCallback(async () => {
+    if (!matchId) return;
+    try {
+      const match = await api.getMatchById(matchId);
+      setMatchDetails(match || null);
+    } catch (error) {
+      console.error("Failed to refresh match details", error);
+    }
+  }, [matchId]);
+
   useEffect(() => {
     fetchChatData();
   }, [fetchChatData]);
@@ -152,6 +162,7 @@ const ChatPage: React.FC = () => {
       await api.requestReopenMatch(matchId, user.id);
       toast.success("Solicitação para reabrir enviada.");
       fetchNotifications();
+      await refreshMatchDetails();
     } catch (error) {
       toast.error("Falha ao solicitar reabertura.");
     } finally {
@@ -166,6 +177,7 @@ const ChatPage: React.FC = () => {
       await api.acceptReopenMatch(matchId);
       toast.success("Match reaberto com sucesso!");
       fetchNotifications();
+      await refreshMatchDetails();
     } catch (error) {
       toast.error("Falha ao reabrir o match.");
     } finally {
@@ -180,6 +192,7 @@ const ChatPage: React.FC = () => {
       await api.rejectReopenMatch(matchId);
       toast.success("Solicitação de reabertura rejeitada.");
       fetchNotifications();
+      await refreshMatchDetails();
     } catch (error) {
       toast.error("Falha ao rejeitar a reabertura.");
     } finally {

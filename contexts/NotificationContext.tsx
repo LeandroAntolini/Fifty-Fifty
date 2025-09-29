@@ -17,7 +17,7 @@ interface NotificationContextType {
   notifications: Notification[];
   unreadCount: number;
   fetchNotifications: () => void;
-  markNotificationAsRead: (id: string) => void;
+  markAllNotificationsForMatchAsRead: (matchId: string) => void;
   clearAllNotifications: () => void;
 }
 
@@ -123,8 +123,8 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     }
   }, [user, fetchNotifications]);
 
-  const markNotificationAsRead = (id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+  const markAllNotificationsForMatchAsRead = (matchId: string) => {
+    setNotifications(prev => prev.map(n => (n.matchId === matchId ? { ...n, isRead: true } : n)));
   };
 
   const clearAllNotifications = () => {
@@ -134,7 +134,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, fetchNotifications, markNotificationAsRead, clearAllNotifications }}>
+    <NotificationContext.Provider value={{ notifications, unreadCount, fetchNotifications, markAllNotificationsForMatchAsRead, clearAllNotifications }}>
       {children}
     </NotificationContext.Provider>
   );

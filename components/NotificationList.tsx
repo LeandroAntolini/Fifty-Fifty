@@ -12,26 +12,23 @@ interface NotificationListProps {
 }
 
 const NotificationList: React.FC<NotificationListProps> = ({ onClose }) => {
-  const { notifications, markNotificationAsRead, clearAllNotifications, fetchNotifications } = useNotifications();
+  const { notifications, markAllNotificationsForMatchAsRead, clearAllNotifications } = useNotifications();
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleNotificationClick = async (notification: Notification) => {
+  const handleNotificationClick = (notification: Notification) => {
     if (!user) return;
 
-    // Mark both the match as viewed and messages as read to clear all related notifications
-    await api.markMatchAsViewed(notification.matchId, user.id);
-    await api.markMessagesAsRead(notification.matchId, user.id);
-    
-    // Mark notification as read in the local state to update UI immediately
-    markNotificationAsRead(notification.id);
-    
-    // Refetch notifications to ensure state is in sync with backend
-    fetchNotifications();
+    // 1. Atualização otimista da UI
+    markAllNotificationsForMatchAsRead(notification.matchId);
 
-    // Navigate and close the list
+    // 2. Navega e fecha o painel
     navigate(notification.link);
     onClose();
+
+    // 3. Sincroniza com o backend em segundo plano
+    api.markMatchAsViewed(notification.matchId, user.id).catch(err => console.error("Falha ao marcar match como visto", err));
+    api.markMessagesAsRead(notification.matchId, user.id).catch(err => console.error("Falha ao marcar mensagens como lidas", err));
   };
 
   const sortedNotifications = [...notifications].sort((a, b) => {

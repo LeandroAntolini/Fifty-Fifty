@@ -118,14 +118,14 @@ const ChatPage: React.FC = () => {
   };
 
   const handleConfirmConclusao = async () => {
-    if (!matchDetails) return;
+    if (!matchDetails || !user) return;
 
     const previousMatchDetails = { ...matchDetails };
     setMatchDetails(prev => prev ? { ...prev, Status: MatchStatus.Convertido } : null);
     setIsSubmitting(true);
 
     try {
-      await api.createParceriaFromMatch(previousMatchDetails);
+      await api.createParceriaFromMatch(previousMatchDetails, user.id);
       toast.success("Parabéns! Parceria concluída com sucesso.");
       fetchNotifications();
     } catch (error) {
@@ -137,14 +137,14 @@ const ChatPage: React.FC = () => {
   };
 
   const handleConfirmFechamento = async () => {
-    if (!matchId || !matchDetails) return;
+    if (!matchId || !matchDetails || !user) return;
 
     const previousMatchDetails = { ...matchDetails };
     setMatchDetails(prev => prev ? { ...prev, Status: MatchStatus.Fechado } : null);
     setIsSubmitting(true);
 
     try {
-      await api.closeMatch(matchId);
+      await api.closeMatch(matchId, user.id);
       toast.success("Match fechado com sucesso.");
       fetchNotifications();
     } catch (error) {

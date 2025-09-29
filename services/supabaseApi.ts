@@ -462,11 +462,11 @@ export const getMatchById = async (matchId: string): Promise<Match | undefined> 
     return data ? mapSupabaseMatchToMatch(data) : undefined;
 };
 
-export const closeMatch = async (matchId: string): Promise<void> => {
-    const { error } = await supabase
-        .from('matches')
-        .update({ status: MatchStatus.Fechado })
-        .eq('id', matchId);
+export const closeMatch = async (matchId: string, initiatorId: string): Promise<void> => {
+    const { error } = await supabase.rpc('close_match', {
+        p_match_id: matchId,
+        p_initiator_id: initiatorId
+    });
 
     if (error) {
         console.error('Error closing match:', error);
@@ -564,13 +564,14 @@ export const getAugmentedParceriasByCorretor = async (corretorId: string) => {
     return data;
 };
 
-export const createParceriaFromMatch = async (match: Match): Promise<Parceria> => {
+export const createParceriaFromMatch = async (match: Match, initiatorId: string): Promise<Parceria> => {
     const { data, error } = await supabase.rpc('concluir_parceria', {
         p_match_id: match.ID_Match,
         p_imovel_id: match.ID_Imovel,
         p_corretor_a_id: match.Corretor_A_ID,
         p_corretor_b_id: match.Corretor_B_ID,
-        p_cliente_id: match.ID_Cliente
+        p_cliente_id: match.ID_Cliente,
+        p_initiator_id: initiatorId
     });
 
     if (error || !data || data.length === 0) {
@@ -709,6 +710,37 @@ export const markMatchAsViewed = async (matchId: string, userId: string): Promis
 
         if (updateError) {
             console.error("Failed to mark match as viewed", updateError);
+        }
+    }
+};
+
+export const markMatchStatusChangeAsViewed = async (matchId: string, userId: string): Promise<void> => {
+    const { data: match, error: fetchError } = await supabase
+        .from('matches')
+        .select('id_corretor_imovel, id_corretor_cliente')
+        .eq('id', matchId)
+        .single();
+
+    if (fetchError || !match) {
+        console.error("Could not find match to mark status change as viewed", fetchError);
+        return;
+    }
+
+    const updateData: { [key: string]: boolean } = {};
+    if (match.id_corretor_imovel === userId) {
+        updateData.status_change_viewed_by_imovel = true;
+    } else if (match.id_corretor_cliente === userId) {
+        updateData.status_change_viewed_by_cliente = true;
+    }
+
+    if (Object.keys(updateData).length > 0) {
+        const { error: updateError } = await supabase
+            .from('matches')
+            .update(updateData)
+            .eq('id', matchId);
+
+        if (updateError) {
+            console.error("Failed to mark match status change as viewed", updateError);
         }
     }
 };

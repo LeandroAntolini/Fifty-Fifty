@@ -68,10 +68,37 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
               type: 'reopen_request',
               message: `${match.other_corretor_name} solicitou reabrir a conversa.`,
               link: `/matches/${match.ID_Match}/chat`,
-              timestamp: match.Match_Timestamp,
+              timestamp: match.Match_Timestamp, // Ideally, this would be an 'updated_at' timestamp
               isRead: false,
               matchId: match.ID_Match,
             });
+          }
+
+          const isOtherUserAction = match.status_change_requester_id && match.status_change_requester_id !== user.id;
+          const isStatusChangeUnread = isImovelOwner ? !match.status_change_viewed_by_imovel : !match.status_change_viewed_by_cliente;
+
+          if (isOtherUserAction && isStatusChangeUnread) {
+              if (match.Status === 'convertido') {
+                  newGeneralNotifs.push({
+                      id: `converted-${match.ID_Match}`,
+                      type: 'match_update',
+                      message: `Sua parceria com ${match.other_corretor_name} foi concluída com sucesso!`,
+                      link: `/parcerias`,
+                      timestamp: new Date().toISOString(),
+                      isRead: false,
+                      matchId: match.ID_Match,
+                  });
+              } else if (match.Status === 'fechado') {
+                  newGeneralNotifs.push({
+                      id: `closed-${match.ID_Match}`,
+                      type: 'match_update',
+                      message: `O match com ${match.other_corretor_name} foi fechado.`,
+                      link: `/matches`,
+                      timestamp: new Date().toISOString(),
+                      isRead: false,
+                      matchId: match.ID_Match,
+                  });
+              }
           }
         });
       }

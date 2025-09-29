@@ -21,7 +21,12 @@ const NotificationList: React.FC<NotificationListProps> = ({ onClose }) => {
     markAllNotificationsForMatchAsRead(notification.matchId);
     navigate(notification.link);
     onClose();
-    api.markMatchAsViewed(notification.matchId, user.id).catch(err => console.error("Falha ao marcar match como visto", err));
+
+    if (notification.type === 'new_match') {
+        api.markMatchAsViewed(notification.matchId, user.id).catch(err => console.error("Falha ao marcar match como visto", err));
+    } else if (notification.type === 'match_update') {
+        api.markMatchStatusChangeAsViewed(notification.matchId, user.id).catch(err => console.error("Falha ao marcar status do match como visto", err));
+    }
   };
 
   const sortedNotifications = [...generalNotifications].sort((a, b) => {

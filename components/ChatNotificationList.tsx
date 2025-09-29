@@ -7,12 +7,12 @@ import { Button } from './ui/Button';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-interface NotificationListProps {
+interface ChatNotificationListProps {
   onClose: () => void;
 }
 
-const NotificationList: React.FC<NotificationListProps> = ({ onClose }) => {
-  const { generalNotifications, markAllNotificationsForMatchAsRead, clearAllNotifications } = useNotifications();
+const ChatNotificationList: React.FC<ChatNotificationListProps> = ({ onClose }) => {
+  const { chatNotifications, markAllNotificationsForMatchAsRead, clearAllNotifications } = useNotifications();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -21,10 +21,10 @@ const NotificationList: React.FC<NotificationListProps> = ({ onClose }) => {
     markAllNotificationsForMatchAsRead(notification.matchId);
     navigate(notification.link);
     onClose();
-    api.markMatchAsViewed(notification.matchId, user.id).catch(err => console.error("Falha ao marcar match como visto", err));
+    api.markMessagesAsRead(notification.matchId, user.id).catch(err => console.error("Falha ao marcar mensagens como lidas", err));
   };
 
-  const sortedNotifications = [...generalNotifications].sort((a, b) => {
+  const sortedNotifications = [...chatNotifications].sort((a, b) => {
     if (a.isRead !== b.isRead) return a.isRead ? 1 : -1;
     return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
   });
@@ -32,8 +32,8 @@ const NotificationList: React.FC<NotificationListProps> = ({ onClose }) => {
   return (
     <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border z-30">
       <div className="p-3 border-b flex justify-between items-center">
-        <h3 className="font-semibold text-primary">Notificações</h3>
-        {generalNotifications.length > 0 && (
+        <h3 className="font-semibold text-primary">Conversas</h3>
+        {chatNotifications.length > 0 && (
           <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={clearAllNotifications}>
             Limpar tudo
           </Button>
@@ -41,7 +41,7 @@ const NotificationList: React.FC<NotificationListProps> = ({ onClose }) => {
       </div>
       <div className="max-h-96 overflow-y-auto">
         {sortedNotifications.length === 0 ? (
-          <p className="text-center text-sm text-gray-500 p-4">Nenhuma notificação nova.</p>
+          <p className="text-center text-sm text-gray-500 p-4">Nenhuma notificação de chat.</p>
         ) : (
           <ul className="divide-y">
             {sortedNotifications.map(notification => (
@@ -63,4 +63,4 @@ const NotificationList: React.FC<NotificationListProps> = ({ onClose }) => {
   );
 };
 
-export default NotificationList;
+export default ChatNotificationList;

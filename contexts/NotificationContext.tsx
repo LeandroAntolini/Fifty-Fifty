@@ -5,7 +5,7 @@ import { supabase } from '../src/integrations/supabase/client';
 
 export interface Notification {
   id: string;
-  type: 'new_match' | 'new_message' | 'reopen_request';
+  type: 'new_match' | 'new_message' | 'reopen_request' | 'match_update';
   message: string;
   link: string;
   timestamp: string;
@@ -14,8 +14,10 @@ export interface Notification {
 }
 
 interface NotificationContextType {
-  notifications: Notification[];
-  unreadCount: number;
+  generalNotifications: Notification[];
+  chatNotifications: Notification[];
+  generalUnreadCount: number;
+  chatUnreadCount: number;
   fetchNotifications: () => void;
   markAllNotificationsForMatchAsRead: (matchId: string) => void;
   clearAllNotifications: () => void;
@@ -25,11 +27,13 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 
 export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [generalNotifications, setGeneralNotifications] = useState<Notification[]>([]);
+  const [chatNotifications, setChatNotifications] = useState<Notification[]>([]);
 
   const fetchNotifications = useCallback(async () => {
     if (!user) {
-      setNotifications([]);
+      setGeneralNotifications([]);
+      setChatNotifications([]);
       return;
     }
     try {
@@ -38,16 +42,16 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         api.getActiveChatsByCorretor(user.id)
       ]);
 
-      const newNotifications: Notification[] = [];
+      const newGeneralNotifs: Notification[] = [];
+      const newChatNotifs: Notification[] = [];
 
-      // Process matches for "new_match" and "reopen_request"
       if (matchesData) {
         matchesData.forEach((match: any) => {
           const isImovelOwner = match.imovel_id_corretor === user.id;
           const isUnreadMatch = (isImovelOwner && !match.viewed_by_corretor_imovel) || (!isImovelOwner && !match.viewed_by_corretor_cliente);
 
           if (isUnreadMatch) {
-            newNotifications.push({
+            newGeneralNotifs.push({
               id: `match-${match.ID_Match}`,
               type: 'new_match',
               message: `Novo match para seu ${isImovelOwner ? 'imóvel' : 'cliente'} com ${match.other_corretor_name}.`,
@@ -59,12 +63,12 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
           }
 
           if (match.Status === 'reabertura_pendente' && match.status_change_requester_id !== user.id) {
-            newNotifications.push({
+            newChatNotifs.push({
               id: `reopen-${match.ID_Match}`,
               type: 'reopen_request',
               message: `${match.other_corretor_name} solicitou reabrir a conversa.`,
               link: `/matches/${match.ID_Match}/chat`,
-              timestamp: match.Match_Timestamp, // Using match timestamp as a fallback
+              timestamp: match.Match_Timestamp,
               isRead: false,
               matchId: match.ID_Match,
             });
@@ -72,11 +76,10 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         });
       }
 
-      // Process chats for "new_message"
       if (chatsData) {
         chatsData.forEach((chat: any) => {
           if (chat.Unread_Count > 0) {
-            newNotifications.push({
+            newChatNotifs.push({
               id: `chat-${chat.ID_Match}`,
               type: 'new_message',
               message: `Você tem ${chat.Unread_Count} nova(s) mensagem(ns) de ${chat.Other_Corretor_Name}.`,
@@ -89,52 +92,45 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         });
       }
       
-      setNotifications(prev => {
-        const readNotifications = prev.filter(n => n.isRead);
-        const newMerged = [...newNotifications];
-
-        readNotifications.forEach(readNotif => {
-            if (!newMerged.some(newNotif => newNotif.id === readNotif.id)) {
-                newMerged.push(readNotif);
-            }
-        });
-        return newMerged;
-      });
+      setGeneralNotifications(newGeneralNotifs);
+      setChatNotifications(newChatNotifs);
 
     } catch (error) {
       console.error("Failed to fetch notifications", error);
-      setNotifications([]);
     }
   }, [user]);
 
   useEffect(() => {
     if (user) {
       fetchNotifications();
-
       const channel = supabase
         .channel(`notifications-for-${user.id}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, fetchNotifications)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, fetchNotifications)
         .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
+      return () => { supabase.removeChannel(channel); };
     }
   }, [user, fetchNotifications]);
 
   const markAllNotificationsForMatchAsRead = (matchId: string) => {
-    setNotifications(prev => prev.map(n => (n.matchId === matchId ? { ...n, isRead: true } : n)));
+    setGeneralNotifications(prev => prev.map(n => (n.matchId === matchId ? { ...n, isRead: true } : n)));
+    setChatNotifications(prev => prev.map(n => (n.matchId === matchId ? { ...n, isRead: true } : n)));
   };
 
   const clearAllNotifications = () => {
-    setNotifications([]);
+    setGeneralNotifications([]);
+    setChatNotifications([]);
   };
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const generalUnreadCount = generalNotifications.filter(n => !n.isRead).length;
+  const chatUnreadCount = chatNotifications.filter(n => !n.isRead).length;
 
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, fetchNotifications, markAllNotificationsForMatchAsRead, clearAllNotifications }}>
+    <NotificationContext.Provider value={{ 
+      generalNotifications, chatNotifications, 
+      generalUnreadCount, chatUnreadCount, 
+      fetchNotifications, markAllNotificationsForMatchAsRead, clearAllNotifications 
+    }}>
       {children}
     </NotificationContext.Provider>
   );
@@ -142,8 +138,6 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
 export const useNotifications = () => {
   const context = useContext(NotificationContext);
-  if (!context) {
-    throw new Error('useNotifications must be used within a NotificationProvider');
-  }
+  if (!context) throw new Error('useNotifications must be used within a NotificationProvider');
   return context;
 };

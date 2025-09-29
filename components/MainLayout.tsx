@@ -10,10 +10,10 @@ import {
   Handshake,
   ChevronLeft,
   User,
-  MessageSquare,
   BarChart2,
 } from 'lucide-react';
 import NotificationBell from './NotificationBell';
+import ChatNotificationBell from './ChatNotificationBell';
 
 const pageTitles: { [key: string]: string } = {
   '/dashboard': 'Início',
@@ -90,9 +90,7 @@ const MainLayout: React.FC = () => {
 
         <div className="flex-1 flex justify-end items-center space-x-2">
             <NotificationBell />
-            <button onClick={() => navigate('/chats')} className="text-white hover:text-secondary p-1">
-                <MessageSquare />
-            </button>
+            <ChatNotificationBell />
         </div>
       </header>
       

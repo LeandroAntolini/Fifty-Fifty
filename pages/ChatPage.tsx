@@ -81,15 +81,29 @@ const ChatPage: React.FC = () => {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !user || !matchId || !matchDetails) return;
+
     const toCorretorId = user.id === matchDetails.Corretor_A_ID ? matchDetails.Corretor_B_ID : matchDetails.Corretor_A_ID;
-    const messageData = { ID_Match: matchId, ID_Parceria: null, From_Corretor_ID: user.id, To_Corretor_ID: toCorretorId, Message_Text: newMessage };
+    const messageData = {
+        ID_Match: matchId,
+        ID_Parceria: null,
+        From_Corretor_ID: user.id,
+        To_Corretor_ID: toCorretorId,
+        Message_Text: newMessage.trim()
+    };
+
     setNewMessage('');
+
     try {
-      await api.sendMessage(messageData);
+        const sentMessage = await api.sendMessage(messageData);
+        setMessages((prevMessages) =>
+            prevMessages.some(msg => msg.ID_Message === sentMessage.ID_Message)
+                ? prevMessages
+                : [...prevMessages, sentMessage]
+        );
     } catch (error) {
-      console.error("Failed to send message", error);
-      toast.error("Falha ao enviar mensagem.");
-      setNewMessage(messageData.Message_Text);
+        console.error("Failed to send message", error);
+        toast.error("Falha ao enviar mensagem.");
+        setNewMessage(messageData.Message_Text);
     }
   };
 

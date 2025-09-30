@@ -48,6 +48,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           Estado: corretorData.estado,
           avatar_url: corretorData.avatar_url,
           whatsapp_notifications_enabled: corretorData.whatsapp_notifications_enabled,
+          email_notifications_enabled: corretorData.email_notifications_enabled,
         };
         return {
           id: sessionUser.id,

@@ -27,7 +27,8 @@ const ProfilePage: React.FC = () => {
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
-    const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+    const [whatsappNotificationsEnabled, setWhatsappNotificationsEnabled] = useState(true);
+    const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
     const [isWhatsAppConfigured, setIsWhatsAppConfigured] = useState(true);
     const [checkingConfig, setCheckingConfig] = useState(true);
 
@@ -40,7 +41,8 @@ const ProfilePage: React.FC = () => {
                 Estado: user.corretorInfo.Estado,
             });
             setAvatarPreview(user.corretorInfo.avatar_url || null);
-            setNotificationsEnabled(user.corretorInfo.whatsapp_notifications_enabled ?? true);
+            setWhatsappNotificationsEnabled(user.corretorInfo.whatsapp_notifications_enabled ?? true);
+            setEmailNotificationsEnabled(user.corretorInfo.email_notifications_enabled ?? true);
         }
     }, [user]);
 
@@ -92,7 +94,8 @@ const ProfilePage: React.FC = () => {
             const profileDataToSave = {
                 ...formData,
                 Telefone: formData.Telefone.replace(/\D/g, ''), // Salva apenas os dígitos
-                whatsapp_notifications_enabled: notificationsEnabled
+                whatsapp_notifications_enabled: whatsappNotificationsEnabled,
+                email_notifications_enabled: emailNotificationsEnabled,
             };
             await updateProfile(profileDataToSave, avatarFile);
             toast.success('Perfil atualizado com sucesso!');
@@ -204,7 +207,7 @@ const ProfilePage: React.FC = () => {
                 <CardHeader>
                     <CardTitle>Notificações</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                     {checkingConfig ? (
                         <div className="flex justify-center"><Spinner size="sm" /></div>
                     ) : !isWhatsAppConfigured ? (
@@ -225,9 +228,22 @@ const ProfilePage: React.FC = () => {
                         </Label>
                         <Switch
                             id="whatsapp-notifications"
-                            checked={notificationsEnabled}
-                            onCheckedChange={setNotificationsEnabled}
+                            checked={whatsappNotificationsEnabled}
+                            onCheckedChange={setWhatsappNotificationsEnabled}
                             disabled={!isWhatsAppConfigured}
+                        />
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="email-notifications" className="flex flex-col space-y-1 pr-4">
+                            <span>Notificações via E-mail</span>
+                            <span className="font-normal leading-snug text-muted-foreground text-sm">
+                                Receba alertas de novos matches e mensagens.
+                            </span>
+                        </Label>
+                        <Switch
+                            id="email-notifications"
+                            checked={emailNotificationsEnabled}
+                            onCheckedChange={setEmailNotificationsEnabled}
                         />
                     </div>
                 </CardContent>

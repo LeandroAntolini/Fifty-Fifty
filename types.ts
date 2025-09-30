@@ -45,6 +45,7 @@ export interface Corretor {
   Estado: string;
   avatar_url?: string;
   whatsapp_notifications_enabled?: boolean;
+  email_notifications_enabled?: boolean;
 }
 
 export interface Imovel {

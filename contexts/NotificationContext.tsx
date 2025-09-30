@@ -187,20 +187,20 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     setGeneralNotifications([]);
     setChatNotifications([]);
 
-    const unreadChatMatchIds = new Set(chatNotifications.filter(n => !n.isRead).map(n => n.matchId));
-    const unreadGeneralMatchIds = new Set(generalNotifications.filter(n => !n.isRead).map(n => n.matchId));
+    const unreadChatMatchIds = new Set<string>(chatNotifications.filter(n => !n.isRead).map(n => n.matchId));
+    const unreadGeneralMatchIds = new Set<string>(generalNotifications.filter(n => !n.isRead).map(n => n.matchId));
 
     try {
       if (unreadChatMatchIds.size > 0) {
         await Promise.all(
-          Array.from(unreadChatMatchIds).map(matchId =>
+          [...unreadChatMatchIds].map(matchId =>
             api.markMessagesAsRead(matchId, user.id)
           )
         );
       }
       if (unreadGeneralMatchIds.size > 0) {
         await Promise.all(
-          Array.from(unreadGeneralMatchIds).map(matchId =>
+          [...unreadGeneralMatchIds].map(matchId =>
             api.markMatchAsViewed(matchId, user.id)
           )
         );

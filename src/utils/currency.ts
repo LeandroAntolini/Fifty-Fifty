@@ -1,3 +1,5 @@
+import React from 'react';
+
 export const formatBRLNumber = (value: number): string => {
     if (isNaN(value)) return '';
     return new Intl.NumberFormat('pt-BR', {

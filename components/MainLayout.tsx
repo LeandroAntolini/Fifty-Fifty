@@ -42,7 +42,7 @@ const MainLayout: React.FC = () => {
     '/profile/terms-of-service',
     '/profile/update-password',
   ];
-  const hasBackButton = isSpecificChatPage || profileSubPages.includes(location.pathname) || location.pathname === '/profile';
+  const hasBackButton = profileSubPages.includes(location.pathname) || location.pathname === '/profile';
 
   const showFabForImoveis = location.pathname === '/imoveis';
   const showFabForClientes = location.pathname === '/clientes';

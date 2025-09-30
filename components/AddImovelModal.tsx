@@ -114,7 +114,7 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-        const filesArray = Array.from(e.target.files);
+        const filesArray = [...e.target.files];
         setNewImageFiles(prev => [...prev, ...filesArray]);
 
         const previewsArray = filesArray.map(file => URL.createObjectURL(file));

@@ -33,7 +33,7 @@ const sortOptions: { label: string; value: SortCriteria }[] = [
   { label: 'Mais Antigos', value: 'oldest' },
   { label: 'Maior Valor', value: 'highest_value' },
   { label: 'Menor Valor', value: 'lowest_value' },
-  { label: 'Arquivados', value: 'archived' },
+  { label: 'Negociados', value: 'archived' },
 ];
 
 const FilterSortControls: React.FC<FilterSortControlsProps> = ({

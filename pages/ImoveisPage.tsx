@@ -63,8 +63,15 @@ const ImoveisPage: React.FC = () => {
   const { fetchNotifications } = useNotifications();
   const [findingMatch, setFindingMatch] = useState<string | null>(null);
   const [editingImovel, setEditingImovel] = useState<Imovel | null>(null);
-  const [imovelToModify, setImovelToModify] = useState<Imovel | null>(null);
-  const [confirmationConfig, setConfirmationConfig] = useState({ isOpen: false, title: '', message: '', onConfirm: () => {}, isDestructive: false, confirmText: '' });
+  
+  const [confirmationConfig, setConfirmationConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: async () => {},
+    isDestructive: false,
+    confirmText: '',
+  });
 
   // Filter and Sort states
   const [filters, setFilters] = useState({
@@ -213,36 +220,30 @@ const ImoveisPage: React.FC = () => {
     openImovelModal();
   };
 
-  const handleModification = (imovel: Imovel) => {
-    setImovelToModify(imovel);
-    setConfirmationConfig({
-        isOpen: true,
-        title: "Confirmar Exclusão",
-        message: `Tem certeza que deseja excluir o imóvel "${imovel.Tipo} em ${imovel.Bairro}"? Esta ação não pode ser desfeita.`,
-        onConfirm: () => confirmDelete(),
-        isDestructive: true,
-        confirmText: "Excluir",
-    });
-  };
-
-  const confirmDelete = async () => {
-    if (imovelToModify) {
-      try {
-        await api.deleteImovel(imovelToModify.ID_Imovel, imovelToModify.Imagens);
-        toast.success("Imóvel excluído com sucesso.");
-        fetchImoveis();
-      } catch (error) {
-        console.error("Failed to delete imovel", error);
-        toast.error("Falha ao excluir imóvel.");
-      } finally {
-        closeConfirmation();
-      }
-    }
-  };
-
-  const closeConfirmation = () => {
-    setImovelToModify(null);
+  const handleCloseConfirmation = () => {
     setConfirmationConfig({ ...confirmationConfig, isOpen: false });
+  };
+
+  const handleDeleteClick = (imovel: Imovel) => {
+    setConfirmationConfig({
+      isOpen: true,
+      title: "Confirmar Exclusão",
+      message: `Tem certeza que deseja excluir o imóvel "${imovel.Tipo} em ${imovel.Bairro}"? Esta ação não pode ser desfeita.`,
+      onConfirm: async () => {
+        try {
+          await api.deleteImovel(imovel.ID_Imovel, imovel.Imagens);
+          toast.success("Imóvel excluído com sucesso.");
+          fetchImoveis();
+        } catch (error) {
+          console.error("Failed to delete imovel", error);
+          toast.error("Falha ao excluir imóvel.");
+        } finally {
+          handleCloseConfirmation();
+        }
+      },
+      isDestructive: true,
+      confirmText: "Excluir",
+    });
   };
 
   const handleCloseModal = () => {
@@ -326,7 +327,7 @@ const ImoveisPage: React.FC = () => {
                     )}
                     <button onClick={() => handleEdit(imovel)} className="text-gray-500 hover:text-primary p-1"><Edit size={20} /></button>
                     {imovel.Status === ImovelStatus.Ativo && (
-                        <button onClick={() => handleModification(imovel)} className="text-gray-500 hover:text-destructive p-1" title="Excluir Imóvel">
+                        <button onClick={() => handleDeleteClick(imovel)} className="text-gray-500 hover:text-destructive p-1" title="Excluir Imóvel">
                             <Trash2 size={20} />
                         </button>
                     )}
@@ -340,7 +341,7 @@ const ImoveisPage: React.FC = () => {
         <AddImovelModal isOpen={isImovelModalOpen} onClose={handleCloseModal} onSave={handleSaveImovel} imovelToEdit={editingImovel} />
         <ConfirmationModal
             isOpen={confirmationConfig.isOpen}
-            onClose={closeConfirmation}
+            onClose={handleCloseConfirmation}
             onConfirm={confirmationConfig.onConfirm}
             title={confirmationConfig.title}
             message={confirmationConfig.message}

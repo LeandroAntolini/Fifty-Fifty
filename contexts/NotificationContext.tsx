@@ -193,15 +193,15 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     try {
       if (unreadChatMatchIds.size > 0) {
         await Promise.all(
-          [...unreadChatMatchIds].map(matchId =>
-            api.markMessagesAsRead(matchId, user.id)
+          Array.from(unreadChatMatchIds).map(matchId =>
+            api.markMessagesAsRead(matchId as string, user.id)
           )
         );
       }
       if (unreadGeneralMatchIds.size > 0) {
         await Promise.all(
-          [...unreadGeneralMatchIds].map(matchId =>
-            api.markMatchAsViewed(matchId, user.id)
+          Array.from(unreadGeneralMatchIds).map(matchId =>
+            api.markMatchAsViewed(matchId as string, user.id)
           )
         );
       }

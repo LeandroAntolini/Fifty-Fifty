@@ -63,8 +63,11 @@ const ImoveisPage: React.FC = () => {
   const { fetchNotifications } = useNotifications();
   const [findingMatch, setFindingMatch] = useState<string | null>(null);
   const [editingImovel, setEditingImovel] = useState<Imovel | null>(null);
-  const [imovelToModify, setImovelToModify] = useState<Imovel | null>(null);
-  const [confirmationConfig, setConfirmationConfig] = useState({ isOpen: false, title: '', message: '', onConfirm: () => {}, isDestructive: false, confirmText: '' });
+  
+  const [imovelToDelete, setImovelToDelete] = useState<Imovel | null>(null);
+  const [imovelToArchive, setImovelToArchive] = useState<Imovel | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
 
   // Filter and Sort states
   const [filters, setFilters] = useState({
@@ -214,60 +217,44 @@ const ImoveisPage: React.FC = () => {
   };
 
   const handleModification = (imovel: Imovel) => {
-    setImovelToModify(imovel);
     if (imovel.Status === ImovelStatus.Vendido || imovel.Status === ImovelStatus.Alugado) {
-        setConfirmationConfig({
-            isOpen: true,
-            title: "Arquivar Imóvel",
-            message: `Deseja arquivar o imóvel "${imovel.Tipo} em ${imovel.Bairro}"? Ele sairá da lista principal mas o histórico será mantido.`,
-            onConfirm: () => confirmArchive(),
-            isDestructive: false,
-            confirmText: "Arquivar",
-        });
+        setImovelToArchive(imovel);
+        setShowArchiveConfirm(true);
     } else {
-        setConfirmationConfig({
-            isOpen: true,
-            title: "Confirmar Exclusão",
-            message: `Tem certeza que deseja excluir o imóvel "${imovel.Tipo} em ${imovel.Bairro}"? Esta ação não pode ser desfeita.`,
-            onConfirm: () => confirmDelete(),
-            isDestructive: true,
-            confirmText: "Excluir",
-        });
+        setImovelToDelete(imovel);
+        setShowDeleteConfirm(true);
     }
   };
 
   const confirmArchive = async () => {
-    if (imovelToModify) {
+    if (imovelToArchive) {
         try {
-            await api.updateImovel(imovelToModify.ID_Imovel, { Status: ImovelStatus.Inativo });
+            await api.updateImovel(imovelToArchive.ID_Imovel, { Status: ImovelStatus.Inativo });
             toast.success("Imóvel arquivado com sucesso.");
             fetchImoveis();
         } catch (error) {
             toast.error("Falha ao arquivar imóvel.");
         } finally {
-            closeConfirmation();
+            setShowArchiveConfirm(false);
+            setImovelToArchive(null);
         }
     }
   };
 
   const confirmDelete = async () => {
-    if (imovelToModify) {
+    if (imovelToDelete) {
       try {
-        await api.deleteImovel(imovelToModify.ID_Imovel, imovelToModify.Imagens);
+        await api.deleteImovel(imovelToDelete.ID_Imovel, imovelToDelete.Imagens);
         toast.success("Imóvel excluído com sucesso.");
         fetchImoveis();
       } catch (error) {
         console.error("Failed to delete imovel", error);
         toast.error("Falha ao excluir imóvel.");
       } finally {
-        closeConfirmation();
+        setShowDeleteConfirm(false);
+        setImovelToDelete(null);
       }
     }
-  };
-
-  const closeConfirmation = () => {
-    setImovelToModify(null);
-    setConfirmationConfig({ ...confirmationConfig, isOpen: false });
   };
 
   const handleCloseModal = () => {
@@ -362,13 +349,22 @@ const ImoveisPage: React.FC = () => {
       )}
         <AddImovelModal isOpen={isImovelModalOpen} onClose={handleCloseModal} onSave={handleSaveImovel} imovelToEdit={editingImovel} />
         <ConfirmationModal
-            isOpen={confirmationConfig.isOpen}
-            onClose={closeConfirmation}
-            onConfirm={confirmationConfig.onConfirm}
-            title={confirmationConfig.title}
-            message={confirmationConfig.message}
-            isDestructive={confirmationConfig.isDestructive}
-            confirmText={confirmationConfig.confirmText}
+            isOpen={showDeleteConfirm}
+            onClose={() => setShowDeleteConfirm(false)}
+            onConfirm={confirmDelete}
+            title="Confirmar Exclusão"
+            message={imovelToDelete ? `Tem certeza que deseja excluir o imóvel "${imovelToDelete.Tipo} em ${imovelToDelete.Bairro}"? Esta ação não pode ser desfeita.` : ''}
+            isDestructive
+            confirmText="Excluir"
+        />
+        <ConfirmationModal
+            isOpen={showArchiveConfirm}
+            onClose={() => setShowArchiveConfirm(false)}
+            onConfirm={confirmArchive}
+            title="Arquivar Imóvel"
+            message={imovelToArchive ? `Deseja arquivar o imóvel "${imovelToArchive.Tipo} em ${imovelToArchive.Bairro}"? Ele sairá da lista principal mas o histórico será mantido.` : ''}
+            isDestructive={false}
+            confirmText="Arquivar"
         />
     </div>
   );

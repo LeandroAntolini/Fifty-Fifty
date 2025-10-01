@@ -5,14 +5,14 @@ import { useUI } from '../contexts/UIContext';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
 import AddImovelModal, { ImageChanges } from '../components/AddImovelModal';
-import { Edit, Trash2, Search, Lock } from 'lucide-react';
+import { Edit, Trash2, Search, Lock, Archive } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../src/integrations/supabase/client';
 import ConfirmationModal from '../components/ConfirmationModal';
 import FilterSortControls from '../components/FilterSortControls';
 import { useNotifications } from '../contexts/NotificationContext';
 
-type SortCriteria = 'newest' | 'oldest' | 'highest_value' | 'lowest_value';
+type SortCriteria = 'newest' | 'oldest' | 'highest_value' | 'lowest_value' | 'archived';
 
 // Image Carousel Component
 const ImageCarousel = ({ images, alt }: { images: string[] | undefined, alt: string }) => {
@@ -63,8 +63,8 @@ const ImoveisPage: React.FC = () => {
   const { fetchNotifications } = useNotifications();
   const [findingMatch, setFindingMatch] = useState<string | null>(null);
   const [editingImovel, setEditingImovel] = useState<Imovel | null>(null);
-  const [imovelToDelete, setImovelToDelete] = useState<Imovel | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [imovelToModify, setImovelToModify] = useState<Imovel | null>(null);
+  const [confirmationConfig, setConfirmationConfig] = useState({ isOpen: false, title: '', message: '', onConfirm: () => {}, isDestructive: false, confirmText: '' });
 
   // Filter and Sort states
   const [filters, setFilters] = useState({
@@ -136,7 +136,15 @@ const ImoveisPage: React.FC = () => {
   };
 
   const processedImoveis = useMemo(() => {
-    const filtered = imoveis.filter(imovel => {
+    let sourceList = imoveis;
+
+    if (sortCriteria === 'archived') {
+        sourceList = imoveis.filter(i => i.Status === ImovelStatus.Inativo || i.Status === ImovelStatus.Vendido || i.Status === ImovelStatus.Alugado);
+    } else {
+        sourceList = imoveis.filter(i => i.Status === ImovelStatus.Ativo);
+    }
+
+    const filtered = sourceList.filter(imovel => {
       const valorMin = parseFloat(filters.valorMin);
       const valorMax = parseFloat(filters.valorMax);
       const dormitorios = parseInt(filters.dormitorios, 10);
@@ -151,9 +159,9 @@ const ImoveisPage: React.FC = () => {
       );
     });
 
+    if (sortCriteria === 'archived') return filtered;
+
     return filtered.sort((a, b) => {
-      if (a.Status === ImovelStatus.Ativo && b.Status !== ImovelStatus.Ativo) return -1;
-      if (a.Status !== ImovelStatus.Ativo && b.Status === ImovelStatus.Ativo) return 1;
       switch (sortCriteria) {
         case 'newest': return new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime();
         case 'oldest': return new Date(a.CreatedAt).getTime() - new Date(b.CreatedAt).getTime();
@@ -205,25 +213,61 @@ const ImoveisPage: React.FC = () => {
     openImovelModal();
   };
 
-  const handleDelete = (imovel: Imovel) => {
-    setImovelToDelete(imovel);
-    setShowDeleteConfirm(true);
+  const handleModification = (imovel: Imovel) => {
+    setImovelToModify(imovel);
+    if (imovel.Status === ImovelStatus.Vendido || imovel.Status === ImovelStatus.Alugado) {
+        setConfirmationConfig({
+            isOpen: true,
+            title: "Arquivar Imóvel",
+            message: `Deseja arquivar o imóvel "${imovel.Tipo} em ${imovel.Bairro}"? Ele sairá da lista principal mas o histórico será mantido.`,
+            onConfirm: () => confirmArchive(),
+            isDestructive: false,
+            confirmText: "Arquivar",
+        });
+    } else {
+        setConfirmationConfig({
+            isOpen: true,
+            title: "Confirmar Exclusão",
+            message: `Tem certeza que deseja excluir o imóvel "${imovel.Tipo} em ${imovel.Bairro}"? Esta ação não pode ser desfeita.`,
+            onConfirm: () => confirmDelete(),
+            isDestructive: true,
+            confirmText: "Excluir",
+        });
+    }
+  };
+
+  const confirmArchive = async () => {
+    if (imovelToModify) {
+        try {
+            await api.updateImovel(imovelToModify.ID_Imovel, { Status: ImovelStatus.Inativo });
+            toast.success("Imóvel arquivado com sucesso.");
+            fetchImoveis();
+        } catch (error) {
+            toast.error("Falha ao arquivar imóvel.");
+        } finally {
+            closeConfirmation();
+        }
+    }
   };
 
   const confirmDelete = async () => {
-    if (imovelToDelete) {
+    if (imovelToModify) {
       try {
-        await api.deleteImovel(imovelToDelete.ID_Imovel, imovelToDelete.Imagens);
+        await api.deleteImovel(imovelToModify.ID_Imovel, imovelToModify.Imagens);
         toast.success("Imóvel excluído com sucesso.");
         fetchImoveis();
       } catch (error) {
         console.error("Failed to delete imovel", error);
         toast.error("Falha ao excluir imóvel.");
       } finally {
-        setShowDeleteConfirm(false);
-        setImovelToDelete(null);
+        closeConfirmation();
       }
     }
+  };
+
+  const closeConfirmation = () => {
+    setImovelToModify(null);
+    setConfirmationConfig({ ...confirmationConfig, isOpen: false });
   };
 
   const handleCloseModal = () => {
@@ -272,7 +316,7 @@ const ImoveisPage: React.FC = () => {
       {processedImoveis.length === 0 ? (
         <div className="text-center p-4 bg-white rounded-lg shadow">
             <p className="text-gray-600">Nenhum imóvel encontrado.</p>
-            <p className="text-sm text-gray-400 mt-2">{imoveis.length > 0 ? "Tente ajustar seus filtros." : "Clique no botão '+' para começar."}</p>
+            <p className="text-sm text-gray-400 mt-2">{imoveis.length > 0 ? "Tente ajustar seus filtros ou veja os arquivados." : "Clique no botão '+' para começar."}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -306,7 +350,9 @@ const ImoveisPage: React.FC = () => {
                       </button>
                     )}
                     <button onClick={() => handleEdit(imovel)} className="text-gray-500 hover:text-primary p-1"><Edit size={20} /></button>
-                    <button onClick={() => handleDelete(imovel)} className="text-gray-500 hover:text-destructive p-1"><Trash2 size={20} /></button>
+                    <button onClick={() => handleModification(imovel)} className="text-gray-500 hover:text-destructive p-1">
+                        {imovel.Status === ImovelStatus.Vendido || imovel.Status === ImovelStatus.Alugado ? <Archive size={20} /> : <Trash2 size={20} />}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -316,13 +362,13 @@ const ImoveisPage: React.FC = () => {
       )}
         <AddImovelModal isOpen={isImovelModalOpen} onClose={handleCloseModal} onSave={handleSaveImovel} imovelToEdit={editingImovel} />
         <ConfirmationModal
-            isOpen={showDeleteConfirm}
-            onClose={() => setShowDeleteConfirm(false)}
-            onConfirm={confirmDelete}
-            title="Confirmar Exclusão"
-            message={`Tem certeza que deseja excluir o imóvel "${imovelToDelete?.Tipo} em ${imovelToDelete?.Bairro}"? Esta ação não pode ser desfeita.`}
-            isDestructive
-            confirmText="Excluir"
+            isOpen={confirmationConfig.isOpen}
+            onClose={closeConfirmation}
+            onConfirm={confirmationConfig.onConfirm}
+            title={confirmationConfig.title}
+            message={confirmationConfig.message}
+            isDestructive={confirmationConfig.isDestructive}
+            confirmText={confirmationConfig.confirmText}
         />
     </div>
   );

@@ -4,7 +4,7 @@ import { Input } from './ui/Input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/Select';
 import { Filter, X } from 'lucide-react';
 
-type SortCriteria = 'newest' | 'oldest' | 'highest_value' | 'lowest_value';
+type SortCriteria = 'newest' | 'oldest' | 'highest_value' | 'lowest_value' | 'archived';
 
 interface FilterValues {
   cidade: string;
@@ -33,6 +33,7 @@ const sortOptions: { label: string; value: SortCriteria }[] = [
   { label: 'Mais Antigos', value: 'oldest' },
   { label: 'Maior Valor', value: 'highest_value' },
   { label: 'Menor Valor', value: 'lowest_value' },
+  { label: 'Arquivados', value: 'archived' },
 ];
 
 const FilterSortControls: React.FC<FilterSortControlsProps> = ({

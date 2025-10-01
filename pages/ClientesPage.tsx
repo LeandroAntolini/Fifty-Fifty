@@ -12,7 +12,7 @@ import ConfirmationModal from '../components/ConfirmationModal';
 import FilterSortControls from '../components/FilterSortControls';
 import { useNotifications } from '../contexts/NotificationContext';
 
-type SortCriteria = 'newest' | 'oldest' | 'highest_value' | 'lowest_value';
+type SortCriteria = 'newest' | 'oldest' | 'highest_value' | 'lowest_value' | 'archived';
 
 const ClientesPage: React.FC = () => {
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -82,7 +82,15 @@ const ClientesPage: React.FC = () => {
   };
 
   const processedClientes = useMemo(() => {
-    const filtered = clientes.filter(cliente => {
+    let sourceList = clientes;
+
+    if (sortCriteria === 'archived') {
+        sourceList = clientes.filter(c => c.Status === ClienteStatus.Inativo);
+    } else {
+        sourceList = clientes.filter(c => c.Status === ClienteStatus.Ativo);
+    }
+
+    const filtered = sourceList.filter(cliente => {
       const valorMin = parseFloat(filters.valorMin);
       const valorMax = parseFloat(filters.valorMax);
       const dormitorios = parseInt(filters.dormitorios, 10);
@@ -90,9 +98,9 @@ const ClientesPage: React.FC = () => {
       return ((filters.cidade === '' || cliente.CidadeDesejada.toLowerCase().includes(filters.cidade.toLowerCase())) && (filters.bairro === '' || cliente.BairroRegiaoDesejada.toLowerCase().includes(filters.bairro.toLowerCase())) && (filters.estado === '' || (cliente.EstadoDesejado && cliente.EstadoDesejado.toLowerCase().includes(filters.estado.toLowerCase()))) && valorOverlap && (isNaN(dormitorios) || cliente.DormitoriosMinimos >= dormitorios));
     });
 
+    if (sortCriteria === 'archived') return filtered;
+
     return filtered.sort((a, b) => {
-      if (a.Status === ClienteStatus.Ativo && b.Status !== ClienteStatus.Ativo) return -1;
-      if (a.Status !== ClienteStatus.Ativo && b.Status === ClienteStatus.Ativo) return 1;
       switch (sortCriteria) {
         case 'newest': return new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime();
         case 'oldest': return new Date(a.CreatedAt).getTime() - new Date(b.CreatedAt).getTime();
@@ -211,7 +219,7 @@ const ClientesPage: React.FC = () => {
       {processedClientes.length === 0 ? (
         <div className="text-center p-4 bg-white rounded-lg shadow">
             <p className="text-gray-600">Nenhum cliente encontrado.</p>
-            <p className="text-sm text-gray-400 mt-2">{clientes.length > 0 ? "Tente ajustar seus filtros." : "Clique no botão '+' para começar."}</p>
+            <p className="text-sm text-gray-400 mt-2">{clientes.length > 0 ? "Tente ajustar seus filtros ou veja os arquivados." : "Clique no botão '+' para começar."}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -248,7 +256,9 @@ const ClientesPage: React.FC = () => {
                         </button>
                     )}
                     <button onClick={() => handleEdit(cliente)} className="text-gray-500 hover:text-primary p-1"><Edit size={20} /></button>
-                    <button onClick={() => handleArchive(cliente)} className="text-gray-500 hover:text-destructive p-1"><Trash2 size={20} /></button>
+                    {cliente.Status === 'Ativo' && (
+                        <button onClick={() => handleArchive(cliente)} className="text-gray-500 hover:text-destructive p-1"><Trash2 size={20} /></button>
+                    )}
                 </div>
               </div>
             </div>

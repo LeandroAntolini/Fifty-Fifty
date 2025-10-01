@@ -79,7 +79,7 @@ const MetricasPage: React.FC = () => {
         return labels[criteria];
     };
 
-    const filterOptions: { label: string; value: SortCriteria }[] = [
+    const sortOptions: { label: string; value: SortCriteria }[] = [
         { label: 'Parcerias Concluídas', value: 'Parcerias_Concluidas' },
         { label: 'Imóveis Adicionados', value: 'Imoveis_Adicionados' },
         { label: 'Clientes Adicionados', value: 'Clientes_Adicionados' },
@@ -129,13 +129,21 @@ const MetricasPage: React.FC = () => {
             
             <div className="mb-4 bg-white p-4 rounded-lg shadow space-y-4">
                 <div>
-                    <Label>Filtrar ranking por</Label>
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                        <Button size="sm" variant={filterType === 'my_city' ? 'default' : 'outline'} onClick={() => setFilterType('my_city')}>Minha Cidade</Button>
-                        <Button size="sm" variant={filterType === 'my_state' ? 'default' : 'outline'} onClick={() => setFilterType('my_state')}>Meu Estado</Button>
-                        <Button size="sm" variant={filterType === 'brasil' ? 'default' : 'outline'} onClick={() => setFilterType('brasil')}>Brasil</Button>
-                        <Button size="sm" variant={filterType === 'other_city' ? 'default' : 'outline'} onClick={() => setFilterType('other_city')}>Outra Cidade</Button>
-                    </div>
+                    <Label htmlFor="ranking-filter">Filtrar ranking por</Label>
+                    <Select
+                        value={filterType}
+                        onValueChange={(value) => setFilterType(value as FilterType)}
+                    >
+                        <SelectTrigger id="ranking-filter">
+                            <SelectValue placeholder="Selecione um filtro" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="my_city">Minha Cidade</SelectItem>
+                            <SelectItem value="my_state">Meu Estado</SelectItem>
+                            <SelectItem value="brasil">Brasil</SelectItem>
+                            <SelectItem value="other_city">Outra Cidade</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
 
                 {filterType === 'other_city' && (
@@ -160,7 +168,7 @@ const MetricasPage: React.FC = () => {
                             <SelectValue placeholder="Selecione uma métrica" />
                         </SelectTrigger>
                         <SelectContent>
-                            {filterOptions.map(option => (
+                            {sortOptions.map(option => (
                                 <SelectItem key={option.value} value={option.value}>
                                     {option.label}
                                 </SelectItem>

@@ -25,7 +25,7 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import ScrollToTop from './components/ScrollToTop';
 
-const AppContent: React.FC = () => {
+const AppRoutes: React.FC = () => {
   const { isPasswordRecovery } = useAuth();
 
   if (isPasswordRecovery) {
@@ -77,7 +77,7 @@ const App: React.FC = () => {
       <ScrollToTop />
       <AuthProvider>
         <ToastProvider />
-        <AppContent />
+        <AppRoutes />
       </AuthProvider>
     </HashRouter>
   );

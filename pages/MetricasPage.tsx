@@ -5,18 +5,38 @@ import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/Select';
 import { Label } from '../components/ui/Label';
+import { useAuth } from '../hooks/useAuth';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import { toTitleCase } from '../src/utils/formatters';
 
 type SortCriteria = keyof Omit<Metric, 'ID_Corretor' | 'Nome'>;
+type FilterType = 'my_city' | 'my_state' | 'brasil' | 'other_city';
 
 const MetricasPage: React.FC = () => {
+    const { user } = useAuth();
     const [metrics, setMetrics] = useState<Metric[]>([]);
     const [loading, setLoading] = useState(true);
     const [sortCriteria, setSortCriteria] = useState<SortCriteria>('Parcerias_Concluidas');
+    const [filterType, setFilterType] = useState<FilterType>('my_city');
+    const [citySearch, setCitySearch] = useState('');
 
     const fetchMetrics = useCallback(async () => {
+        if (!user) return;
         setLoading(true);
         try {
-            const data = await api.getMetricas();
+            let cidade: string | undefined = undefined;
+            let estado: string | undefined = undefined;
+
+            if (filterType === 'my_city') {
+                cidade = user.corretorInfo.Cidade;
+            } else if (filterType === 'my_state') {
+                estado = user.corretorInfo.Estado;
+            } else if (filterType === 'other_city' && citySearch) {
+                cidade = citySearch;
+            }
+            
+            const data = await api.getMetricas(cidade, estado);
             setMetrics(data);
         } catch (error) {
             console.error("Failed to fetch metrics", error);
@@ -24,7 +44,7 @@ const MetricasPage: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [user, filterType, citySearch]);
 
     useEffect(() => {
         fetchMetrics();
@@ -33,6 +53,11 @@ const MetricasPage: React.FC = () => {
     const sortedMetrics = useMemo(() => {
         return [...metrics].sort((a, b) => b[sortCriteria] - a[sortCriteria]);
     }, [metrics, sortCriteria]);
+
+    const top10Metrics = sortedMetrics.slice(0, 10);
+    const currentUserMetric = user ? sortedMetrics.find(m => m.ID_Corretor === user.id) : undefined;
+    const currentUserRank = currentUserMetric ? sortedMetrics.findIndex(m => m.ID_Corretor === user.id) + 1 : null;
+    const isCurrentUserInTop10 = currentUserRank !== null && currentUserRank <= 10;
 
     const getMetricDisplayValue = (metric: Metric, criteria: SortCriteria) => {
         const value = metric[criteria];
@@ -63,6 +88,37 @@ const MetricasPage: React.FC = () => {
         { label: 'Taxa de Conversão', value: 'Taxa_Conversao' },
     ];
 
+    const handleCitySearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setCitySearch(toTitleCase(e.target.value));
+    };
+
+    const handleCitySearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        fetchMetrics();
+    };
+
+    const renderMetricCard = (metric: Metric, rank: number) => (
+        <div key={metric.ID_Corretor} className={`p-4 rounded-lg shadow ${metric.ID_Corretor === user?.id ? 'bg-secondary/20 border-2 border-secondary' : 'bg-white'}`}>
+            <div className="flex items-center space-x-4">
+                <div className="text-2xl font-bold text-secondary">{rank}º</div>
+                <div>
+                    <p className="font-bold text-lg">{metric.Nome}</p>
+                    <p className="text-sm text-green-600 font-semibold">
+                        {getMetricDisplayValue(metric, sortCriteria)} {getMetricLabel(sortCriteria)}
+                    </p>
+                </div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2 text-sm text-neutral-dark">
+                <p>Imóveis: <span className={`font-semibold ${sortCriteria === 'Imoveis_Adicionados' ? 'text-primary' : ''}`}>{metric.Imoveis_Adicionados}</span></p>
+                <p>Clientes: <span className={`font-semibold ${sortCriteria === 'Clientes_Adicionados' ? 'text-primary' : ''}`}>{metric.Clientes_Adicionados}</span></p>
+                <p>Matches: <span className={`font-semibold ${sortCriteria === 'Matches_Iniciados' ? 'text-primary' : ''}`}>{metric.Matches_Iniciados}</span></p>
+                <p>Conversas: <span className={`font-semibold ${sortCriteria === 'Conversas_Iniciadas' ? 'text-primary' : ''}`}>{metric.Conversas_Iniciadas}</span></p>
+                <p>Parcerias: <span className={`font-semibold ${sortCriteria === 'Parcerias_Concluidas' ? 'text-primary' : ''}`}>{metric.Parcerias_Concluidas}</span></p>
+                <p>Conversão: <span className={`font-semibold ${sortCriteria === 'Taxa_Conversao' ? 'text-primary' : ''}`}>{(metric.Taxa_Conversao * 100).toFixed(1)}%</span></p>
+            </div>
+        </div>
+    );
+
     if (loading) {
         return <div className="flex justify-center mt-8"><Spinner /></div>;
     }
@@ -71,46 +127,57 @@ const MetricasPage: React.FC = () => {
         <div className="space-y-4">
             <h2 className="text-xl font-bold text-center text-primary mb-4">Ranking de Corretores</h2>
             
-            <div className="mb-4 bg-white p-4 rounded-lg shadow space-y-2">
-                <Label htmlFor="metricas-sort">Ordenar ranking por</Label>
-                <Select
-                    value={sortCriteria}
-                    onValueChange={(value) => setSortCriteria(value as SortCriteria)}
-                >
-                    <SelectTrigger id="metricas-sort">
-                        <SelectValue placeholder="Selecione uma métrica" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {filterOptions.map(option => (
-                            <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-
-            {sortedMetrics.map((metric, index) => (
-                <div key={metric.ID_Corretor} className="bg-white p-4 rounded-lg shadow">
-                    <div className="flex items-center space-x-4">
-                        <div className="text-2xl font-bold text-secondary">{index + 1}º</div>
-                        <div>
-                            <p className="font-bold text-lg">{metric.Nome}</p>
-                            <p className="text-sm text-green-600 font-semibold">
-                                {getMetricDisplayValue(metric, sortCriteria)} {getMetricLabel(sortCriteria)}
-                            </p>
-                        </div>
-                    </div>
-                    <div className="mt-4 grid grid-cols-2 gap-2 text-sm text-neutral-dark">
-                        <p>Imóveis: <span className={`font-semibold ${sortCriteria === 'Imoveis_Adicionados' ? 'text-primary' : ''}`}>{metric.Imoveis_Adicionados}</span></p>
-                        <p>Clientes: <span className={`font-semibold ${sortCriteria === 'Clientes_Adicionados' ? 'text-primary' : ''}`}>{metric.Clientes_Adicionados}</span></p>
-                        <p>Matches: <span className={`font-semibold ${sortCriteria === 'Matches_Iniciados' ? 'text-primary' : ''}`}>{metric.Matches_Iniciados}</span></p>
-                        <p>Conversas: <span className={`font-semibold ${sortCriteria === 'Conversas_Iniciadas' ? 'text-primary' : ''}`}>{metric.Conversas_Iniciadas}</span></p>
-                        <p>Parcerias: <span className={`font-semibold ${sortCriteria === 'Parcerias_Concluidas' ? 'text-primary' : ''}`}>{metric.Parcerias_Concluidas}</span></p>
-                        <p>Conversão: <span className={`font-semibold ${sortCriteria === 'Taxa_Conversao' ? 'text-primary' : ''}`}>{(metric.Taxa_Conversao * 100).toFixed(1)}%</span></p>
+            <div className="mb-4 bg-white p-4 rounded-lg shadow space-y-4">
+                <div>
+                    <Label>Filtrar ranking por</Label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                        <Button size="sm" variant={filterType === 'my_city' ? 'default' : 'outline'} onClick={() => setFilterType('my_city')}>Minha Cidade</Button>
+                        <Button size="sm" variant={filterType === 'my_state' ? 'default' : 'outline'} onClick={() => setFilterType('my_state')}>Meu Estado</Button>
+                        <Button size="sm" variant={filterType === 'brasil' ? 'default' : 'outline'} onClick={() => setFilterType('brasil')}>Brasil</Button>
+                        <Button size="sm" variant={filterType === 'other_city' ? 'default' : 'outline'} onClick={() => setFilterType('other_city')}>Outra Cidade</Button>
                     </div>
                 </div>
-            ))}
+
+                {filterType === 'other_city' && (
+                    <form onSubmit={handleCitySearchSubmit} className="flex space-x-2">
+                        <Input
+                            type="text"
+                            placeholder="Digite o nome da cidade"
+                            value={citySearch}
+                            onChange={handleCitySearchChange}
+                        />
+                        <Button type="submit">Buscar</Button>
+                    </form>
+                )}
+
+                <div>
+                    <Label htmlFor="metricas-sort">Ordenar por</Label>
+                    <Select
+                        value={sortCriteria}
+                        onValueChange={(value) => setSortCriteria(value as SortCriteria)}
+                    >
+                        <SelectTrigger id="metricas-sort">
+                            <SelectValue placeholder="Selecione uma métrica" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {filterOptions.map(option => (
+                                <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
+            {top10Metrics.map((metric, index) => renderMetricCard(metric, index + 1))}
+
+            {!isCurrentUserInTop10 && currentUserMetric && currentUserRank && (
+                <>
+                    <div className="text-center text-gray-500 my-4">...</div>
+                    {renderMetricCard(currentUserMetric, currentUserRank)}
+                </>
+            )}
         </div>
     );
 };

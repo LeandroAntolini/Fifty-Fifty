@@ -40,7 +40,7 @@ const LoginPage: React.FC = () => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'http://fiftyfiftyapp.com.br/#/',
+        redirectTo: window.location.origin + '/#/',
       });
       if (error) throw error;
       toast.success('Link para redefinição de senha enviado! Verifique seu email.');

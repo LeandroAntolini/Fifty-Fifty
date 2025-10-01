@@ -372,7 +372,6 @@ export const updateCorretor = async (corretorId: string, corretorData: Partial<O
         estado: corretorData.Estado,
         avatar_url: corretorData.avatar_url,
         whatsapp_notifications_enabled: corretorData.whatsapp_notifications_enabled,
-        email_notifications_enabled: corretorData.email_notifications_enabled,
     };
 
     // Remove undefined properties so they are not updated
@@ -621,17 +620,15 @@ export const getArchivedChatsByCorretor = async (corretorId: string) => {
 
 
 // --- METRICAS ---
-export const getMetricas = async (filters?: { cidade?: string; estado?: string }): Promise<Metric[]> => {
-    const { data, error } = await supabase.rpc('get_corretor_metrics', {
-        p_cidade: filters?.cidade,
-        p_estado: filters?.estado,
-    });
+export const getMetricas = async (): Promise<Metric[]> => {
+    const { data, error } = await supabase.rpc('get_corretor_metrics');
 
     if (error) {
         console.error('Error fetching metrics:', error);
         throw error;
     }
     
+    // The data from RPC should match the Metric type, but we cast it to be safe.
     return data as Metric[];
 };
 

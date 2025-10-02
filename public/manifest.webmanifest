@@ -21,5 +21,21 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/screenshot1.png",
+      "sizes": "540x960",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tela de Início"
+    },
+    {
+      "src": "screenshots/screenshot2.png",
+      "sizes": "540x960",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tela de Matches"
+    }
   ]
 }

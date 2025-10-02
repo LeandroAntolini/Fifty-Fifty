@@ -3,6 +3,7 @@
   "short_name": "Fifty-Fifty",
   "description": "Uma plataforma B2B exclusiva para corretores de imóveis, facilitando a conexão entre quem tem o imóvel e quem tem o cliente para parcerias de comissão 50/50.",
   "start_url": ".",
+  "id": "/",
   "display": "standalone",
   "background_color": "#F3F4F6",
   "theme_color": "#0D9488",

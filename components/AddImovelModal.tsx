@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Imovel, Finalidade, ImovelStatus } from '../types';
 import toast from 'react-hot-toast';
 import { Button } from './ui/Button';
@@ -35,6 +35,7 @@ const fileToBase64 = (file: File): Promise<string> => {
 
 const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave, imovelToEdit }) => {
   const isEditMode = !!imovelToEdit;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getInitialFormData = (): ImovelFormData => ({
     Tipo: '',
@@ -260,16 +261,29 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
                 )}
                 <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
                     <div className="space-y-1 text-center">
-                    <Image className="mx-auto h-12 w-12 text-gray-400" strokeWidth={1.5} />
-                    <div className="flex text-sm text-gray-600">
-                        <Label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-primary-hover focus-within:outline-none">
-                        <span>Carregar novas imagens</span>
-                        <input id="file-upload" name="file-upload" type="file" multiple accept="image/*" className="sr-only" onChange={handleImageChange} />
-                        </Label>
-                    </div>
-                    <p className="text-xs text-gray-500">PNG, JPG, GIF até 10MB</p>
+                        <Image className="mx-auto h-12 w-12 text-gray-400" strokeWidth={1.5} />
+                        <div className="flex text-sm text-gray-600">
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-primary-hover focus-within:outline-none"
+                            >
+                                <span>Carregar novas imagens</span>
+                            </button>
+                        </div>
+                        <p className="text-xs text-gray-500">PNG, JPG, GIF até 10MB</p>
                     </div>
                 </div>
+                <input
+                    ref={fileInputRef}
+                    id="file-upload"
+                    name="file-upload"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                />
             </div>
           </div>
           <div className="mt-6 flex justify-end space-x-2">

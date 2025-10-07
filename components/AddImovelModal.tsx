@@ -33,6 +33,8 @@ const fileToBase64 = (file: File): Promise<string> => {
     });
 };
 
+const imovelTipos = ["Apartamento", "Casa", "Sala Comercial", "Loja", "Terreno", "Galpão"];
+
 const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave, imovelToEdit }) => {
   const isEditMode = !!imovelToEdit;
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -102,15 +104,15 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
     let finalValue = value;
     if (name === 'Estado') {
         finalValue = value.toUpperCase();
-    } else if (['Tipo', 'Cidade', 'Bairro'].includes(name)) {
+    } else if (['Cidade', 'Bairro'].includes(name)) {
         finalValue = toTitleCase(value);
     }
 
     setFormData(prev => ({ ...prev, [name]: finalValue }));
   };
 
-  const handleSelectChange = (name: 'Finalidade' | 'Status') => (value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value as Finalidade | ImovelStatus }));
+  const handleSelectChange = (name: 'Finalidade' | 'Status' | 'Tipo') => (value: string) => {
+    setFormData(prev => ({ ...prev, [name]: value as Finalidade | ImovelStatus | string }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -168,8 +170,15 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
         <form onSubmit={handleSubmit} noValidate>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="Tipo">Tipo (ex: Apartamento, Casa)</Label>
-              <Input id="Tipo" name="Tipo" value={formData.Tipo} onChange={handleInputChange} required />
+              <Label htmlFor="Tipo">Tipo</Label>
+              <Select name="Tipo" value={formData.Tipo} onValueChange={handleSelectChange('Tipo')} required>
+                <SelectTrigger><SelectValue placeholder="Selecione o tipo..." /></SelectTrigger>
+                <SelectContent>
+                  {imovelTipos.map(tipo => (
+                    <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="Finalidade">Finalidade</Label>

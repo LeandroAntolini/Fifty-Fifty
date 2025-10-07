@@ -17,6 +17,8 @@ interface AddClienteModalProps {
   clienteToEdit?: Cliente | null;
 }
 
+const imovelTipos = ["Apartamento", "Casa", "Sala Comercial", "Loja", "Terreno", "Galpão"];
+
 const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSave, clienteToEdit }) => {
   const isEditMode = !!clienteToEdit;
 
@@ -75,14 +77,14 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
     let finalValue = value;
     if (name === 'EstadoDesejado') {
         finalValue = value.toUpperCase();
-    } else if (['TipoImovelDesejado', 'CidadeDesejada', 'BairroRegiaoDesejada'].includes(name)) {
+    } else if (['CidadeDesejada', 'BairroRegiaoDesejada'].includes(name)) {
         finalValue = toTitleCase(value);
     }
 
     setFormData(prev => ({ ...prev, [name]: finalValue }));
   };
 
-  const handleSelectChange = (name: 'Finalidade' | 'Status') => (value: string) => {
+  const handleSelectChange = (name: 'Finalidade' | 'Status' | 'TipoImovelDesejado') => (value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -117,7 +119,14 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="TipoImovelDesejado">Tipo de Imóvel Desejado</Label>
-              <Input id="TipoImovelDesejado" name="TipoImovelDesejado" value={formData.TipoImovelDesejado} onChange={handleInputChange} required />
+              <Select name="TipoImovelDesejado" value={formData.TipoImovelDesejado} onValueChange={handleSelectChange('TipoImovelDesejado')} required>
+                <SelectTrigger><SelectValue placeholder="Selecione o tipo..." /></SelectTrigger>
+                <SelectContent>
+                  {imovelTipos.map(tipo => (
+                    <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="Finalidade">Finalidade</Label>

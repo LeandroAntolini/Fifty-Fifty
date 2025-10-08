@@ -176,8 +176,8 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
                 </div>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="BairroRegiaoDesejada">Bairro/Região (separado por vírgula)</Label>
-              <Input id="BairroRegiaoDesejada" name="BairroRegiaoDesejada" value={formData.BairroRegiaoDesejada} onChange={handleInputChange} />
+              <Label htmlFor="BairroRegiaoDesejada">Bairro</Label>
+              <Input id="BairroRegiaoDesejada" name="BairroRegiaoDesejada" value={formData.BairroRegiaoDesejada} onChange={handleInputChange} placeholder="Nome do bairro" />
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">

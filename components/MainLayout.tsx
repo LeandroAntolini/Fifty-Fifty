@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import ChatNotificationBell from './ChatNotificationBell';
-// import DraggableFab from './DraggableFab'; // Removendo a importação do novo componente
+// DraggableFab não é mais usado
 
 const pageTitles: { [key: string]: string } = {
   '/dashboard': 'Início',
@@ -34,7 +34,7 @@ const MainLayout: React.FC = () => {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const { openImovelModal, openClienteModal, isImovelModalOpen, isClienteModalOpen } = useUI();
+  const { isImovelModalOpen, isClienteModalOpen } = useUI();
   
   const isSpecificChatPage = /^\/matches\/.+\/chat$/.test(location.pathname);
   
@@ -45,8 +45,7 @@ const MainLayout: React.FC = () => {
   ];
   const hasBackButton = profileSubPages.includes(location.pathname) || location.pathname === '/profile';
 
-  const showFabForImoveis = location.pathname === '/imoveis';
-  const showFabForClientes = location.pathname === '/clientes';
+  // showFabForImoveis e showFabForClientes não são mais necessários aqui
   
   const getTitle = () => {
     const path = location.pathname;
@@ -56,15 +55,6 @@ const MainLayout: React.FC = () => {
     if (isSpecificChatPage) return "Chat da Parceria";
     return pageTitles[path] || 'Meu Perfil';
   };
-
-  // A lógica do FAB será movida para as páginas específicas
-  // const handleFabClick = () => {
-  //   if (showFabForImoveis) {
-  //     openImovelModal();
-  //   } else if (showFabForClientes) {
-  //     openClienteModal();
-  //   }
-  // };
 
   const isModalOpen = isImovelModalOpen || isClienteModalOpen;
   const hideBottomNav = hasBackButton;
@@ -96,19 +86,11 @@ const MainLayout: React.FC = () => {
         </div>
       </header>
       
-      <main className="flex-grow overflow-y-auto p-4 pb-18">
+      <main className="flex-grow overflow-y-auto p-4 pb-14"> {/* Alterado de pb-18 para pb-14 */}
         <Outlet />
       </main>
 
-      {/* Removendo o DraggableFab daqui */}
-      {/* {(showFabForImoveis || showFabForClientes) && !isModalOpen && (
-        <DraggableFab
-          onClick={handleFabClick}
-          ariaLabel={showFabForImoveis ? "Adicionar Imóvel" : "Adicionar Cliente"}
-        >
-          +
-        </DraggableFab>
-      )} */}
+      {/* DraggableFab foi removido e substituído por um botão fixo nos FilterSortControls */}
 
       {!hideBottomNav && (
         <nav className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-white border-t border-neutral-DEFAULT shadow-lg z-10">

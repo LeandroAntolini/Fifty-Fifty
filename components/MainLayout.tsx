@@ -94,14 +94,14 @@ const MainLayout: React.FC = () => {
         </div>
       </header>
       
-      <main className="flex-grow overflow-y-auto p-4 pb-20">
+      <main className="flex-grow overflow-y-auto p-4 pb-18">
         <Outlet />
       </main>
 
       {(showFabForImoveis || showFabForClientes) && !isModalOpen && (
         <button
           onClick={handleFabClick}
-          className="fixed bottom-20 right-4 bg-primary text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-3xl font-light z-20"
+          className="fixed bottom-18 right-4 bg-primary text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-3xl font-light z-20"
           aria-label={showFabForImoveis ? "Adicionar Imóvel" : "Adicionar Cliente"}
         >
           +
@@ -110,7 +110,7 @@ const MainLayout: React.FC = () => {
 
       {!hideBottomNav && (
         <nav className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-white border-t border-neutral-DEFAULT shadow-lg z-10">
-          <div className="flex justify-around h-16">
+          <div className="flex justify-around h-14">
             <NavLink to="/dashboard" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-neutral-dark hover:text-primary'}`}>
               <LayoutDashboard />
               <span>Início</span>

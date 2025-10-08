@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import ChatNotificationBell from './ChatNotificationBell';
+import DraggableFab from './DraggableFab'; // Importando o novo componente
 
 const pageTitles: { [key: string]: string } = {
   '/dashboard': 'Início',
@@ -99,13 +100,12 @@ const MainLayout: React.FC = () => {
       </main>
 
       {(showFabForImoveis || showFabForClientes) && !isModalOpen && (
-        <button
+        <DraggableFab
           onClick={handleFabClick}
-          className="fixed bottom-18 right-4 bg-primary text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-3xl font-light z-20"
-          aria-label={showFabForImoveis ? "Adicionar Imóvel" : "Adicionar Cliente"}
+          ariaLabel={showFabForImoveis ? "Adicionar Imóvel" : "Adicionar Cliente"}
         >
           +
-        </button>
+        </DraggableFab>
       )}
 
       {!hideBottomNav && (

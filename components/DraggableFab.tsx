@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, ReactNode, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, ReactNode, useCallback } from 'react';
 import { cn } from '../lib/utils';
 
 interface DraggableFabProps {
@@ -9,23 +9,22 @@ interface DraggableFabProps {
 }
 
 const HEADER_HEIGHT = 64; // Altura aproximada do cabeçalho
-const BOTTOM_NAV_HEIGHT = 56; // Altura aproximada da barra de navegação inferior
+const BOTTOM_NAV_HEIGHT = 56; // Altura aproximada da barra de navegação inferior (h-14 = 56px)
+const FAB_SIZE = 56; // w-14 h-14 = 56px
 
 const DraggableFab: React.FC<DraggableFabProps> = ({ onClick, ariaLabel, children, className }) => {
   const fabRef = useRef<HTMLButtonElement>(null);
-  const [top, setTop] = useState<number | null>(null); // Posição 'top' gerenciada
+  const [top, setTop] = useState<number | null>(null);
   const [isDraggingState, setIsDraggingState] = useState(false);
   const startYRef = useRef(0);
   const startTopRef = useRef(0);
-  const isClickRef = useRef(true); // Para diferenciar clique de arrastar
+  const isClickRef = useRef(true);
 
-  // Define a posição inicial do FAB ao montar o componente
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (fabRef.current && top === null) {
       const viewportHeight = window.innerHeight;
-      const fabHeight = fabRef.current.offsetHeight;
-      // Posição inicial: bottom-18, então top é viewportHeight - 18 - fabHeight
-      const initialTop = viewportHeight - 18 - fabHeight;
+      // Position 18px above the bottom navigation bar
+      const initialTop = viewportHeight - BOTTOM_NAV_HEIGHT - FAB_SIZE - 18;
       setTop(initialTop);
     }
   }, [top]);
@@ -34,22 +33,21 @@ const DraggableFab: React.FC<DraggableFabProps> = ({ onClick, ariaLabel, childre
     isClickRef.current = true;
     setIsDraggingState(true);
     startYRef.current = e.clientY;
-    startTopRef.current = top!; // Usa a posição 'top' atual
+    startTopRef.current = top!;
   };
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDraggingState) return;
-    isClickRef.current = false; // Se o mouse se move, é um arrasto
+    isClickRef.current = false;
 
     const deltaY = e.clientY - startYRef.current;
     let newTop = startTopRef.current + deltaY;
 
     const viewportHeight = window.innerHeight;
-    const fabHeight = fabRef.current?.offsetHeight || 56; // Altura padrão se não renderizado
 
-    // Define os limites de arrasto
-    const minTop = HEADER_HEIGHT;
-    const maxTop = viewportHeight - BOTTOM_NAV_HEIGHT - fabHeight;
+    // Define the dragging limits
+    const minTop = HEADER_HEIGHT; // Cannot go above the header
+    const maxTop = viewportHeight - BOTTOM_NAV_HEIGHT - FAB_SIZE - 18; // Cannot go below the bottom nav + 18px margin
 
     newTop = Math.max(minTop, Math.min(newTop, maxTop));
     setTop(newTop);
@@ -59,7 +57,6 @@ const DraggableFab: React.FC<DraggableFabProps> = ({ onClick, ariaLabel, childre
     setIsDraggingState(false);
   }, []);
 
-  // Adiciona e remove listeners de eventos globais para arrastar
   useEffect(() => {
     if (isDraggingState) {
       document.addEventListener('mousemove', handleMouseMove);
@@ -80,7 +77,7 @@ const DraggableFab: React.FC<DraggableFabProps> = ({ onClick, ariaLabel, childre
     }
   };
 
-  if (top === null) return null; // Não renderiza até que a posição inicial seja calculada
+  if (top === null) return null;
 
   return (
     <button

@@ -7,6 +7,7 @@ import { Label } from './ui/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/Select';
 import { formatBRLNumber, handleCurrencyInputChange } from '../src/utils/currency';
 import { toTitleCase } from '../src/utils/formatters';
+import { brazilianStates, citiesByState } from '../src/utils/brazilianLocations';
 
 type ClienteFormData = Omit<Cliente, 'ID_Cliente' | 'ID_Corretor' | 'CreatedAt'>;
 
@@ -36,6 +37,7 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
   });
 
   const [formData, setFormData] = useState(getInitialFormData());
+  const [cities, setCities] = useState<string[]>([]);
 
   useEffect(() => {
     if (isOpen) {
@@ -52,8 +54,12 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
           Status: clienteToEdit.Status,
           detalhes_privados: clienteToEdit.detalhes_privados || '',
         });
+        if (clienteToEdit.EstadoDesejado) {
+            setCities(citiesByState[clienteToEdit.EstadoDesejado] || []);
+        }
       } else {
         setFormData(getInitialFormData());
+        setCities([]);
       }
     }
   }, [isOpen, isEditMode, clienteToEdit]);
@@ -75,9 +81,7 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
     }
 
     let finalValue = value;
-    if (name === 'EstadoDesejado') {
-        finalValue = value.toUpperCase();
-    } else if (['CidadeDesejada', 'BairroRegiaoDesejada'].includes(name)) {
+    if (['BairroRegiaoDesejada'].includes(name)) {
         finalValue = toTitleCase(value);
     }
 
@@ -86,6 +90,15 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
 
   const handleSelectChange = (name: 'Finalidade' | 'Status' | 'TipoImovelDesejado') => (value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleStateChange = (stateAbbr: string) => {
+    setFormData(prev => ({ ...prev, EstadoDesejado: stateAbbr, CidadeDesejada: '' }));
+    setCities(citiesByState[stateAbbr] || []);
+  };
+
+  const handleCityChange = (city: string) => {
+    setFormData(prev => ({ ...prev, CidadeDesejada: city }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -139,13 +152,27 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
               </Select>
             </div>
             <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-1.5 col-span-2">
-                    <Label htmlFor="CidadeDesejada">Cidade Desejada</Label>
-                    <Input id="CidadeDesejada" name="CidadeDesejada" value={formData.CidadeDesejada} onChange={handleInputChange} required />
-                </div>
                 <div className="space-y-1.5">
                     <Label htmlFor="EstadoDesejado">Estado</Label>
-                    <Input id="EstadoDesejado" name="EstadoDesejado" value={formData.EstadoDesejado} onChange={handleInputChange} required maxLength={2} placeholder="UF" />
+                    <Select name="EstadoDesejado" value={formData.EstadoDesejado} onValueChange={handleStateChange} required>
+                        <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
+                        <SelectContent>
+                            {brazilianStates.map(state => (
+                                <SelectItem key={state.sigla} value={state.sigla}>{state.sigla}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="space-y-1.5 col-span-2">
+                    <Label htmlFor="CidadeDesejada">Cidade Desejada</Label>
+                    <Select name="CidadeDesejada" value={formData.CidadeDesejada} onValueChange={handleCityChange} required disabled={!formData.EstadoDesejado}>
+                        <SelectTrigger><SelectValue placeholder="Selecione a cidade" /></SelectTrigger>
+                        <SelectContent>
+                            {cities.map(city => (
+                                <SelectItem key={city} value={city}>{city}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
             <div className="space-y-1.5">

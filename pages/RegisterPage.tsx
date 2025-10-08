@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import toast from 'react-hot-toast';
 import { Eye, EyeOff } from 'lucide-react';
 import { toTitleCase } from '../src/utils/formatters';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/Select';
+import { brazilianStates, citiesByState } from '../src/utils/brazilianLocations';
 
 const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -25,18 +27,26 @@ const RegisterPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [registrationComplete, setRegistrationComplete] = useState(false);
     const { register } = useAuth();
+    const [cities, setCities] = useState<string[]>([]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         let finalValue = value;
 
-        if (name === 'Nome' || name === 'Cidade') {
+        if (name === 'Nome') {
             finalValue = toTitleCase(value);
-        } else if (name === 'Estado') {
-            finalValue = value.toUpperCase();
         }
         
         setFormData({ ...formData, [name]: finalValue });
+    };
+
+    const handleStateChange = (stateAbbr: string) => {
+        setFormData(prev => ({ ...prev, Estado: stateAbbr, Cidade: '' }));
+        setCities(citiesByState[stateAbbr] || []);
+    };
+
+    const handleCityChange = (city: string) => {
+        setFormData(prev => ({ ...prev, Cidade: city }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -157,13 +167,27 @@ const RegisterPage: React.FC = () => {
                             <Input id="Telefone" name="Telefone" placeholder="(XX) XXXXX-XXXX" onChange={handleChange} required />
                         </div>
                         <div className="grid grid-cols-3 gap-4">
-                            <div className="space-y-1.5 col-span-2">
-                                <Label htmlFor="Cidade">Cidade</Label>
-                                <Input id="Cidade" name="Cidade" value={formData.Cidade} placeholder="Sua cidade" onChange={handleChange} required />
-                            </div>
                             <div className="space-y-1.5">
                                 <Label htmlFor="Estado">Estado</Label>
-                                <Input id="Estado" name="Estado" value={formData.Estado} placeholder="UF" onChange={handleChange} required maxLength={2} />
+                                <Select name="Estado" value={formData.Estado} onValueChange={handleStateChange} required>
+                                    <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
+                                    <SelectContent>
+                                        {brazilianStates.map(state => (
+                                            <SelectItem key={state.sigla} value={state.sigla}>{state.sigla}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-1.5 col-span-2">
+                                <Label htmlFor="Cidade">Cidade</Label>
+                                <Select name="Cidade" value={formData.Cidade} onValueChange={handleCityChange} required disabled={!formData.Estado}>
+                                    <SelectTrigger><SelectValue placeholder="Sua cidade" /></SelectTrigger>
+                                    <SelectContent>
+                                        {cities.map(city => (
+                                            <SelectItem key={city} value={city}>{city}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
 

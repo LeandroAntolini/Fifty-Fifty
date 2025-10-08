@@ -9,6 +9,7 @@ import { formatBRLNumber, handleCurrencyInputChange } from '../src/utils/currenc
 import { Image } from 'lucide-react';
 import { Textarea } from './ui/Textarea';
 import { toTitleCase } from '../src/utils/formatters';
+import { brazilianStates, citiesByState } from '../src/utils/brazilianLocations';
 
 type ImovelFormData = Omit<Imovel, 'ID_Imovel' | 'ID_Corretor' | 'Imagens' | 'CreatedAt'>;
 
@@ -53,6 +54,7 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
   });
 
   const [formData, setFormData] = useState(getInitialFormData());
+  const [cities, setCities] = useState<string[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
   const [newImagePreviews, setNewImagePreviews] = useState<string[]>([]);
@@ -73,9 +75,13 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
           Status: imovelToEdit.Status,
           detalhes_privados: imovelToEdit.detalhes_privados || '',
         });
+        if (imovelToEdit.Estado) {
+            setCities(citiesByState[imovelToEdit.Estado] || []);
+        }
         setExistingImages(imovelToEdit.Imagens || []);
       } else {
         setFormData(getInitialFormData());
+        setCities([]);
         setExistingImages([]);
       }
       setNewImageFiles([]);
@@ -102,9 +108,7 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
     }
 
     let finalValue = value;
-    if (name === 'Estado') {
-        finalValue = value.toUpperCase();
-    } else if (['Cidade', 'Bairro'].includes(name)) {
+    if (['Bairro'].includes(name)) {
         finalValue = toTitleCase(value);
     }
 
@@ -113,6 +117,15 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
 
   const handleSelectChange = (name: 'Finalidade' | 'Status' | 'Tipo') => (value: string) => {
     setFormData(prev => ({ ...prev, [name]: value as Finalidade | ImovelStatus | string }));
+  };
+
+  const handleStateChange = (stateAbbr: string) => {
+    setFormData(prev => ({ ...prev, Estado: stateAbbr, Cidade: '' }));
+    setCities(citiesByState[stateAbbr] || []);
+  };
+
+  const handleCityChange = (city: string) => {
+    setFormData(prev => ({ ...prev, Cidade: city }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -191,13 +204,27 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
               </Select>
             </div>
              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                    <Label htmlFor="Estado">Estado</Label>
+                    <Select name="Estado" value={formData.Estado} onValueChange={handleStateChange} required>
+                        <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
+                        <SelectContent>
+                            {brazilianStates.map(state => (
+                                <SelectItem key={state.sigla} value={state.sigla}>{state.sigla}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
                 <div className="space-y-1.5 col-span-2">
                     <Label htmlFor="Cidade">Cidade</Label>
-                    <Input id="Cidade" name="Cidade" value={formData.Cidade} onChange={handleInputChange} required />
-                </div>
-                 <div className="space-y-1.5">
-                    <Label htmlFor="Estado">Estado</Label>
-                    <Input id="Estado" name="Estado" value={formData.Estado} onChange={handleInputChange} required maxLength={2} placeholder="UF" />
+                    <Select name="Cidade" value={formData.Cidade} onValueChange={handleCityChange} required disabled={!formData.Estado}>
+                        <SelectTrigger><SelectValue placeholder="Selecione a cidade" /></SelectTrigger>
+                        <SelectContent>
+                            {cities.map(city => (
+                                <SelectItem key={city} value={city}>{city}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
             <div className="space-y-1.5">

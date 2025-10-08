@@ -10,6 +10,7 @@ import { Image } from 'lucide-react';
 import { Textarea } from './ui/Textarea';
 import { toTitleCase } from '../src/utils/formatters';
 import { brazilianStates, citiesByState } from '../src/utils/brazilianLocations';
+import { useAuth } from '../hooks/useAuth'; // Import useAuth
 
 type ImovelFormData = Omit<Imovel, 'ID_Imovel' | 'ID_Corretor' | 'Imagens' | 'CreatedAt'>;
 
@@ -39,12 +40,13 @@ const imovelTipos = ["Apartamento", "Casa", "Sala Comercial", "Loja", "Terreno",
 const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave, imovelToEdit }) => {
   const isEditMode = !!imovelToEdit;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth(); // Use o hook useAuth para obter o usuário
 
   const getInitialFormData = (): ImovelFormData => ({
     Tipo: '',
     Finalidade: Finalidade.Venda,
-    Cidade: '',
-    Estado: '',
+    Cidade: user?.corretorInfo.Cidade || '', // Pré-seleciona a cidade do corretor
+    Estado: user?.corretorInfo.Estado || '', // Pré-seleciona o estado do corretor
     Bairro: '',
     Valor: 0,
     Dormitorios: 1,
@@ -80,15 +82,21 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
         }
         setExistingImages(imovelToEdit.Imagens || []);
       } else {
-        setFormData(getInitialFormData());
-        setCities([]);
+        // Se não for edição, usa os valores iniciais (que já consideram o perfil do corretor)
+        const initialData = getInitialFormData();
+        setFormData(initialData);
+        if (initialData.Estado) {
+            setCities(citiesByState[initialData.Estado] || []);
+        } else {
+            setCities([]);
+        }
         setExistingImages([]);
       }
       setNewImageFiles([]);
       setNewImagePreviews([]);
       setImagesToDelete([]);
     }
-  }, [isOpen, isEditMode, imovelToEdit]);
+  }, [isOpen, isEditMode, imovelToEdit, user]); // Adiciona 'user' como dependência
 
   if (!isOpen) return null;
 

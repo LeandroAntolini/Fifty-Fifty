@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { formatBRLNumber, handleCurrencyInputChange } from '../src/utils/currency';
 import { toTitleCase } from '../src/utils/formatters';
 import { brazilianStates, citiesByState } from '../src/utils/brazilianLocations';
+import { useAuth } from '../hooks/useAuth'; // Import useAuth
 
 type ClienteFormData = Omit<Cliente, 'ID_Cliente' | 'ID_Corretor' | 'CreatedAt'>;
 
@@ -22,12 +23,13 @@ const imovelTipos = ["Apartamento", "Casa", "Sala Comercial", "Loja", "Terreno",
 
 const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSave, clienteToEdit }) => {
   const isEditMode = !!clienteToEdit;
+  const { user } = useAuth(); // Use o hook useAuth para obter o usuário
 
   const getInitialFormData = (): ClienteFormData => ({
     TipoImovelDesejado: '',
     Finalidade: Finalidade.Venda,
-    CidadeDesejada: '',
-    EstadoDesejado: '',
+    CidadeDesejada: user?.corretorInfo.Cidade || '', // Pré-seleciona a cidade do corretor
+    EstadoDesejado: user?.corretorInfo.Estado || '', // Pré-seleciona o estado do corretor
     BairroRegiaoDesejada: '',
     FaixaValorMin: 0,
     FaixaValorMax: 0,
@@ -58,11 +60,17 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
             setCities(citiesByState[clienteToEdit.EstadoDesejado] || []);
         }
       } else {
-        setFormData(getInitialFormData());
-        setCities([]);
+        // Se não for edição, usa os valores iniciais (que já consideram o perfil do corretor)
+        const initialData = getInitialFormData();
+        setFormData(initialData);
+        if (initialData.EstadoDesejado) {
+            setCities(citiesByState[initialData.EstadoDesejado] || []);
+        } else {
+            setCities([]);
+        }
       }
     }
-  }, [isOpen, isEditMode, clienteToEdit]);
+  }, [isOpen, isEditMode, clienteToEdit, user]); // Adiciona 'user' como dependência
 
   if (!isOpen) return null;
 

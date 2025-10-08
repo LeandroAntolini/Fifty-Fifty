@@ -51,25 +51,27 @@ const FilterSortControls: React.FC<FilterSortControlsProps> = ({
 
   return (
     <div className="bg-white p-2 rounded-lg shadow mb-4 space-y-2">
-      <div className="grid grid-cols-3 gap-2 items-center"> {/* Ajustado para 3 colunas */}
-        <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="w-full justify-center">
+      <div className="flex gap-2 items-center"> {/* Usando flex para controle de largura */}
+        <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="flex-1 justify-center">
           <Filter size={16} className="mr-2" />
           Filtrar
           {areFiltersActive && <span className="ml-2 h-2 w-2 rounded-full bg-secondary" />}
         </Button>
-        <Select value={sortCriteria} onValueChange={(value) => onSortChange(value as SortCriteria)}>
-            <SelectTrigger>
-                <SelectValue placeholder="Ordenar por..." />
-            </SelectTrigger>
-            <SelectContent>
-                {sortOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                    </SelectItem>
-                ))}
-            </SelectContent>
-        </Select>
-        <Button onClick={onAddClick} className="w-full justify-center p-0 h-10"> {/* Botão de adicionar */}
+        <div className="flex-1"> {/* Envolvendo o Select para que ele ocupe o espaço restante */}
+            <Select value={sortCriteria} onValueChange={(value) => onSortChange(value as SortCriteria)}>
+                <SelectTrigger>
+                    <SelectValue placeholder="Ordenar por..." />
+                </SelectTrigger>
+                <SelectContent>
+                    {sortOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+        <Button onClick={onAddClick} className="w-10 h-10 p-0 flex-shrink-0"> {/* Botão de adicionar 1:1 */}
           <Plus size={24} />
         </Button>
       </div>

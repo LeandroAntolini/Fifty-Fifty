@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import ChatNotificationBell from './ChatNotificationBell';
-import DraggableFab from './DraggableFab'; // Importando o novo componente
+// import DraggableFab from './DraggableFab'; // Removendo a importação do novo componente
 
 const pageTitles: { [key: string]: string } = {
   '/dashboard': 'Início',
@@ -57,13 +57,14 @@ const MainLayout: React.FC = () => {
     return pageTitles[path] || 'Meu Perfil';
   };
 
-  const handleFabClick = () => {
-    if (showFabForImoveis) {
-      openImovelModal();
-    } else if (showFabForClientes) {
-      openClienteModal();
-    }
-  };
+  // A lógica do FAB será movida para as páginas específicas
+  // const handleFabClick = () => {
+  //   if (showFabForImoveis) {
+  //     openImovelModal();
+  //   } else if (showFabForClientes) {
+  //     openClienteModal();
+  //   }
+  // };
 
   const isModalOpen = isImovelModalOpen || isClienteModalOpen;
   const hideBottomNav = hasBackButton;
@@ -99,14 +100,15 @@ const MainLayout: React.FC = () => {
         <Outlet />
       </main>
 
-      {(showFabForImoveis || showFabForClientes) && !isModalOpen && (
+      {/* Removendo o DraggableFab daqui */}
+      {/* {(showFabForImoveis || showFabForClientes) && !isModalOpen && (
         <DraggableFab
           onClick={handleFabClick}
           ariaLabel={showFabForImoveis ? "Adicionar Imóvel" : "Adicionar Cliente"}
         >
           +
         </DraggableFab>
-      )}
+      )} */}
 
       {!hideBottomNav && (
         <nav className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-white border-t border-neutral-DEFAULT shadow-lg z-10">

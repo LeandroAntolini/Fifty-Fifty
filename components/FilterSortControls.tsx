@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/Select';
-import { Filter, X } from 'lucide-react';
+import { Filter, X, Plus } from 'lucide-react'; // Importando o ícone Plus
 
 type SortCriteria = 'newest' | 'oldest' | 'highest_value' | 'lowest_value' | 'archived';
 
@@ -26,6 +26,7 @@ interface FilterSortControlsProps {
     cidade: string;
     bairro: string;
   };
+  onAddClick: () => void; // Nova prop para o botão de adicionar
 }
 
 const sortOptions: { label: string; value: SortCriteria }[] = [
@@ -44,12 +45,13 @@ const FilterSortControls: React.FC<FilterSortControlsProps> = ({
   areFiltersActive,
   onClearFilters,
   placeholders,
+  onAddClick, // Recebendo a nova prop
 }) => {
   const [showFilters, setShowFilters] = useState(false);
 
   return (
     <div className="bg-white p-2 rounded-lg shadow mb-4 space-y-2">
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2 items-center"> {/* Ajustado para 3 colunas */}
         <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="w-full justify-center">
           <Filter size={16} className="mr-2" />
           Filtrar
@@ -67,12 +69,15 @@ const FilterSortControls: React.FC<FilterSortControlsProps> = ({
                 ))}
             </SelectContent>
         </Select>
+        <Button onClick={onAddClick} className="w-full justify-center p-0 h-10"> {/* Botão de adicionar */}
+          <Plus size={24} />
+        </Button>
       </div>
       {showFilters && (
         <div className="p-2 border-t">
           <div className="grid grid-cols-2 gap-4 mb-4">
             <Input type="text" placeholder={placeholders.cidade} value={filters.cidade} onChange={(e) => onFilterChange('cidade', e.target.value)} />
-            <Input type="text" placeholder={placeholders.bairro} value={filters.bairro} onChange={(e) => onFilterChange('bairro', e.target.value)} />
+            <Input type="text" placeholder={placeholders.bairro} value={filters.bairro} onChange={(e) => onFilterChange('bairro', e.target.value.toLowerCase())} /> {/* Convertendo para minúsculas para filtro */}
             <Input type="text" placeholder="Estado (UF)" value={filters.estado} onChange={(e) => onFilterChange('estado', e.target.value.toUpperCase())} maxLength={2} />
             <Input type="number" placeholder="Dorms. Mín." value={filters.dormitorios} onChange={(e) => onFilterChange('dormitorios', e.target.value)} />
             <Input type="number" placeholder="Valor Mín." value={filters.valorMin} onChange={(e) => onFilterChange('valorMin', e.target.value)} />

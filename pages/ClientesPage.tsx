@@ -214,6 +214,7 @@ const ClientesPage: React.FC = () => {
           cidade: 'Cidade Desejada',
           bairro: 'Bairro Desejado',
         }}
+        onAddClick={openClienteModal} // Passando a função para abrir o modal de cliente
       />
 
       {processedClientes.length === 0 ? (

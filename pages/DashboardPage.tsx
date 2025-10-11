@@ -116,7 +116,7 @@ const DashboardPage: React.FC = () => {
 
       <Card>
         <CardHeader className="p-4 pb-2">
-          <CardTitle className="text-base font-semibold">Estatísticas da Plataforma (Brasil)</CardTitle>
+          <CardTitle className="text-base font-semibold">Estatísticas da Plataforma</CardTitle>
         </CardHeader>
         <CardContent className="p-4 pt-2 grid grid-cols-2 gap-2 text-center">
           {loadingPlatformStats || !platformStats ? (

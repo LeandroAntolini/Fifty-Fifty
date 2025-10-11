@@ -634,8 +634,11 @@ export const getMetricas = async (cidade?: string, estado?: string): Promise<Met
     return data as Metric[];
 };
 
-export const getPlatformStats = async (): Promise<PlatformStats> => {
-    const { data, error } = await supabase.rpc('get_platform_stats').single();
+export const getPlatformStats = async (cidade?: string, estado?: string): Promise<PlatformStats> => {
+    const { data, error } = await supabase.rpc('get_platform_stats', {
+        p_cidade: cidade,
+        p_estado: estado,
+    }).single();
 
     if (error) {
         console.error('Error fetching platform stats:', error);

@@ -62,36 +62,36 @@ const DashboardPage: React.FC = () => {
     }
   }, [user]);
 
-  const fetchPlatformStatsData = useCallback(async () => {
-    setLoadingPlatformStats(true);
-    try {
-      let cidade: string | undefined = undefined;
-      let estado: string | undefined = undefined;
-
-      if (filterScope === 'cidade' && selectedCity && selectedState) {
-        cidade = selectedCity;
-        estado = selectedState;
-      } else if (filterScope === 'estado' && selectedState) {
-        estado = selectedState;
-      }
-
-      const platformData = await api.getPlatformStats(cidade, estado);
-      setPlatformStats(platformData);
-    } catch (error) {
-      console.error("Failed to fetch platform stats", error);
-      toast.error("Falha ao carregar estatísticas da plataforma.");
-    } finally {
-      setLoadingPlatformStats(false);
-    }
-  }, [filterScope, selectedCity, selectedState]);
-
   useEffect(() => {
     fetchPersonalStats();
   }, [fetchPersonalStats]);
 
   useEffect(() => {
+    const fetchPlatformStatsData = async () => {
+      setLoadingPlatformStats(true);
+      try {
+        let cidade: string | undefined = undefined;
+        let estado: string | undefined = undefined;
+
+        if (filterScope === 'cidade' && selectedCity && selectedState) {
+          cidade = selectedCity;
+          estado = selectedState;
+        } else if (filterScope === 'estado' && selectedState) {
+          estado = selectedState;
+        }
+
+        const platformData = await api.getPlatformStats(cidade, estado);
+        setPlatformStats(platformData);
+      } catch (error) {
+        console.error("Failed to fetch platform stats", error);
+        toast.error("Falha ao carregar estatísticas da plataforma.");
+      } finally {
+        setLoadingPlatformStats(false);
+      }
+    };
+
     fetchPlatformStatsData();
-  }, [fetchPlatformStatsData]);
+  }, [filterScope, selectedCity, selectedState]);
 
   useEffect(() => {
     if (selectedState) {

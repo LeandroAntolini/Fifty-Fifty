@@ -157,10 +157,10 @@ const DashboardPage: React.FC = () => {
         <CardContent className="p-4 pt-2 grid grid-cols-2 gap-4">
           <div className="flex flex-col space-y-2">
             <Button onClick={handleAddImovel} className="w-full justify-start h-9" variant="ghost">
-              <PlusCircle className="mr-2" size={18} /> Adicionar Novo Imóvel
+              <PlusCircle className="mr-2" size={18} /> Adicionar Imóvel
             </Button>
             <Button onClick={handleAddCliente} className="w-full justify-start h-9" variant="ghost">
-              <PlusCircle className="mr-2" size={18} /> Adicionar Novo Cliente
+              <PlusCircle className="mr-2" size={18} /> Adicionar Cliente
             </Button>
             <Link to="/metricas">
               <Button className="w-full justify-start h-9" variant="ghost">

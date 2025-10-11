@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useUI } from '../contexts/UIContext';
 import * as api from '../services/api';
@@ -7,10 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Button } from '../components/ui/Button';
 import Spinner from '../components/Spinner';
 import { ImovelStatus, ClienteStatus, MatchStatus } from '../types';
-import { Home, User, ThumbsUp, Handshake, PlusCircle, BarChart2, Users, Building, Briefcase, Award, Filter } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/Select';
-import { Label } from '../components/ui/Label';
-import { brazilianStates, citiesByState } from '../src/utils/brazilianLocations';
+import { Home, User, ThumbsUp, Handshake, PlusCircle, BarChart2, Users, Building, Briefcase, Award } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface DashboardStats {
@@ -20,8 +17,6 @@ interface DashboardStats {
   parceriasConcluidas: number;
 }
 
-type PlatformFilterScope = 'brasil' | 'estado' | 'cidade';
-
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { openImovelModal, openClienteModal } = useUI();
@@ -30,14 +25,6 @@ const DashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [loadingPlatformStats, setLoadingPlatformStats] = useState(true);
   const navigate = useNavigate();
-
-  // Platform stats filters state
-  const [filterScope, setFilterScope] = useState<PlatformFilterScope>('cidade');
-  const [selectedState, setSelectedState] = useState(user?.corretorInfo.Estado || '');
-  const [selectedCity, setSelectedCity] = useState(user?.corretorInfo.Cidade || '');
-  const [cities, setCities] = useState<string[]>([]);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const filterRef = useRef<HTMLDivElement>(null);
 
   const fetchPersonalStats = useCallback(async () => {
     if (!user) return;
@@ -70,17 +57,7 @@ const DashboardPage: React.FC = () => {
     const fetchPlatformStatsData = async () => {
       setLoadingPlatformStats(true);
       try {
-        let cidade: string | undefined = undefined;
-        let estado: string | undefined = undefined;
-
-        if (filterScope === 'cidade' && selectedCity && selectedState) {
-          cidade = selectedCity;
-          estado = selectedState;
-        } else if (filterScope === 'estado' && selectedState) {
-          estado = selectedState;
-        }
-
-        const platformData = await api.getPlatformStats(cidade, estado);
+        const platformData = await api.getPlatformStats();
         setPlatformStats(platformData);
       } catch (error) {
         console.error("Failed to fetch platform stats", error);
@@ -91,34 +68,7 @@ const DashboardPage: React.FC = () => {
     };
 
     fetchPlatformStatsData();
-  }, [filterScope, selectedCity, selectedState]);
-
-  useEffect(() => {
-    if (selectedState) {
-      setCities(citiesByState[selectedState] || []);
-    } else {
-      setCities([]);
-    }
-  }, [selectedState]);
-
-  useEffect(() => {
-    if (user) {
-      setSelectedState(user.corretorInfo.Estado);
-      setSelectedCity(user.corretorInfo.Cidade);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-        setIsFilterOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [filterRef]);
+  }, []);
 
   const handleAddImovel = () => {
     navigate('/imoveis');
@@ -165,50 +115,8 @@ const DashboardPage: React.FC = () => {
       </Card>
 
       <Card>
-        <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-semibold">Estatísticas da Plataforma</CardTitle>
-          <div className="relative" ref={filterRef}>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsFilterOpen(prev => !prev)}>
-              <Filter size={16} />
-            </Button>
-            {isFilterOpen && (
-              <div className="absolute top-full right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border z-20 p-4 space-y-2">
-                <div className="space-y-1.5">
-                  <Label>Filtrar por</Label>
-                  <Select value={filterScope} onValueChange={(v) => setFilterScope(v as PlatformFilterScope)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cidade">Cidade</SelectItem>
-                      <SelectItem value="estado">Estado</SelectItem>
-                      <SelectItem value="brasil">Brasil</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {(filterScope === 'estado' || filterScope === 'cidade') && (
-                  <div className="space-y-1.5">
-                    <Label>Estado</Label>
-                    <Select value={selectedState} onValueChange={(v) => { setSelectedState(v); setSelectedCity(''); }}>
-                      <SelectTrigger><SelectValue placeholder="Selecione o Estado" /></SelectTrigger>
-                      <SelectContent>
-                        {brazilianStates.map(state => <SelectItem key={state.sigla} value={state.sigla}>{state.nome}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                {filterScope === 'cidade' && (
-                  <div className="space-y-1.5">
-                    <Label>Cidade</Label>
-                    <Select value={selectedCity} onValueChange={setSelectedCity} disabled={!selectedState}>
-                      <SelectTrigger><SelectValue placeholder="Selecione a Cidade" /></SelectTrigger>
-                      <SelectContent>
-                        {cities.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+        <CardHeader className="p-4 pb-2">
+          <CardTitle className="text-base font-semibold">Estatísticas da Plataforma (Brasil)</CardTitle>
         </CardHeader>
         <CardContent className="p-4 pt-2 grid grid-cols-2 gap-2 text-center">
           {loadingPlatformStats || !platformStats ? (

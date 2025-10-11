@@ -168,8 +168,8 @@ const DashboardPage: React.FC = () => {
               </Button>
             </Link>
           </div>
-          <div className="bg-neutral-light rounded-lg flex items-center justify-center aspect-square"> {/* Coluna direita para o anúncio */}
-            <p className="text-sm text-gray-500 text-center p-2">Espaço Publicitário (1:1)</p>
+          <div className="bg-neutral-light rounded-lg flex items-center justify-center"> {/* Coluna direita para o anúncio */}
+            <p className="text-sm text-gray-500 text-center p-2">Espaço Publicitário</p>
           </div>
         </CardContent>
       </Card>

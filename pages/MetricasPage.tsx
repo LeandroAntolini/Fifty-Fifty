@@ -6,9 +6,7 @@ import toast from 'react-hot-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/Select';
 import { Label } from '../components/ui/Label';
 import { useAuth } from '../hooks/useAuth';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { toTitleCase } from '../src/utils/formatters';
+import { brazilianStates, citiesByState } from '../src/utils/brazilianLocations';
 
 type SortCriteria = keyof Omit<Metric, 'ID_Corretor' | 'Nome'>;
 type FilterType = 'my_city' | 'my_state' | 'brasil' | 'other_city';
@@ -19,7 +17,11 @@ const MetricasPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [sortCriteria, setSortCriteria] = useState<SortCriteria>('Parcerias_Concluidas');
     const [filterType, setFilterType] = useState<FilterType>('my_city');
-    const [citySearch, setCitySearch] = useState('');
+    
+    // State for 'other_city' filter
+    const [filterState, setFilterState] = useState('');
+    const [filterCity, setFilterCity] = useState('');
+    const [citiesForFilter, setCitiesForFilter] = useState<string[]>([]);
 
     const fetchMetrics = useCallback(async () => {
         if (!user) return;
@@ -30,12 +32,21 @@ const MetricasPage: React.FC = () => {
 
             if (filterType === 'my_city') {
                 cidade = user.corretorInfo.Cidade;
+                estado = user.corretorInfo.Estado;
             } else if (filterType === 'my_state') {
                 estado = user.corretorInfo.Estado;
-            } else if (filterType === 'other_city' && citySearch) {
-                cidade = citySearch;
+            } else if (filterType === 'other_city' && filterCity && filterState) {
+                cidade = filterCity;
+                estado = filterState;
             }
             
+            // Only fetch if the required params are present for 'other_city'
+            if (filterType === 'other_city' && !filterCity) {
+                setMetrics([]);
+                setLoading(false);
+                return;
+            }
+
             const data = await api.getMetricas(cidade, estado);
             setMetrics(data);
         } catch (error) {
@@ -44,11 +55,26 @@ const MetricasPage: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [user, filterType, citySearch]);
+    }, [user, filterType, filterCity, filterState]);
 
     useEffect(() => {
         fetchMetrics();
     }, [fetchMetrics]);
+
+    useEffect(() => {
+        if (filterState) {
+            setCitiesForFilter(citiesByState[filterState] || []);
+        } else {
+            setCitiesForFilter([]);
+        }
+    }, [filterState]);
+
+    useEffect(() => {
+        if (filterType !== 'other_city') {
+            setFilterState('');
+            setFilterCity('');
+        }
+    }, [filterType]);
 
     const sortedMetrics = useMemo(() => {
         return [...metrics].sort((a, b) => b[sortCriteria] - a[sortCriteria]);
@@ -87,15 +113,6 @@ const MetricasPage: React.FC = () => {
         { label: 'Conversas Iniciadas', value: 'Conversas_Iniciadas' },
         { label: 'Taxa de Conversão', value: 'Taxa_Conversao' },
     ];
-
-    const handleCitySearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setCitySearch(toTitleCase(e.target.value));
-    };
-
-    const handleCitySearchSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        fetchMetrics();
-    };
 
     const renderMetricCard = (metric: Metric, rank: number) => (
         <div key={metric.ID_Corretor} className={`p-4 rounded-lg shadow ${metric.ID_Corretor === user?.id ? 'bg-secondary/20 border-2 border-secondary' : 'bg-white'}`}>
@@ -147,15 +164,30 @@ const MetricasPage: React.FC = () => {
                 </div>
 
                 {filterType === 'other_city' && (
-                    <form onSubmit={handleCitySearchSubmit} className="flex space-x-2">
-                        <Input
-                            type="text"
-                            placeholder="Digite o nome da cidade"
-                            value={citySearch}
-                            onChange={handleCitySearchChange}
-                        />
-                        <Button type="submit">Buscar</Button>
-                    </form>
+                    <div className="space-y-2 border-t pt-4">
+                        <div className="space-y-1.5">
+                            <Label htmlFor="filter-state">Estado</Label>
+                            <Select name="Estado" value={filterState} onValueChange={(value) => { setFilterState(value); setFilterCity(''); }} required>
+                                <SelectTrigger id="filter-state"><SelectValue placeholder="Selecione o estado" /></SelectTrigger>
+                                <SelectContent>
+                                    {brazilianStates.map(state => (
+                                        <SelectItem key={state.sigla} value={state.sigla}>{state.sigla}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="filter-city">Cidade</Label>
+                            <Select name="Cidade" value={filterCity} onValueChange={setFilterCity} required disabled={!filterState}>
+                                <SelectTrigger id="filter-city"><SelectValue placeholder="Selecione a cidade" /></SelectTrigger>
+                                <SelectContent>
+                                    {citiesForFilter.map(city => (
+                                        <SelectItem key={city} value={city}>{city}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
                 )}
 
                 <div>

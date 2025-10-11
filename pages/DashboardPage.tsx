@@ -154,18 +154,23 @@ const DashboardPage: React.FC = () => {
         <CardHeader className="p-4 pb-2">
           <CardTitle className="text-base font-semibold">Ações Rápidas</CardTitle>
         </CardHeader>
-        <CardContent className="p-4 pt-2 space-y-2">
-          <Button onClick={handleAddImovel} className="w-full justify-start h-9" variant="ghost">
-            <PlusCircle className="mr-2" size={18} /> Adicionar Novo Imóvel
-          </Button>
-          <Button onClick={handleAddCliente} className="w-full justify-start h-9" variant="ghost">
-            <PlusCircle className="mr-2" size={18} /> Adicionar Novo Cliente
-          </Button>
-          <Link to="/metricas">
-            <Button className="w-full justify-start h-9" variant="ghost">
-              <BarChart2 className="mr-2" size={18} /> Ver Ranking de Corretores
+        <CardContent className="p-4 pt-2 grid grid-cols-2 gap-4"> {/* Alterado para grid de 2 colunas */}
+          <div className="flex flex-col space-y-2"> {/* Coluna esquerda para os botões */}
+            <Button onClick={handleAddImovel} className="w-full justify-start h-9" variant="ghost">
+              <PlusCircle className="mr-2" size={18} /> Adicionar Novo Imóvel
             </Button>
-          </Link>
+            <Button onClick={handleAddCliente} className="w-full justify-start h-9" variant="ghost">
+              <PlusCircle className="mr-2" size={18} /> Adicionar Novo Cliente
+            </Button>
+            <Link to="/metricas">
+              <Button className="w-full justify-start h-9" variant="ghost">
+                <BarChart2 className="mr-2" size={18} /> Ver Ranking de Corretores
+              </Button>
+            </Link>
+          </div>
+          <div className="bg-neutral-light rounded-lg flex items-center justify-center aspect-square"> {/* Coluna direita para o anúncio */}
+            <p className="text-sm text-gray-500 text-center p-2">Espaço Publicitário (1:1)</p>
+          </div>
         </CardContent>
       </Card>
     </div>

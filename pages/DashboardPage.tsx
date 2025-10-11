@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useUI } from '../contexts/UIContext';
 import * as api from '../services/api';
@@ -36,7 +36,8 @@ const DashboardPage: React.FC = () => {
   const [selectedState, setSelectedState] = useState(user?.corretorInfo.Estado || '');
   const [selectedCity, setSelectedCity] = useState(user?.corretorInfo.Cidade || '');
   const [cities, setCities] = useState<string[]>([]);
-  const [showPlatformFilters, setShowPlatformFilters] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
 
   const fetchPersonalStats = useCallback(async () => {
     if (!user) return;
@@ -86,8 +87,11 @@ const DashboardPage: React.FC = () => {
 
   useEffect(() => {
     fetchPersonalStats();
+  }, [fetchPersonalStats]);
+
+  useEffect(() => {
     fetchPlatformStatsData();
-  }, [fetchPersonalStats, fetchPlatformStatsData]);
+  }, [fetchPlatformStatsData]);
 
   useEffect(() => {
     if (selectedState) {
@@ -103,6 +107,18 @@ const DashboardPage: React.FC = () => {
       setSelectedCity(user.corretorInfo.Cidade);
     }
   }, [user]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsFilterOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [filterRef]);
 
   const handleAddImovel = () => {
     navigate('/imoveis');
@@ -151,47 +167,49 @@ const DashboardPage: React.FC = () => {
       <Card>
         <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
           <CardTitle className="text-base font-semibold">Estatísticas da Plataforma</CardTitle>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowPlatformFilters(!showPlatformFilters)}>
-            <Filter size={16} />
-          </Button>
-        </CardHeader>
-        {showPlatformFilters && (
-          <div className="p-4 pt-0 space-y-2 border-b">
-            <div className="space-y-1.5">
-              <Label>Filtrar por</Label>
-              <Select value={filterScope} onValueChange={(v) => setFilterScope(v as PlatformFilterScope)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cidade">Cidade</SelectItem>
-                  <SelectItem value="estado">Estado</SelectItem>
-                  <SelectItem value="brasil">Brasil</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {(filterScope === 'estado' || filterScope === 'cidade') && (
-              <div className="space-y-1.5">
-                <Label>Estado</Label>
-                <Select value={selectedState} onValueChange={(v) => { setSelectedState(v); setSelectedCity(''); }}>
-                  <SelectTrigger><SelectValue placeholder="Selecione o Estado" /></SelectTrigger>
-                  <SelectContent>
-                    {brazilianStates.map(state => <SelectItem key={state.sigla} value={state.sigla}>{state.nome}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            {filterScope === 'cidade' && (
-              <div className="space-y-1.5">
-                <Label>Cidade</Label>
-                <Select value={selectedCity} onValueChange={setSelectedCity} disabled={!selectedState}>
-                  <SelectTrigger><SelectValue placeholder="Selecione a Cidade" /></SelectTrigger>
-                  <SelectContent>
-                    {cities.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+          <div className="relative" ref={filterRef}>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsFilterOpen(prev => !prev)}>
+              <Filter size={16} />
+            </Button>
+            {isFilterOpen && (
+              <div className="absolute top-full right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border z-20 p-4 space-y-2">
+                <div className="space-y-1.5">
+                  <Label>Filtrar por</Label>
+                  <Select value={filterScope} onValueChange={(v) => setFilterScope(v as PlatformFilterScope)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cidade">Cidade</SelectItem>
+                      <SelectItem value="estado">Estado</SelectItem>
+                      <SelectItem value="brasil">Brasil</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {(filterScope === 'estado' || filterScope === 'cidade') && (
+                  <div className="space-y-1.5">
+                    <Label>Estado</Label>
+                    <Select value={selectedState} onValueChange={(v) => { setSelectedState(v); setSelectedCity(''); }}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o Estado" /></SelectTrigger>
+                      <SelectContent>
+                        {brazilianStates.map(state => <SelectItem key={state.sigla} value={state.sigla}>{state.nome}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {filterScope === 'cidade' && (
+                  <div className="space-y-1.5">
+                    <Label>Cidade</Label>
+                    <Select value={selectedCity} onValueChange={setSelectedCity} disabled={!selectedState}>
+                      <SelectTrigger><SelectValue placeholder="Selecione a Cidade" /></SelectTrigger>
+                      <SelectContent>
+                        {cities.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
+        </CardHeader>
         <CardContent className="p-4 pt-2 grid grid-cols-2 gap-2 text-center">
           {loadingPlatformStats || !platformStats ? (
             <div className="col-span-2 flex justify-center items-center h-24">

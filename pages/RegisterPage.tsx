@@ -55,6 +55,14 @@ const RegisterPage: React.FC = () => {
             toast.error("O CRECI é obrigatório.");
             return;
         }
+        if (!formData.Estado) {
+            toast.error("O Estado é obrigatório.");
+            return;
+        }
+        if (!formData.Cidade) {
+            toast.error("A Cidade é obrigatória.");
+            return;
+        }
         if (formData.password !== confirmPassword) {
             toast.error("As senhas não coincidem.");
             return;

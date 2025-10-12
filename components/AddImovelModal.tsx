@@ -190,26 +190,28 @@ const AddImovelModal: React.FC<AddImovelModalProps> = ({ isOpen, onClose, onSave
         <h2 id="modal-title" className="text-2xl font-bold text-primary mb-4">{isEditMode ? 'Editar Imóvel' : 'Cadastrar Novo Imóvel'}</h2>
         <form onSubmit={handleSubmit} noValidate>
           <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="Tipo">Tipo</Label>
-              <Select name="Tipo" value={formData.Tipo} onValueChange={handleSelectChange('Tipo')} required>
-                <SelectTrigger><SelectValue placeholder="Selecione o tipo..." /></SelectTrigger>
-                <SelectContent>
-                  {imovelTipos.map(tipo => (
-                    <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="Finalidade">Finalidade</Label>
-              <Select name="Finalidade" value={formData.Finalidade} onValueChange={handleSelectChange('Finalidade')} required>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={Finalidade.Venda}>Venda</SelectItem>
-                  <SelectItem value={Finalidade.Aluguel}>Aluguel</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="Tipo">Tipo</Label>
+                <Select name="Tipo" value={formData.Tipo} onValueChange={handleSelectChange('Tipo')} required>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>
+                    {imovelTipos.map(tipo => (
+                      <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="Finalidade">Finalidade</Label>
+                <Select name="Finalidade" value={formData.Finalidade} onValueChange={handleSelectChange('Finalidade')} required>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={Finalidade.Venda}>Venda</SelectItem>
+                    <SelectItem value={Finalidade.Aluguel}>Aluguel</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-1.5">

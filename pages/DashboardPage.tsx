@@ -85,37 +85,37 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <Card>
-        <CardHeader className="p-4 pb-2">
+        <CardHeader className="p-3 pb-1">
           <CardTitle className="text-base font-semibold">Suas Métricas</CardTitle>
         </CardHeader>
-        <CardContent className="p-4 pt-2 grid grid-cols-2 gap-2 text-center">
-          <div className="p-2 rounded-lg bg-neutral-light">
+        <CardContent className="p-3 pt-1 grid grid-cols-2 gap-2 text-center">
+          <div className="p-1 rounded-lg bg-neutral-light">
             <Home className="mx-auto text-primary" size={20} />
-            <p className="text-xl font-bold">{stats?.imoveisAtivos}</p>
+            <p className="text-lg font-bold">{stats?.imoveisAtivos}</p>
             <p className="text-xs text-muted-foreground">Imóveis Ativos</p>
           </div>
-          <div className="p-2 rounded-lg bg-neutral-light">
+          <div className="p-1 rounded-lg bg-neutral-light">
             <User className="mx-auto text-primary" size={20} />
-            <p className="text-xl font-bold">{stats?.clientesAtivos}</p>
+            <p className="text-lg font-bold">{stats?.clientesAtivos}</p>
             <p className="text-xs text-muted-foreground">Clientes Ativos</p>
           </div>
-          <div className="p-2 rounded-lg bg-neutral-light">
+          <div className="p-1 rounded-lg bg-neutral-light">
             <ThumbsUp className="mx-auto text-primary" size={20} />
-            <p className="text-xl font-bold">{stats?.matchesAbertos}</p>
+            <p className="text-lg font-bold">{stats?.matchesAbertos}</p>
             <p className="text-xs text-muted-foreground">Matches Abertos</p>
           </div>
-          <div className="p-2 rounded-lg bg-neutral-light">
+          <div className="p-1 rounded-lg bg-neutral-light">
             <Handshake className="mx-auto text-primary" size={20} />
-            <p className="text-xl font-bold">{stats?.parceriasConcluidas}</p>
+            <p className="text-lg font-bold">{stats?.parceriasConcluidas}</p>
             <p className="text-xs text-muted-foreground">Parcerias</p>
           </div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardContent className="p-4 grid grid-cols-2 gap-4">
+        <CardContent className="p-3 grid grid-cols-2 gap-2">
           <Button onClick={handleAddImovel} className="w-full" variant="outline">
             <PlusCircle className="mr-2" size={18} /> Adicionar Imóvel
           </Button>
@@ -126,42 +126,42 @@ const DashboardPage: React.FC = () => {
       </Card>
 
       <Card>
-        <CardContent className="p-4">
-          <div className="bg-neutral-light rounded-lg flex items-center justify-center min-h-[96px]">
+        <CardContent className="p-2">
+          <div className="bg-neutral-light rounded-lg flex items-center justify-center min-h-[80px]">
             <p className="text-sm text-gray-500 text-center p-2">Espaço Publicitário</p>
           </div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader className="p-4 pb-2">
+        <CardHeader className="p-3 pb-1">
           <CardTitle className="text-base font-semibold">Estatísticas da Plataforma</CardTitle>
         </CardHeader>
-        <CardContent className="p-4 pt-2 grid grid-cols-2 gap-2 text-center">
+        <CardContent className="p-3 pt-1 grid grid-cols-2 gap-2 text-center">
           {loadingPlatformStats || !platformStats ? (
             <div className="col-span-2 flex justify-center items-center h-24">
               <Spinner />
             </div>
           ) : (
             <>
-              <div className="p-2 rounded-lg bg-neutral-light">
+              <div className="p-1 rounded-lg bg-neutral-light">
                 <Users className="mx-auto text-secondary" size={20} />
-                <p className="text-xl font-bold">{platformStats.total_corretores}</p>
+                <p className="text-lg font-bold">{platformStats.total_corretores}</p>
                 <p className="text-xs text-muted-foreground">Corretores</p>
               </div>
-              <div className="p-2 rounded-lg bg-neutral-light">
+              <div className="p-1 rounded-lg bg-neutral-light">
                 <Building className="mx-auto text-secondary" size={20} />
-                <p className="text-xl font-bold">{platformStats.total_imoveis_ativos}</p>
+                <p className="text-lg font-bold">{platformStats.total_imoveis_ativos}</p>
                 <p className="text-xs text-muted-foreground">Imóveis Ativos</p>
               </div>
-              <div className="p-2 rounded-lg bg-neutral-light">
+              <div className="p-1 rounded-lg bg-neutral-light">
                 <Briefcase className="mx-auto text-secondary" size={20} />
-                <p className="text-xl font-bold">{platformStats.total_clientes_ativos}</p>
+                <p className="text-lg font-bold">{platformStats.total_clientes_ativos}</p>
                 <p className="text-xs text-muted-foreground">Clientes Ativos</p>
               </div>
-              <div className="p-2 rounded-lg bg-neutral-light">
+              <div className="p-1 rounded-lg bg-neutral-light">
                 <Award className="mx-auto text-secondary" size={20} />
-                <p className="text-xl font-bold">{platformStats.total_parcerias}</p>
+                <p className="text-lg font-bold">{platformStats.total_parcerias}</p>
                 <p className="text-xs text-muted-foreground">Parcerias</p>
               </div>
             </>

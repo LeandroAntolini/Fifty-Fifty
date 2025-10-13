@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/Card';
+import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/Card';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../src/integrations/supabase/client';
@@ -54,9 +54,8 @@ const LoginPage: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-neutral-light p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold text-primary">Fifty-Fifty</CardTitle>
-          <CardDescription>Parcerias Imobiliárias</CardDescription>
+        <CardHeader className="flex items-center justify-center p-6">
+          <img src="/logo.png" alt="Fifty-Fifty Logo" className="w-48" />
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>

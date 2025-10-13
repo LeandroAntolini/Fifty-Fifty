@@ -32,7 +32,7 @@ const ChatNotificationBell: React.FC = () => {
 
   return (
     <div className="relative" ref={wrapperRef}>
-      <button onClick={toggleOrNavigate} className="relative text-white hover:text-secondary p-1">
+      <button onClick={toggleOrNavigate} className="relative text-neutral-dark hover:text-gray-600 p-1">
         <MessageSquare />
         {chatUnreadCount > 0 && (
           <span className="absolute -top-1 -right-1.5 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">

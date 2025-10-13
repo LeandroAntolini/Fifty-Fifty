@@ -154,9 +154,9 @@ const MatchesPage: React.FC = () => {
                                 <p><span className="font-semibold">Cliente busca:</span> {match.cliente_bairro_desejado && `${match.cliente_bairro_desejado}, `}{match.cliente_dormitorios_minimos}+ dorms, até {formatCurrency(match.cliente_faixa_valor_max)}</p>
                             </div>
                             <Link to={`/matches/${match.ID_Match}/chat`}>
-                                <button className="mt-4 w-full bg-secondary hover:bg-amber-500 text-primary font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                                <Button variant="secondary" className="mt-4 w-full">
                                     {isChatActive ? (match.has_messages ? 'Continuar Chat' : 'Abrir Chat') : 'Ver Histórico'}
-                                </button>
+                                </Button>
                             </Link>
                         </div>
                     );

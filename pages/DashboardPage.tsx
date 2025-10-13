@@ -127,7 +127,7 @@ const DashboardPage: React.FC = () => {
 
       <Card>
         <CardContent className="p-2">
-          <div className="bg-neutral-light rounded-lg flex items-center justify-center min-h-[96px]">
+          <div className="bg-neutral-light rounded-lg flex items-center justify-center min-h-[120px]">
             <p className="text-sm text-gray-500 text-center p-2">Espaço Publicitário</p>
           </div>
         </CardContent>

@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import ChatNotificationBell from './ChatNotificationBell';
-// DraggableFab não é mais usado
 
 const pageTitles: { [key: string]: string } = {
   '/dashboard': 'Início',
@@ -44,8 +43,6 @@ const MainLayout: React.FC = () => {
     '/profile/update-password',
   ];
   const hasBackButton = profileSubPages.includes(location.pathname) || location.pathname === '/profile';
-
-  // showFabForImoveis e showFabForClientes não são mais necessários aqui
   
   const getTitle = () => {
     const path = location.pathname;
@@ -61,14 +58,14 @@ const MainLayout: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen max-w-lg mx-auto bg-neutral-light">
-      <header className="bg-primary text-white p-4 flex items-center justify-between shadow-md sticky top-0 z-10">
+      <header className="bg-white text-neutral-dark p-4 flex items-center justify-between shadow-md sticky top-0 z-10 border-b">
         <div className="flex-1 flex justify-start">
           {hasBackButton ? (
-            <button onClick={() => navigate(-1)} className="text-white p-1 -ml-1">
+            <button onClick={() => navigate(-1)} className="text-neutral-dark p-1 -ml-1">
               <ChevronLeft size={28}/>
             </button>
           ) : (
-            <button onClick={() => navigate('/profile')} className="text-white hover:text-secondary">
+            <button onClick={() => navigate('/profile')} className="text-neutral-dark hover:text-gray-600">
               {user?.corretorInfo.avatar_url ? (
                 <img src={user.corretorInfo.avatar_url} alt="Perfil" className="w-8 h-8 rounded-full object-cover" />
               ) : (
@@ -86,36 +83,34 @@ const MainLayout: React.FC = () => {
         </div>
       </header>
       
-      <main className="flex-grow overflow-y-auto p-4 pb-14"> {/* Alterado de pb-18 para pb-14 */}
+      <main className="flex-grow overflow-y-auto p-4 pb-14">
         <Outlet />
       </main>
-
-      {/* DraggableFab foi removido e substituído por um botão fixo nos FilterSortControls */}
 
       {!hideBottomNav && (
         <nav className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-white border-t border-neutral-DEFAULT shadow-lg z-10">
           <div className="flex justify-around h-14">
-            <NavLink to="/dashboard" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-neutral-dark hover:text-primary'}`}>
+            <NavLink to="/dashboard" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
               <LayoutDashboard />
               <span>Início</span>
             </NavLink>
-            <NavLink to="/imoveis" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-neutral-dark hover:text-primary'}`}>
+            <NavLink to="/imoveis" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
               <Home />
               <span>Imóveis</span>
             </NavLink>
-            <NavLink to="/clientes" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-neutral-dark hover:text-primary'}`}>
+            <NavLink to="/clientes" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
               <Users />
               <span>Clientes</span>
             </NavLink>
-            <NavLink to="/matches" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-neutral-dark hover:text-primary'}`}>
+            <NavLink to="/matches" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
               <ThumbsUp />
               <span>Matches</span>
             </NavLink>
-            <NavLink to="/parcerias" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-neutral-dark hover:text-primary'}`}>
+            <NavLink to="/parcerias" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
               <Handshake />
               <span>Parcerias</span>
             </NavLink>
-            <NavLink to="/metricas" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-neutral-dark hover:text-primary'}`}>
+            <NavLink to="/metricas" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
               <BarChart2 />
               <span>Ranking</span>
             </NavLink>

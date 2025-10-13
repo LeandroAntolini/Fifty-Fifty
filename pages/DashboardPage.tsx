@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Button } from '../components/ui/Button';
 import Spinner from '../components/Spinner';
 import { ImovelStatus, ClienteStatus, MatchStatus } from '../types';
-import { Home, User, ThumbsUp, Handshake, PlusCircle, BarChart2, Users, Building, Briefcase, Award } from 'lucide-react';
+import { Home, User, ThumbsUp, Handshake, PlusCircle, Users, Building, Briefcase, Award } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface DashboardStats {
@@ -115,6 +115,25 @@ const DashboardPage: React.FC = () => {
       </Card>
 
       <Card>
+        <CardContent className="p-4 grid grid-cols-2 gap-4">
+          <Button onClick={handleAddImovel} className="w-full" variant="outline">
+            <PlusCircle className="mr-2" size={18} /> Adicionar Imóvel
+          </Button>
+          <Button onClick={handleAddCliente} className="w-full" variant="outline">
+            <PlusCircle className="mr-2" size={18} /> Adicionar Cliente
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-4">
+          <div className="bg-neutral-light rounded-lg flex items-center justify-center min-h-[96px]">
+            <p className="text-sm text-gray-500 text-center p-2">Espaço Publicitário</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader className="p-4 pb-2">
           <CardTitle className="text-base font-semibold">Estatísticas da Plataforma</CardTitle>
         </CardHeader>
@@ -147,30 +166,6 @@ const DashboardPage: React.FC = () => {
               </div>
             </>
           )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="p-4 pb-2">
-          <CardTitle className="text-base font-semibold">Ações Rápidas</CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 pt-2 grid grid-cols-2 gap-4">
-          <div className="flex flex-col space-y-2">
-            <Button onClick={handleAddImovel} className="w-full justify-start h-9" variant="ghost">
-              <PlusCircle className="mr-2" size={18} /> Adicionar Imóvel
-            </Button>
-            <Button onClick={handleAddCliente} className="w-full justify-start h-9" variant="ghost">
-              <PlusCircle className="mr-2" size={18} /> Adicionar Cliente
-            </Button>
-            <Link to="/metricas">
-              <Button className="w-full justify-start h-9" variant="ghost">
-                <BarChart2 className="mr-2" size={18} /> Ver Ranking
-              </Button>
-            </Link>
-          </div>
-          <div className="bg-neutral-light rounded-lg flex items-center justify-center">
-            <p className="text-sm text-gray-500 text-center p-2">Espaço Publicitário</p>
-          </div>
         </CardContent>
       </Card>
     </div>

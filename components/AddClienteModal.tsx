@@ -138,26 +138,28 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({ isOpen, onClose, onSa
               <Label htmlFor="detalhes_privados">Nome / Contato do Cliente (Privado)</Label>
               <Input id="detalhes_privados" name="detalhes_privados" value={formData.detalhes_privados} onChange={handleInputChange} placeholder="Esta informação é visível apenas para você." />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="TipoImovelDesejado">Tipo de Imóvel Desejado</Label>
-              <Select name="TipoImovelDesejado" value={formData.TipoImovelDesejado} onValueChange={handleSelectChange('TipoImovelDesejado')} required>
-                <SelectTrigger><SelectValue placeholder="Selecione o tipo..." /></SelectTrigger>
-                <SelectContent>
-                  {imovelTipos.map(tipo => (
-                    <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="Finalidade">Finalidade</Label>
-              <Select name="Finalidade" value={formData.Finalidade} onValueChange={handleSelectChange('Finalidade')} required>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={Finalidade.Venda}>Compra</SelectItem>
-                  <SelectItem value={Finalidade.Aluguel}>Aluguel</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="TipoImovelDesejado">Tipo de Imóvel</Label>
+                <Select name="TipoImovelDesejado" value={formData.TipoImovelDesejado} onValueChange={handleSelectChange('TipoImovelDesejado')} required>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>
+                    {imovelTipos.map(tipo => (
+                      <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="Finalidade">Finalidade</Label>
+                <Select name="Finalidade" value={formData.Finalidade} onValueChange={handleSelectChange('Finalidade')} required>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={Finalidade.Venda}>Compra</SelectItem>
+                    <SelectItem value={Finalidade.Aluguel}>Aluguel</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-1.5">

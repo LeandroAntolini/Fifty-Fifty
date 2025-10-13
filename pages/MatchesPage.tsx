@@ -8,6 +8,7 @@ import { Button } from '../components/ui/Button';
 import { MatchStatus } from '../types';
 import { supabase } from '../src/integrations/supabase/client';
 import { useNotifications } from '../contexts/NotificationContext';
+import InfoModal from '../components/InfoModal';
 
 interface AugmentedMatch {
     ID_Match: string;
@@ -26,6 +27,8 @@ interface AugmentedMatch {
     status_change_requester_id: string | null;
     has_messages: boolean;
     cliente_bairro_desejado: string;
+    imovel_detalhes_privados?: string;
+    cliente_detalhes_privados?: string;
 }
 
 const statusTextMap: { [key in MatchStatus]: string } = {
@@ -41,6 +44,7 @@ const MatchesPage: React.FC = () => {
     const [matches, setMatches] = useState<AugmentedMatch[]>([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<MatchStatus>(MatchStatus.Aberto);
+    const [modalContent, setModalContent] = useState<{ title: string; content: string } | null>(null);
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -117,6 +121,14 @@ const MatchesPage: React.FC = () => {
         }
     };
 
+    const handleDetailClick = (title: string, content: string | undefined) => {
+        if (content) {
+            setModalContent({ title, content });
+        } else {
+            toast.error('Detalhes privados não disponíveis.');
+        }
+    };
+
     if (loading) {
         return <div className="flex justify-center mt-8"><Spinner /></div>;
     }
@@ -143,7 +155,15 @@ const MatchesPage: React.FC = () => {
                             <div className="flex justify-between items-start">
                                 <div>
                                     <p className="text-sm text-gray-500">
-                                        {isMyImovel ? `Seu imóvel com cliente de ${match.other_corretor_name}` : `Seu cliente com imóvel de ${match.other_corretor_name}`}
+                                        {isMyImovel ? (
+                                            <>
+                                                <span onClick={() => handleDetailClick("Detalhes do seu Imóvel", match.imovel_detalhes_privados)} className="font-bold text-primary underline cursor-pointer">Seu imóvel</span> com cliente de {match.other_corretor_name}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span onClick={() => handleDetailClick("Detalhes do seu Cliente", match.cliente_detalhes_privados)} className="font-bold text-primary underline cursor-pointer">Seu cliente</span> com imóvel de {match.other_corretor_name}
+                                            </>
+                                        )}
                                     </p>
                                     <h3 className="font-bold text-lg text-primary">{match.imovel_tipo} - {match.imovel_bairro}</h3>
                                 </div>
@@ -162,6 +182,13 @@ const MatchesPage: React.FC = () => {
                     );
                 })
             )}
+            <InfoModal
+                isOpen={!!modalContent}
+                onClose={() => setModalContent(null)}
+                title={modalContent?.title || ''}
+            >
+                {modalContent?.content}
+            </InfoModal>
         </div>
     );
 };

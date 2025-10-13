@@ -25,6 +25,7 @@ interface AugmentedMatch {
     viewed_by_corretor_cliente: boolean;
     status_change_requester_id: string | null;
     has_messages: boolean;
+    cliente_bairro_desejado: string;
 }
 
 const statusTextMap: { [key in MatchStatus]: string } = {
@@ -150,7 +151,7 @@ const MatchesPage: React.FC = () => {
                             </div>
                             <div className="mt-2 text-sm text-neutral-dark space-y-1">
                                 <p><span className="font-semibold">Imóvel:</span> {match.imovel_dormitorios} dorms, {formatCurrency(match.imovel_valor)}</p>
-                                <p><span className="font-semibold">Cliente busca:</span> {match.cliente_dormitorios_minimos}+ dorms, até {formatCurrency(match.cliente_faixa_valor_max)}</p>
+                                <p><span className="font-semibold">Cliente busca:</span> {match.cliente_bairro_desejado && `${match.cliente_bairro_desejado}, `}{match.cliente_dormitorios_minimos}+ dorms, até {formatCurrency(match.cliente_faixa_valor_max)}</p>
                             </div>
                             <Link to={`/matches/${match.ID_Match}/chat`}>
                                 <button className="mt-4 w-full bg-secondary hover:bg-amber-500 text-primary font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">

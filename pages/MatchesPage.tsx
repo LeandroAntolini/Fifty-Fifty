@@ -8,7 +8,7 @@ import { Button } from '../components/ui/Button';
 import { MatchStatus } from '../types';
 import { supabase } from '../src/integrations/supabase/client';
 import { useNotifications } from '../contexts/NotificationContext';
-import InfoModal from '../components/InfoModal';
+import { Lock } from 'lucide-react';
 
 interface AugmentedMatch {
     ID_Match: string;
@@ -44,7 +44,7 @@ const MatchesPage: React.FC = () => {
     const [matches, setMatches] = useState<AugmentedMatch[]>([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<MatchStatus>(MatchStatus.Aberto);
-    const [modalContent, setModalContent] = useState<{ title: string; content: string } | null>(null);
+    const [expandedMatchId, setExpandedMatchId] = useState<string | null>(null);
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -121,12 +121,8 @@ const MatchesPage: React.FC = () => {
         }
     };
 
-    const handleDetailClick = (title: string, content: string | undefined) => {
-        if (content) {
-            setModalContent({ title, content });
-        } else {
-            toast.error('Detalhes privados não disponíveis.');
-        }
+    const toggleDetails = (matchId: string) => {
+        setExpandedMatchId(prevId => (prevId === matchId ? null : matchId));
     };
 
     if (loading) {
@@ -149,7 +145,8 @@ const MatchesPage: React.FC = () => {
                 filteredMatches.map(match => {
                     const isMyImovel = match.imovel_id_corretor === user?.corretorInfo.ID_Corretor;
                     const isChatActive = match.Status === MatchStatus.Aberto || match.Status === MatchStatus.ReaberturaPendente;
-                    
+                    const privateDetails = isMyImovel ? match.imovel_detalhes_privados : match.cliente_detalhes_privados;
+
                     return (
                         <div key={match.ID_Match} className="bg-white p-4 rounded-lg shadow">
                             <div className="flex justify-between items-start">
@@ -157,11 +154,11 @@ const MatchesPage: React.FC = () => {
                                     <p className="text-sm text-gray-500">
                                         {isMyImovel ? (
                                             <>
-                                                <span onClick={() => handleDetailClick("Detalhes do seu Imóvel", match.imovel_detalhes_privados)} className="font-bold text-primary underline cursor-pointer">Seu imóvel</span> com cliente de {match.other_corretor_name}
+                                                <span onClick={() => toggleDetails(match.ID_Match)} className="font-bold text-primary underline cursor-pointer">Seu imóvel</span> com cliente de {match.other_corretor_name}
                                             </>
                                         ) : (
                                             <>
-                                                <span onClick={() => handleDetailClick("Detalhes do seu Cliente", match.cliente_detalhes_privados)} className="font-bold text-primary underline cursor-pointer">Seu cliente</span> com imóvel de {match.other_corretor_name}
+                                                <span onClick={() => toggleDetails(match.ID_Match)} className="font-bold text-primary underline cursor-pointer">Seu cliente</span> com imóvel de {match.other_corretor_name}
                                             </>
                                         )}
                                     </p>
@@ -169,6 +166,17 @@ const MatchesPage: React.FC = () => {
                                 </div>
                                 <span className={`text-xs font-bold px-2 py-1 rounded-full text-white capitalize ${getStatusColor(match.Status)}`}>{statusTextMap[match.Status]}</span>
                             </div>
+
+                            {expandedMatchId === match.ID_Match && privateDetails && (
+                                <div className="mt-2 p-2 bg-neutral-light rounded text-sm text-neutral-dark flex items-start">
+                                    <Lock size={12} className="mr-2 mt-0.5 flex-shrink-0" />
+                                    <div>
+                                        <p className="font-semibold">{isMyImovel ? 'Detalhes Privados do Imóvel:' : 'Detalhes Privados do Cliente:'}</p>
+                                        <p>{privateDetails}</p>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="mt-2 text-sm text-neutral-dark space-y-1">
                                 <p><span className="font-semibold">Imóvel:</span> {match.imovel_dormitorios} dorms, {formatCurrency(match.imovel_valor)}</p>
                                 <p><span className="font-semibold">Cliente busca:</span> {match.cliente_bairro_desejado && `${match.cliente_bairro_desejado}, `}{match.cliente_dormitorios_minimos}+ dorms, até {formatCurrency(match.cliente_faixa_valor_max)}</p>
@@ -182,13 +190,6 @@ const MatchesPage: React.FC = () => {
                     );
                 })
             )}
-            <InfoModal
-                isOpen={!!modalContent}
-                onClose={() => setModalContent(null)}
-                title={modalContent?.title || ''}
-            >
-                {modalContent?.content}
-            </InfoModal>
         </div>
     );
 };

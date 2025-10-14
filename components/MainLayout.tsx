@@ -90,27 +90,27 @@ const MainLayout: React.FC = () => {
       {!hideBottomNav && (
         <nav className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-white border-t border-neutral-DEFAULT shadow-lg z-10">
           <div className="flex justify-around h-14">
-            <NavLink to="/dashboard" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
+            <NavLink to="/dashboard" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-xs font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
               <LayoutDashboard />
               <span>Início</span>
             </NavLink>
-            <NavLink to="/imoveis" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
+            <NavLink to="/imoveis" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-xs font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
               <Home />
               <span>Imóveis</span>
             </NavLink>
-            <NavLink to="/clientes" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
+            <NavLink to="/clientes" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-xs font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
               <Users />
               <span>Clientes</span>
             </NavLink>
-            <NavLink to="/matches" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
+            <NavLink to="/matches" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-xs font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
               <ThumbsUp />
               <span>Matches</span>
             </NavLink>
-            <NavLink to="/parcerias" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
+            <NavLink to="/parcerias" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-xs font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
               <Handshake />
               <span>Parcerias</span>
             </NavLink>
-            <NavLink to="/metricas" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-sm font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
+            <NavLink to="/metricas" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-xs font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
               <BarChart2 />
               <span>Ranking</span>
             </NavLink>

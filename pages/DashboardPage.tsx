@@ -92,22 +92,22 @@ const DashboardPage: React.FC = () => {
         </CardHeader>
         <CardContent className="p-3 pt-1 grid grid-cols-2 gap-2 text-center">
           <div className="p-1 rounded-lg bg-neutral-light">
-            <Home className="mx-auto text-primary" size={20} />
+            <Home className="mx-auto text-[#9dba8c]" size={20} />
             <p className="text-lg font-bold">{stats?.imoveisAtivos}</p>
             <p className="text-xs text-muted-foreground">Imóveis Ativos</p>
           </div>
           <div className="p-1 rounded-lg bg-neutral-light">
-            <User className="mx-auto text-primary" size={20} />
+            <User className="mx-auto text-[#9dba8c]" size={20} />
             <p className="text-lg font-bold">{stats?.clientesAtivos}</p>
             <p className="text-xs text-muted-foreground">Clientes Ativos</p>
           </div>
           <div className="p-1 rounded-lg bg-neutral-light">
-            <ThumbsUp className="mx-auto text-primary" size={20} />
+            <ThumbsUp className="mx-auto text-[#9dba8c]" size={20} />
             <p className="text-lg font-bold">{stats?.matchesAbertos}</p>
             <p className="text-xs text-muted-foreground">Matches Abertos</p>
           </div>
           <div className="p-1 rounded-lg bg-neutral-light">
-            <Handshake className="mx-auto text-primary" size={20} />
+            <Handshake className="mx-auto text-[#9dba8c]" size={20} />
             <p className="text-lg font-bold">{stats?.parceriasConcluidas}</p>
             <p className="text-xs text-muted-foreground">Parcerias</p>
           </div>

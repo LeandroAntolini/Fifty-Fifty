@@ -177,7 +177,8 @@ const MetricasPage: React.FC = () => {
             
             <div className="mb-4 bg-white p-4 rounded-lg shadow space-y-4">
                 <div className="grid grid-cols-3 gap-2">
-                    <div>
+                    <div className="space-y-1.5">
+                        <Label htmlFor="ranking-period">Período</Label>
                         <Select
                             value={periodType}
                             onValueChange={(value) => setPeriodType(value as PeriodType)}
@@ -191,7 +192,8 @@ const MetricasPage: React.FC = () => {
                             </SelectContent>
                         </Select>
                     </div>
-                    <div>
+                    <div className="space-y-1.5">
+                        <Label htmlFor="metricas-sort">Ordenar por</Label>
                         <Select
                             value={sortCriteria}
                             onValueChange={(value) => setSortCriteria(value as SortCriteria)}
@@ -208,7 +210,8 @@ const MetricasPage: React.FC = () => {
                             </SelectContent>
                         </Select>
                     </div>
-                    <div>
+                    <div className="space-y-1.5">
+                        <Label htmlFor="ranking-filter">Filtrar por</Label>
                         <Select
                             value={filterType}
                             onValueChange={(value) => setFilterType(value as FilterType)}

@@ -15,10 +15,9 @@ const MetricasPage: React.FC = () => {
     const { user } = useAuth();
     const [metrics, setMetrics] = useState<Metric[]>([]);
     const [loading, setLoading] = useState(true);
-    const [sortCriteria, setSortCriteria] = useState<SortCriteria>('Parcerias_Concluidas');
+    const [sortCriteria, setSortCriteria] = useState<SortCriteria>('Score');
     const [filterType, setFilterType] = useState<FilterType>('my_city');
     
-    // State for 'other_city' filter
     const [filterState, setFilterState] = useState('');
     const [filterCity, setFilterCity] = useState('');
     const [citiesForFilter, setCitiesForFilter] = useState<string[]>([]);
@@ -40,7 +39,6 @@ const MetricasPage: React.FC = () => {
                 estado = filterState;
             }
             
-            // Only fetch if the required params are present for 'other_city'
             if (filterType === 'other_city' && !filterCity) {
                 setMetrics([]);
                 setLoading(false);
@@ -77,7 +75,12 @@ const MetricasPage: React.FC = () => {
     }, [filterType]);
 
     const sortedMetrics = useMemo(() => {
-        return [...metrics].sort((a, b) => b[sortCriteria] - a[sortCriteria]);
+        return [...metrics].sort((a, b) => {
+            if (sortCriteria === 'Score') {
+                return b.Score - a.Score;
+            }
+            return b[sortCriteria] - a[sortCriteria];
+        });
     }, [metrics, sortCriteria]);
 
     const top10Metrics = sortedMetrics.slice(0, 10);
@@ -90,11 +93,15 @@ const MetricasPage: React.FC = () => {
         if (criteria === 'Taxa_Conversao') {
             return `${(value * 100).toFixed(1)}%`;
         }
+        if (criteria === 'Score') {
+            return `${value} pts`;
+        }
         return value.toString();
     };
 
     const getMetricLabel = (criteria: SortCriteria) => {
         const labels: { [key in SortCriteria]: string } = {
+            Score: 'Score Total',
             Parcerias_Concluidas: 'Parceria(s) Concluída(s)',
             Imoveis_Adicionados: 'Imóvel(is) Adicionado(s)',
             Clientes_Adicionados: 'Cliente(s) Adicionado(s)',
@@ -106,6 +113,7 @@ const MetricasPage: React.FC = () => {
     };
 
     const sortOptions: { label: string; value: SortCriteria }[] = [
+        { label: 'Score', value: 'Score' },
         { label: 'Parcerias Concluídas', value: 'Parcerias_Concluidas' },
         { label: 'Imóveis Adicionados', value: 'Imoveis_Adicionados' },
         { label: 'Clientes Adicionados', value: 'Clientes_Adicionados' },
@@ -114,27 +122,30 @@ const MetricasPage: React.FC = () => {
         { label: 'Taxa de Conversão', value: 'Taxa_Conversao' },
     ];
 
-    const renderMetricCard = (metric: Metric, rank: number) => (
-        <div key={metric.ID_Corretor} className={`p-4 rounded-lg shadow ${metric.ID_Corretor === user?.id ? 'bg-secondary/20 border-2 border-secondary' : 'bg-white'}`}>
-            <div className="flex items-center space-x-4">
-                <div className="text-2xl font-bold text-secondary">{rank}º</div>
-                <div>
-                    <p className="font-bold text-lg">{metric.Nome}</p>
-                    <p className="text-sm text-green-600 font-semibold">
-                        {getMetricDisplayValue(metric, sortCriteria)} {getMetricLabel(sortCriteria)}
-                    </p>
+    const renderMetricCard = (metric: Metric, rank: number) => {
+        const rankIcon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}º`;
+        return (
+            <div key={metric.ID_Corretor} className={`p-4 rounded-lg shadow ${metric.ID_Corretor === user?.id ? 'bg-secondary/20 border-2 border-secondary' : 'bg-white'}`}>
+                <div className="flex items-center space-x-4">
+                    <div className="text-2xl font-bold text-secondary">{rankIcon}</div>
+                    <div>
+                        <p className="font-bold text-lg">{metric.Nome}</p>
+                        <p className="text-sm text-green-600 font-semibold">
+                            {getMetricDisplayValue(metric, sortCriteria)}
+                        </p>
+                    </div>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-2 text-sm text-neutral-dark">
+                    <p>Score: <span className={`font-semibold ${sortCriteria === 'Score' ? 'text-primary' : ''}`}>{metric.Score}</span></p>
+                    <p>Parcerias: <span className={`font-semibold ${sortCriteria === 'Parcerias_Concluidas' ? 'text-primary' : ''}`}>{metric.Parcerias_Concluidas}</span></p>
+                    <p>Imóveis: <span className={`font-semibold ${sortCriteria === 'Imoveis_Adicionados' ? 'text-primary' : ''}`}>{metric.Imoveis_Adicionados}</span></p>
+                    <p>Clientes: <span className={`font-semibold ${sortCriteria === 'Clientes_Adicionados' ? 'text-primary' : ''}`}>{metric.Clientes_Adicionados}</span></p>
+                    <p>Matches: <span className={`font-semibold ${sortCriteria === 'Matches_Iniciados' ? 'text-primary' : ''}`}>{metric.Matches_Iniciados}</span></p>
+                    <p>Conversas: <span className={`font-semibold ${sortCriteria === 'Conversas_Iniciadas' ? 'text-primary' : ''}`}>{metric.Conversas_Iniciadas}</span></p>
                 </div>
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-2 text-sm text-neutral-dark">
-                <p>Imóveis: <span className={`font-semibold ${sortCriteria === 'Imoveis_Adicionados' ? 'text-primary' : ''}`}>{metric.Imoveis_Adicionados}</span></p>
-                <p>Clientes: <span className={`font-semibold ${sortCriteria === 'Clientes_Adicionados' ? 'text-primary' : ''}`}>{metric.Clientes_Adicionados}</span></p>
-                <p>Matches: <span className={`font-semibold ${sortCriteria === 'Matches_Iniciados' ? 'text-primary' : ''}`}>{metric.Matches_Iniciados}</span></p>
-                <p>Conversas: <span className={`font-semibold ${sortCriteria === 'Conversas_Iniciadas' ? 'text-primary' : ''}`}>{metric.Conversas_Iniciadas}</span></p>
-                <p>Parcerias: <span className={`font-semibold ${sortCriteria === 'Parcerias_Concluidas' ? 'text-primary' : ''}`}>{metric.Parcerias_Concluidas}</span></p>
-                <p>Conversão: <span className={`font-semibold ${sortCriteria === 'Taxa_Conversao' ? 'text-primary' : ''}`}>{(metric.Taxa_Conversao * 100).toFixed(1)}%</span></p>
-            </div>
-        </div>
-    );
+        );
+    };
 
     if (loading) {
         return <div className="flex justify-center mt-8"><Spinner /></div>;
@@ -142,7 +153,12 @@ const MetricasPage: React.FC = () => {
 
     return (
         <div className="space-y-4">
-            <h2 className="text-xl font-bold text-center text-primary mb-4">Ranking de Corretores</h2>
+            <div className="text-center p-3 bg-white rounded-lg shadow">
+                <h2 className="text-xl font-bold text-primary">Ranking de Corretores</h2>
+                <p className="text-xs text-neutral-dark mt-1">
+                    Acumule pontos: Imóvel/Cliente (+5), Match (+10), Conversa (+15), Parceria (+100).
+                </p>
+            </div>
             
             <div className="mb-4 bg-white p-4 rounded-lg shadow space-y-4">
                 <div>

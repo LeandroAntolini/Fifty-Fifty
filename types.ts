@@ -121,6 +121,7 @@ export interface Metric {
     Conversas_Iniciadas: number;
     Parcerias_Concluidas: number;
     Taxa_Conversao: number;
+    Score: number;
 }
 
 // From AuthContext

@@ -33,7 +33,7 @@ const MetricasPage: React.FC = () => {
         try {
             let cidade: string | undefined = undefined;
             let estado: string | undefined = undefined;
-            let startDate: string | undefined = undefined;
+            let startDate: string | null = null; // Alterado para null
 
             if (filterType === 'my_city') {
                 cidade = user.corretorInfo.Cidade;
@@ -54,8 +54,9 @@ const MetricasPage: React.FC = () => {
             if (periodType === 'mensal') {
                 startDate = formatISO(startOfMonth(new Date()));
             }
+            // Se periodType for 'hall_da_fama', startDate permanece null, o que é ideal para o RPC.
 
-            const data = await api.getMetricas(cidade, estado, startDate);
+            const data = await api.getMetricas(cidade, estado, startDate || undefined); // Passa undefined se for null, para manter a assinatura da API
             setMetrics(data);
         } catch (error) {
             console.error("Failed to fetch metrics", error);

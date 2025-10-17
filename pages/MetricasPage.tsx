@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Label } from '../components/ui/Label';
 import { useAuth } from '../hooks/useAuth';
 import { brazilianStates, citiesByState } from '../src/utils/brazilianLocations';
-import { Award } from 'lucide-react';
+import RankingInfoModal from '../components/RankingInfoModal';
 
 type SortCriteria = keyof Omit<Metric, 'ID_Corretor' | 'Nome'>;
 type FilterType = 'my_city' | 'my_state' | 'brasil' | 'other_city';
@@ -22,6 +22,7 @@ const MetricasPage: React.FC = () => {
     const [filterState, setFilterState] = useState('');
     const [filterCity, setFilterCity] = useState('');
     const [citiesForFilter, setCitiesForFilter] = useState<string[]>([]);
+    const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
 
     const fetchMetrics = useCallback(async () => {
         if (!user) return;
@@ -154,12 +155,14 @@ const MetricasPage: React.FC = () => {
 
     return (
         <div className="space-y-4">
-            <div className="text-center p-4 bg-primary text-primary-foreground rounded-lg shadow">
-                <Award className="mx-auto h-8 w-8 mb-2" />
-                <h2 className="text-2xl font-bold">Ranking de Corretores</h2>
-                <p className="text-xs opacity-80 mt-1">
-                    Acumule pontos: Imóvel/Cliente (+5), Match (+10), Conversa (+15), Parceria (+100).
+            <div className="text-center p-4 bg-white rounded-lg shadow">
+                <h2 className="text-2xl font-bold text-primary">Ranking de Corretores</h2>
+                <p className="text-xs text-neutral-dark mt-1">
+                    Veja sua posição e a dos seus colegas com base no Score da plataforma.
                 </p>
+                <button onClick={() => setIsInfoModalOpen(true)} className="text-sm text-primary hover:underline font-semibold mt-2">
+                    Saiba mais sobre a pontuação
+                </button>
             </div>
             
             <div className="mb-4 bg-white p-4 rounded-lg shadow space-y-4">
@@ -239,6 +242,8 @@ const MetricasPage: React.FC = () => {
                     {renderMetricCard(currentUserMetric, currentUserRank)}
                 </>
             )}
+
+            <RankingInfoModal isOpen={isInfoModalOpen} onClose={() => setIsInfoModalOpen(false)} />
         </div>
     );
 };

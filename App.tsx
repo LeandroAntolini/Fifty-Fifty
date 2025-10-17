@@ -1,6 +1,5 @@
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import { UIProvider } from './contexts/UIContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -75,10 +74,8 @@ const App: React.FC = () => {
   return (
     <HashRouter>
       <ScrollToTop />
-      <AuthProvider>
-        <ToastProvider />
-        <AppContent />
-      </AuthProvider>
+      <ToastProvider />
+      <AppContent />
     </HashRouter>
   );
 };

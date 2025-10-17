@@ -8,9 +8,11 @@ import { Label } from '../components/ui/Label';
 import { useAuth } from '../hooks/useAuth';
 import { brazilianStates, citiesByState } from '../src/utils/brazilianLocations';
 import RankingInfoModal from '../components/RankingInfoModal';
+import { startOfMonth, formatISO } from 'date-fns';
 
 type SortCriteria = keyof Omit<Metric, 'ID_Corretor' | 'Nome'>;
 type FilterType = 'my_city' | 'my_state' | 'brasil' | 'other_city';
+type PeriodType = 'hall_da_fama' | 'mensal';
 
 const MetricasPage: React.FC = () => {
     const { user } = useAuth();
@@ -18,6 +20,7 @@ const MetricasPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [sortCriteria, setSortCriteria] = useState<SortCriteria>('Score');
     const [filterType, setFilterType] = useState<FilterType>('my_city');
+    const [periodType, setPeriodType] = useState<PeriodType>('mensal');
     
     const [filterState, setFilterState] = useState('');
     const [filterCity, setFilterCity] = useState('');
@@ -30,6 +33,7 @@ const MetricasPage: React.FC = () => {
         try {
             let cidade: string | undefined = undefined;
             let estado: string | undefined = undefined;
+            let startDate: string | undefined = undefined;
 
             if (filterType === 'my_city') {
                 cidade = user.corretorInfo.Cidade;
@@ -47,7 +51,11 @@ const MetricasPage: React.FC = () => {
                 return;
             }
 
-            const data = await api.getMetricas(cidade, estado);
+            if (periodType === 'mensal') {
+                startDate = formatISO(startOfMonth(new Date()));
+            }
+
+            const data = await api.getMetricas(cidade, estado, startDate);
             setMetrics(data);
         } catch (error) {
             console.error("Failed to fetch metrics", error);
@@ -55,7 +63,7 @@ const MetricasPage: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [user, filterType, filterCity, filterState]);
+    }, [user, filterType, filterCity, filterState, periodType]);
 
     useEffect(() => {
         fetchMetrics();
@@ -168,19 +176,17 @@ const MetricasPage: React.FC = () => {
             <div className="mb-4 bg-white p-4 rounded-lg shadow space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <Label htmlFor="ranking-filter">Filtrar por</Label>
+                        <Label htmlFor="ranking-period">Período</Label>
                         <Select
-                            value={filterType}
-                            onValueChange={(value) => setFilterType(value as FilterType)}
+                            value={periodType}
+                            onValueChange={(value) => setPeriodType(value as PeriodType)}
                         >
-                            <SelectTrigger id="ranking-filter">
-                                <SelectValue placeholder="Selecione um filtro" />
+                            <SelectTrigger id="ranking-period">
+                                <SelectValue placeholder="Selecione o período" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="my_city">Minha Cidade</SelectItem>
-                                <SelectItem value="my_state">Meu Estado</SelectItem>
-                                <SelectItem value="brasil">Brasil</SelectItem>
-                                <SelectItem value="other_city">Outra Cidade</SelectItem>
+                                <SelectItem value="mensal">Mensal (Prêmio)</SelectItem>
+                                <SelectItem value="hall_da_fama">Hall da Fama (Total)</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -203,10 +209,26 @@ const MetricasPage: React.FC = () => {
                         </Select>
                     </div>
                 </div>
-
-                {filterType === 'other_city' && (
-                    <div className="space-y-2 border-t pt-4">
-                        <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <Label htmlFor="ranking-filter">Filtrar por</Label>
+                        <Select
+                            value={filterType}
+                            onValueChange={(value) => setFilterType(value as FilterType)}
+                        >
+                            <SelectTrigger id="ranking-filter">
+                                <SelectValue placeholder="Selecione um filtro" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="my_city">Minha Cidade</SelectItem>
+                                <SelectItem value="my_state">Meu Estado</SelectItem>
+                                <SelectItem value="brasil">Brasil</SelectItem>
+                                <SelectItem value="other_city">Outra Cidade</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    {filterType === 'other_city' && (
+                        <>
                             <div className="space-y-1.5">
                                 <Label htmlFor="filter-state">Estado</Label>
                                 <Select name="Estado" value={filterState} onValueChange={(value) => { setFilterState(value); setFilterCity(''); }} required>
@@ -218,7 +240,7 @@ const MetricasPage: React.FC = () => {
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div className="space-y-1.5">
+                            <div className="space-y-1.5 col-span-2">
                                 <Label htmlFor="filter-city">Cidade</Label>
                                 <Select name="Cidade" value={filterCity} onValueChange={setFilterCity} required disabled={!filterState}>
                                     <SelectTrigger id="filter-city"><SelectValue placeholder="Cidade" /></SelectTrigger>
@@ -229,9 +251,9 @@ const MetricasPage: React.FC = () => {
                                     </SelectContent>
                                 </Select>
                             </div>
-                        </div>
-                    </div>
-                )}
+                        </>
+                    )}
+                </div>
             </div>
 
             {top10Metrics.map((metric, index) => renderMetricCard(metric, index + 1))}

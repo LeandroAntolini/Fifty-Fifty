@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Label } from '../components/ui/Label';
 import { useAuth } from '../hooks/useAuth';
 import { brazilianStates, citiesByState } from '../src/utils/brazilianLocations';
+import { Award } from 'lucide-react';
 
 type SortCriteria = keyof Omit<Metric, 'ID_Corretor' | 'Nome'>;
 type FilterType = 'my_city' | 'my_state' | 'brasil' | 'other_city';
@@ -153,77 +154,81 @@ const MetricasPage: React.FC = () => {
 
     return (
         <div className="space-y-4">
-            <div className="text-center p-3 bg-white rounded-lg shadow">
-                <h2 className="text-xl font-bold text-primary">Ranking de Corretores</h2>
-                <p className="text-xs text-neutral-dark mt-1">
+            <div className="text-center p-4 bg-primary text-primary-foreground rounded-lg shadow">
+                <Award className="mx-auto h-8 w-8 mb-2" />
+                <h2 className="text-2xl font-bold">Ranking de Corretores</h2>
+                <p className="text-xs opacity-80 mt-1">
                     Acumule pontos: Imóvel/Cliente (+5), Match (+10), Conversa (+15), Parceria (+100).
                 </p>
             </div>
             
             <div className="mb-4 bg-white p-4 rounded-lg shadow space-y-4">
-                <div>
-                    <Label htmlFor="ranking-filter">Filtrar ranking por</Label>
-                    <Select
-                        value={filterType}
-                        onValueChange={(value) => setFilterType(value as FilterType)}
-                    >
-                        <SelectTrigger id="ranking-filter">
-                            <SelectValue placeholder="Selecione um filtro" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="my_city">Minha Cidade</SelectItem>
-                            <SelectItem value="my_state">Meu Estado</SelectItem>
-                            <SelectItem value="brasil">Brasil</SelectItem>
-                            <SelectItem value="other_city">Outra Cidade</SelectItem>
-                        </SelectContent>
-                    </Select>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <Label htmlFor="ranking-filter">Filtrar por</Label>
+                        <Select
+                            value={filterType}
+                            onValueChange={(value) => setFilterType(value as FilterType)}
+                        >
+                            <SelectTrigger id="ranking-filter">
+                                <SelectValue placeholder="Selecione um filtro" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="my_city">Minha Cidade</SelectItem>
+                                <SelectItem value="my_state">Meu Estado</SelectItem>
+                                <SelectItem value="brasil">Brasil</SelectItem>
+                                <SelectItem value="other_city">Outra Cidade</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div>
+                        <Label htmlFor="metricas-sort">Ordenar por</Label>
+                        <Select
+                            value={sortCriteria}
+                            onValueChange={(value) => setSortCriteria(value as SortCriteria)}
+                        >
+                            <SelectTrigger id="metricas-sort">
+                                <SelectValue placeholder="Selecione uma métrica" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {sortOptions.map(option => (
+                                    <SelectItem key={option.value} value={option.value}>
+                                        {option.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
 
                 {filterType === 'other_city' && (
                     <div className="space-y-2 border-t pt-4">
-                        <div className="space-y-1.5">
-                            <Label htmlFor="filter-state">Estado</Label>
-                            <Select name="Estado" value={filterState} onValueChange={(value) => { setFilterState(value); setFilterCity(''); }} required>
-                                <SelectTrigger id="filter-state"><SelectValue placeholder="Selecione o estado" /></SelectTrigger>
-                                <SelectContent>
-                                    {brazilianStates.map(state => (
-                                        <SelectItem key={state.sigla} value={state.sigla}>{state.sigla}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label htmlFor="filter-city">Cidade</Label>
-                            <Select name="Cidade" value={filterCity} onValueChange={setFilterCity} required disabled={!filterState}>
-                                <SelectTrigger id="filter-city"><SelectValue placeholder="Selecione a cidade" /></SelectTrigger>
-                                <SelectContent>
-                                    {citiesForFilter.map(city => (
-                                        <SelectItem key={city} value={city}>{city}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="filter-state">Estado</Label>
+                                <Select name="Estado" value={filterState} onValueChange={(value) => { setFilterState(value); setFilterCity(''); }} required>
+                                    <SelectTrigger id="filter-state"><SelectValue placeholder="UF" /></SelectTrigger>
+                                    <SelectContent>
+                                        {brazilianStates.map(state => (
+                                            <SelectItem key={state.sigla} value={state.sigla}>{state.sigla}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="filter-city">Cidade</Label>
+                                <Select name="Cidade" value={filterCity} onValueChange={setFilterCity} required disabled={!filterState}>
+                                    <SelectTrigger id="filter-city"><SelectValue placeholder="Cidade" /></SelectTrigger>
+                                    <SelectContent>
+                                        {citiesForFilter.map(city => (
+                                            <SelectItem key={city} value={city}>{city}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                     </div>
                 )}
-
-                <div>
-                    <Label htmlFor="metricas-sort">Ordenar por</Label>
-                    <Select
-                        value={sortCriteria}
-                        onValueChange={(value) => setSortCriteria(value as SortCriteria)}
-                    >
-                        <SelectTrigger id="metricas-sort">
-                            <SelectValue placeholder="Selecione uma métrica" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {sortOptions.map(option => (
-                                <SelectItem key={option.value} value={option.value}>
-                                    {option.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
             </div>
 
             {top10Metrics.map((metric, index) => renderMetricCard(metric, index + 1))}

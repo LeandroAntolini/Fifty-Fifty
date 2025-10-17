@@ -620,11 +620,11 @@ export const getArchivedChatsByCorretor = async (corretorId: string) => {
 
 
 // --- METRICAS ---
-export const getMetricas = async (cidade?: string, estado?: string, startDate?: string): Promise<Metric[]> => {
+export const getMetricas = async (cidade?: string, estado?: string, startDate: string | null = null): Promise<Metric[]> => {
     const { data, error } = await supabase.rpc('get_corretor_metrics', {
         p_cidade: cidade,
         p_estado: estado,
-        p_start_date: startDate,
+        p_start_date: startDate, // Passa null se for Hall da Fama
     });
 
     if (error) {

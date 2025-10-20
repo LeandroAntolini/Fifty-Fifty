@@ -167,6 +167,11 @@ const ProfilePage: React.FC = () => {
                             <Label htmlFor="Email">Email</Label>
                             <Input id="Email" name="Email" type="email" value={user.email} disabled className="bg-neutral-light" />
                         </div>
+                        
+                        <div className="space-y-1.5">
+                            <Label htmlFor="username">Nome de Usuário</Label>
+                            <Input id="username" name="username" value={`@${user.corretorInfo.username || 'N/A'}`} disabled className="bg-neutral-light font-mono" />
+                        </div>
 
                         <div className="space-y-1.5">
                             <Label htmlFor="CRECI">CRECI</Label>

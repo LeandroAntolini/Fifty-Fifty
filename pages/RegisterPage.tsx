@@ -19,6 +19,7 @@ const RegisterPage: React.FC = () => {
         Email: '',
         Cidade: '',
         Estado: '',
+        username: '',
         password: '',
     });
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -37,6 +38,11 @@ const RegisterPage: React.FC = () => {
             finalValue = toTitleCase(value);
         }
         
+        if (name === 'username') {
+            // Only allow alphanumeric characters and underscores, and convert to lowercase
+            finalValue = value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+        }
+        
         setFormData({ ...formData, [name]: finalValue });
     };
 
@@ -53,6 +59,10 @@ const RegisterPage: React.FC = () => {
         e.preventDefault();
         if (!formData.CRECI) {
             toast.error("O CRECI é obrigatório.");
+            return;
+        }
+        if (!formData.username || formData.username.length < 3) {
+            toast.error("O nome de usuário deve ter no mínimo 3 caracteres.");
             return;
         }
         if (!formData.Estado) {
@@ -74,7 +84,12 @@ const RegisterPage: React.FC = () => {
                 setRegistrationComplete(true);
             }
         } catch (err) {
-            toast.error((err as Error).message || 'Falha ao registrar. Tente novamente.');
+            const errorMessage = (err as Error).message;
+            if (errorMessage.includes('duplicate key value violates unique constraint')) {
+                 toast.error('Nome de usuário já está em uso. Por favor, escolha outro.');
+            } else {
+                 toast.error(errorMessage || 'Falha ao registrar. Tente novamente.');
+            }
         } finally {
             setLoading(false);
         }
@@ -117,11 +132,15 @@ const RegisterPage: React.FC = () => {
                         </div>
                         <div className="space-y-1.5">
                             <Label htmlFor="CRECI">CRECI</Label>
-                            <Input id="CRECI" name="CRECI" placeholder="CRECI (obrigatório)" onChange={handleChange} required />
+                            <Input id="CRECI" name="CRECI" value={formData.CRECI} placeholder="CRECI (obrigatório)" onChange={handleChange} required />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="username">Nome de Usuário</Label>
+                            <Input id="username" name="username" value={formData.username} placeholder="@seu_usuario (mín. 3 caracteres, letras, números e _)" onChange={handleChange} required minLength={3} />
                         </div>
                         <div className="space-y-1.5">
                             <Label htmlFor="Email">Email</Label>
-                            <Input id="Email" name="Email" type="email" placeholder="seu@email.com" onChange={handleChange} required />
+                            <Input id="Email" name="Email" type="email" value={formData.Email} placeholder="seu@email.com" onChange={handleChange} required />
                         </div>
                         <div className="space-y-1.5">
                             <Label htmlFor="password">Senha</Label>
@@ -131,6 +150,7 @@ const RegisterPage: React.FC = () => {
                                     name="password"
                                     type={showPassword ? 'text' : 'password'}
                                     placeholder="Mínimo 6 caracteres"
+                                    value={formData.password}
                                     onChange={handleChange}
                                     required
                                     minLength={6}
@@ -172,7 +192,7 @@ const RegisterPage: React.FC = () => {
                         </div>
                         <div className="space-y-1.5">
                             <Label htmlFor="Telefone">Telefone / WhatsApp</Label>
-                            <Input id="Telefone" name="Telefone" placeholder="(XX) XXXXX-XXXX" onChange={handleChange} required />
+                            <Input id="Telefone" name="Telefone" value={formData.Telefone} placeholder="(XX) XXXXX-XXXX" onChange={handleChange} required />
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                             <div className="space-y-1.5">

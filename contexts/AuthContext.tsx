@@ -13,7 +13,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, pass: string) => Promise<void>;
-  register: (corretorData: Omit<Corretor, 'ID_Corretor' | 'Email'> & {Email: string, password: string}) => Promise<RegisterResult>;
+  register: (corretorData: Omit<Corretor, 'ID_Corretor' | 'Email' | 'username'> & {Email: string, password: string, username: string}) => Promise<RegisterResult>;
   logout: () => void;
   updateProfile: (profileData: Partial<Omit<Corretor, 'ID_Corretor' | 'Email' | 'CRECI'>>, avatarFile?: File | null) => Promise<void>;
   isPasswordRecovery: boolean;
@@ -46,6 +46,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           Email: sessionUser.email!,
           Cidade: corretorData.cidade,
           Estado: corretorData.estado,
+          username: corretorData.username,
           avatar_url: corretorData.avatar_url,
           whatsapp_notifications_enabled: corretorData.whatsapp_notifications_enabled,
         };
@@ -114,8 +115,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (error) throw error;
   };
 
-  const register = async (formData: Omit<Corretor, 'ID_Corretor' | 'Email'> & {Email: string, password: string}): Promise<RegisterResult> => {
-    const { password, Email, Nome, CRECI, Telefone, Cidade, Estado } = formData;
+  const register = async (formData: Omit<Corretor, 'ID_Corretor' | 'Email' | 'username'> & {Email: string, password: string, username: string}): Promise<RegisterResult> => {
+    const { password, Email, Nome, CRECI, Telefone, Cidade, Estado, username } = formData;
     const { data, error } = await supabase.auth.signUp({
       email: Email,
       password: password,
@@ -126,6 +127,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           telefone: Telefone,
           cidade: Cidade,
           estado: Estado,
+          username: username,
         },
       },
     });

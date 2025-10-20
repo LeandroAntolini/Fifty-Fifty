@@ -43,6 +43,7 @@ export interface Corretor {
   Email: string;
   Cidade: string;
   Estado: string;
+  username?: string;
   avatar_url?: string;
   whatsapp_notifications_enabled?: boolean;
 }

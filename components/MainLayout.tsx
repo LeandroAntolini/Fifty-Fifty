@@ -27,6 +27,7 @@ const pageTitles: { [key: string]: string } = {
   '/profile/privacy-policy': 'Política de Privacidade',
   '/profile/terms-of-service': 'Termos de Serviço',
   '/profile/update-password': 'Atualizar Senha',
+  '/search-corretor': 'Buscar Corretor',
 };
 
 const MainLayout: React.FC = () => {
@@ -42,7 +43,7 @@ const MainLayout: React.FC = () => {
     '/profile/terms-of-service',
     '/profile/update-password',
   ];
-  const hasBackButton = profileSubPages.includes(location.pathname) || isSpecificChatPage;
+  const hasBackButton = profileSubPages.includes(location.pathname) || isSpecificChatPage || location.pathname === '/search-corretor';
   
   const getTitle = () => {
     const path = location.pathname;

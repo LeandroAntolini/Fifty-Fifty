@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Button } from '../components/ui/Button';
 import Spinner from '../components/Spinner';
 import { ImovelStatus, ClienteStatus, MatchStatus } from '../types';
-import { Home, User, ThumbsUp, Handshake, PlusCircle, Users, Building, Briefcase, Award, Heart, UserPlus } from 'lucide-react';
+import { Home, User, ThumbsUp, Handshake, PlusCircle, Users, Building, Briefcase, Award, Heart, UserPlus, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface DashboardStats {
@@ -87,6 +87,10 @@ const DashboardPage: React.FC = () => {
     navigate('/clientes');
     openClienteModal();
   };
+  
+  const handleSearchCorretor = () => {
+    navigate('/search-corretor');
+  };
 
   if (loading) {
     return <div className="flex justify-center mt-8"><Spinner /></div>;
@@ -133,12 +137,15 @@ const DashboardPage: React.FC = () => {
       </Card>
 
       <Card>
-        <CardContent className="p-3 grid grid-cols-2 gap-2">
+        <CardContent className="p-3 grid grid-cols-3 gap-2">
           <Button onClick={handleAddImovel} className="w-full" variant="outline">
-            <PlusCircle className="mr-2" size={18} /> Adicionar Imóvel
+            <PlusCircle className="mr-2" size={18} /> Imóvel
           </Button>
           <Button onClick={handleAddCliente} className="w-full" variant="outline">
-            <PlusCircle className="mr-2" size={18} /> Adicionar Cliente
+            <PlusCircle className="mr-2" size={18} /> Cliente
+          </Button>
+          <Button onClick={handleSearchCorretor} className="w-full" variant="secondary">
+            <Search className="mr-2" size={18} /> Buscar @..
           </Button>
         </CardContent>
       </Card>

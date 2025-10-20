@@ -360,6 +360,30 @@ export const getCorretorById = async (corretorId: string): Promise<Partial<Corre
     };
 };
 
+export const searchCorretoresByUsername = async (username: string, currentUserId: string): Promise<Partial<Corretor>[]> => {
+    const { data, error } = await supabase
+        .from('corretores')
+        .select('id, nome, creci, cidade, estado, avatar_url, username')
+        .ilike('username', `%${username}%`)
+        .neq('id', currentUserId) // Exclude current user
+        .limit(10);
+
+    if (error) {
+        console.error('Error searching corretores by username:', error);
+        throw error;
+    }
+    
+    return data.map(c => ({
+        ID_Corretor: c.id,
+        Nome: c.nome,
+        CRECI: c.creci,
+        Cidade: c.cidade,
+        Estado: c.estado,
+        avatar_url: c.avatar_url,
+        username: c.username,
+    }));
+};
+
 export const uploadAvatar = async (userId: string, file: File): Promise<string> => {
     const filePath = `${userId}/${Date.now()}_${file.name}`;
     
@@ -474,6 +498,7 @@ export const getFollowingList = async (corretorId: string): Promise<Partial<Corr
         Cidade: c.cidade,
         Estado: c.estado,
         avatar_url: c.avatar_url,
+        username: c.username,
     }));
 };
 

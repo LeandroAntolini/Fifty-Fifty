@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '../../components/ui/Button';
-import { Award, Star, MessageSquare, ThumbsUp, Home } from 'lucide-react';
+import { Award, Star, MessageSquare, ThumbsUp, Home, Users } from 'lucide-react';
 
 interface RankingInfoModalProps {
   isOpen: boolean;
@@ -31,6 +31,7 @@ const RankingInfoModal: React.FC<RankingInfoModalProps> = ({ isOpen, onClose }) 
                     <li className="flex items-start"><MessageSquare className="text-secondary h-4 w-4 mr-2 mt-0.5 flex-shrink-0" /><span className="font-bold text-green-600">+15 pontos:</span>&nbsp;ao iniciar uma conversa em um Match.</li>
                     <li className="flex items-start"><ThumbsUp className="text-secondary h-4 w-4 mr-2 mt-0.5 flex-shrink-0" /><span className="font-bold text-green-600">+10 pontos:</span>&nbsp;para cada novo Match gerado.</li>
                     <li className="flex items-start"><Home className="text-secondary h-4 w-4 mr-2 mt-0.5 flex-shrink-0" /><span className="font-bold text-green-600">+5 pontos:</span>&nbsp;para cada Imóvel ou Cliente cadastrado.</li>
+                    <li className="flex items-start"><Users className="text-secondary h-4 w-4 mr-2 mt-0.5 flex-shrink-0" /><span className="font-bold text-green-600">+1 ponto:</span>&nbsp;por cada Corretor que te segue.</li>
                 </ul>
             </section>
 

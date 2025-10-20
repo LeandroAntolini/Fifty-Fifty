@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { Button } from '../components/ui/Button';
 import { Corretor } from '../types';
 import { User as UserIcon } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 interface AugmentedParceria {
     ID_Parceria: string;
@@ -20,7 +21,12 @@ interface AugmentedParceria {
 
 const ConexoesPage: React.FC = () => {
     const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState<'parcerias' | 'seguindo'>('parcerias');
+    const location = useLocation();
+    
+    // Determina a aba inicial baseada no query parameter 'tab'
+    const initialTab = new URLSearchParams(location.search).get('tab') === 'seguindo' ? 'seguindo' : 'parcerias';
+    
+    const [activeTab, setActiveTab] = useState<'parcerias' | 'seguindo'>(initialTab);
     const [parcerias, setParcerias] = useState<AugmentedParceria[]>([]);
     const [seguindo, setSeguindo] = useState<Partial<Corretor>[]>([]);
     const [loading, setLoading] = useState(true);
@@ -49,8 +55,14 @@ const ConexoesPage: React.FC = () => {
     }, [user, activeTab]);
 
     useEffect(() => {
+        // Se o usuário mudar a aba manualmente, atualiza o estado
+        if (new URLSearchParams(location.search).get('tab') === 'seguindo' && activeTab !== 'seguindo') {
+            setActiveTab('seguindo');
+        } else if (!new URLSearchParams(location.search).get('tab') && activeTab !== 'parcerias') {
+            setActiveTab('parcerias');
+        }
         fetchData();
-    }, [fetchData]);
+    }, [fetchData, location.search]);
 
     const handleUnfollow = async (corretorId: string) => {
         if (!user) return;

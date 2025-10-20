@@ -91,26 +91,26 @@ const DashboardPage: React.FC = () => {
           <CardTitle className="text-base font-semibold">Suas Métricas</CardTitle>
         </CardHeader>
         <CardContent className="p-3 pt-1 grid grid-cols-2 gap-2 text-center">
-          <div className="p-1 rounded-lg bg-neutral-light">
+          <Link to="/imoveis" className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
             <Home className="mx-auto text-[#9dba8c]" size={20} />
             <p className="text-lg font-bold">{stats?.imoveisAtivos}</p>
             <p className="text-xs text-muted-foreground">Imóveis Ativos</p>
-          </div>
-          <div className="p-1 rounded-lg bg-neutral-light">
+          </Link>
+          <Link to="/clientes" className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
             <User className="mx-auto text-[#9dba8c]" size={20} />
             <p className="text-lg font-bold">{stats?.clientesAtivos}</p>
             <p className="text-xs text-muted-foreground">Clientes Ativos</p>
-          </div>
-          <div className="p-1 rounded-lg bg-neutral-light">
+          </Link>
+          <Link to="/matches" className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
             <ThumbsUp className="mx-auto text-[#9dba8c]" size={20} />
             <p className="text-lg font-bold">{stats?.matchesAbertos}</p>
             <p className="text-xs text-muted-foreground">Matches Abertos</p>
-          </div>
-          <div className="p-1 rounded-lg bg-neutral-light">
+          </Link>
+          <Link to="/conexoes" className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
             <Handshake className="mx-auto text-[#9dba8c]" size={20} />
             <p className="text-lg font-bold">{stats?.parceriasConcluidas}</p>
             <p className="text-xs text-muted-foreground">Parcerias</p>
-          </div>
+          </Link>
         </CardContent>
       </Card>
 

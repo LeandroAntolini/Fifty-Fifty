@@ -23,7 +23,7 @@ const ConexoesPage: React.FC = () => {
     const { user } = useAuth();
     const location = useLocation();
     
-    // Determina a aba inicial baseada no query parameter 'tab'
+    // Inicializa a aba baseada no query parameter 'tab'
     const initialTab = new URLSearchParams(location.search).get('tab') === 'seguindo' ? 'seguindo' : 'parcerias';
     
     const [activeTab, setActiveTab] = useState<'parcerias' | 'seguindo'>(initialTab);
@@ -35,11 +35,11 @@ const ConexoesPage: React.FC = () => {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
     }
 
-    const fetchData = useCallback(async () => {
+    const fetchData = useCallback(async (currentTab: 'parcerias' | 'seguindo') => {
         if (!user) return;
         setLoading(true);
         try {
-            if (activeTab === 'parcerias') {
+            if (currentTab === 'parcerias') {
                 const augmentedData = await api.getAugmentedParceriasByCorretor(user.id);
                 setParcerias(augmentedData || []);
             } else {
@@ -47,29 +47,30 @@ const ConexoesPage: React.FC = () => {
                 setSeguindo(followingData || []);
             }
         } catch (error) {
-            console.error(`Failed to fetch ${activeTab}`, error);
-            toast.error(`Não foi possível carregar ${activeTab === 'parcerias' ? 'as parcerias' : 'suas conexões'}.`);
+            console.error(`Failed to fetch ${currentTab}`, error);
+            toast.error(`Não foi possível carregar ${currentTab === 'parcerias' ? 'as parcerias' : 'suas conexões'}.`);
         } finally {
             setLoading(false);
         }
-    }, [user, activeTab]);
+    }, [user]);
 
     useEffect(() => {
-        // Se o usuário mudar a aba manualmente, atualiza o estado
-        if (new URLSearchParams(location.search).get('tab') === 'seguindo' && activeTab !== 'seguindo') {
-            setActiveTab('seguindo');
-        } else if (!new URLSearchParams(location.search).get('tab') && activeTab !== 'parcerias') {
-            setActiveTab('parcerias');
-        }
-        fetchData();
-    }, [fetchData, location.search]);
+        // Quando o componente monta ou o location.search muda (navegação externa), atualiza a aba
+        const newTab = new URLSearchParams(location.search).get('tab') === 'seguindo' ? 'seguindo' : 'parcerias';
+        setActiveTab(newTab);
+    }, [location.search]);
+
+    useEffect(() => {
+        // Sempre que activeTab mudar (seja por clique interno ou navegação externa), busca os dados
+        fetchData(activeTab);
+    }, [activeTab, fetchData]);
 
     const handleUnfollow = async (corretorId: string) => {
         if (!user) return;
         try {
             await api.unfollowCorretor(user.id, corretorId);
             toast.success("Você deixou de seguir o corretor.");
-            fetchData(); // Refresh the list
+            fetchData(activeTab); // Refresh the list
         } catch (error) {
             toast.error("Não foi possível deixar de seguir.");
         }

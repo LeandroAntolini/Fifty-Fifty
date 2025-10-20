@@ -66,13 +66,13 @@ const MainLayout: React.FC = () => {
               <ChevronLeft size={28}/>
             </button>
           ) : (
-            <div className="text-neutral-dark">
+            <button onClick={() => navigate('/profile')} className="text-neutral-dark hover:text-gray-600">
               {user?.corretorInfo.avatar_url ? (
                 <img src={user.corretorInfo.avatar_url} alt="Perfil" className="w-8 h-8 rounded-full object-cover" />
               ) : (
                 <User />
               )}
-            </div>
+            </button>
           )}
         </div>
         

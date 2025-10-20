@@ -21,6 +21,7 @@ const ProfilePage: React.FC = () => {
         Telefone: '',
         Cidade: '',
         Estado: '',
+        username: '', // Adicionado username
     });
     const [loading, setLoading] = useState(false);
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -38,6 +39,7 @@ const ProfilePage: React.FC = () => {
                 Telefone: formatPhoneNumber(user.corretorInfo.Telefone),
                 Cidade: user.corretorInfo.Cidade,
                 Estado: user.corretorInfo.Estado,
+                username: user.corretorInfo.username || '', // Inicializa com o username atual
             });
             setAvatarPreview(user.corretorInfo.avatar_url || null);
             setNotificationsEnabled(user.corretorInfo.whatsapp_notifications_enabled ?? true);
@@ -72,6 +74,9 @@ const ProfilePage: React.FC = () => {
             finalValue = value.toUpperCase();
         } else if (name === 'Nome' || name === 'Cidade') {
             finalValue = toTitleCase(value);
+        } else if (name === 'username') {
+            // Permite apenas letras minúsculas, números e underscore
+            finalValue = value.toLowerCase().replace(/[^a-z0-9_]/g, '');
         }
 
         setFormData({ ...formData, [name]: finalValue });
@@ -87,6 +92,12 @@ const ProfilePage: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (!formData.username || formData.username.length < 3) {
+            toast.error("O nome de usuário deve ter no mínimo 3 caracteres.");
+            return;
+        }
+
         setLoading(true);
         try {
             const profileDataToSave = {
@@ -98,7 +109,12 @@ const ProfilePage: React.FC = () => {
             toast.success('Perfil atualizado com sucesso!');
             setAvatarFile(null);
         } catch (err) {
-            toast.error('Falha ao atualizar o perfil. Tente novamente.');
+            const errorMessage = (err as Error).message;
+            if (errorMessage.includes('duplicate key value violates unique constraint')) {
+                 toast.error('Nome de usuário já está em uso. Por favor, escolha outro.');
+            } else {
+                 toast.error('Falha ao atualizar o perfil. Tente novamente.');
+            }
             console.error(err);
         } finally {
             setLoading(false);
@@ -170,7 +186,15 @@ const ProfilePage: React.FC = () => {
                         
                         <div className="space-y-1.5">
                             <Label htmlFor="username">Nome de Usuário</Label>
-                            <Input id="username" name="username" value={`@${user.corretorInfo.username || 'N/A'}`} disabled className="bg-neutral-light font-mono" />
+                            <Input 
+                                id="username" 
+                                name="username" 
+                                value={formData.username} 
+                                onChange={handleChange} 
+                                placeholder="seu_usuario"
+                                required
+                                minLength={3}
+                            />
                         </div>
 
                         <div className="space-y-1.5">

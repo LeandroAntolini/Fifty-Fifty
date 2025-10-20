@@ -18,15 +18,26 @@ const NotificationList: React.FC<NotificationListProps> = ({ onClose }) => {
 
   const handleNotificationClick = (notification: Notification) => {
     if (!user) return;
-    markAllNotificationsForMatchAsRead(notification.matchId);
+    
+    // Mark as read/viewed based on type
+    if (notification.type === 'new_match') {
+        notification.matchId && api.markMatchAsViewed(notification.matchId, user.id).catch(err => console.error("Falha ao marcar match como visto", err));
+    } else if (notification.type === 'match_update') {
+        notification.matchId && api.markMatchStatusChangeAsViewed(notification.matchId, user.id).catch(err => console.error("Falha ao marcar status do match como visto", err));
+    } else if (notification.type === 'new_follower' && notification.followerId) {
+        api.markFollowAsNotified(notification.followerId, user.id).catch(err => console.error("Falha ao marcar follow como notificado", err));
+    }
+
+    // Mark notification locally as read
+    if (notification.matchId) {
+        markAllNotificationsForMatchAsRead(notification.matchId);
+    } else {
+        // For follower notifications, we rely on the next fetch to remove it if marked as notified
+        // For now, we just close the list and navigate.
+    }
+
     navigate(notification.link);
     onClose();
-
-    if (notification.type === 'new_match') {
-        api.markMatchAsViewed(notification.matchId, user.id).catch(err => console.error("Falha ao marcar match como visto", err));
-    } else if (notification.type === 'match_update') {
-        api.markMatchStatusChangeAsViewed(notification.matchId, user.id).catch(err => console.error("Falha ao marcar status do match como visto", err));
-    }
   };
 
   const sortedNotifications = [...generalNotifications].sort((a, b) => {

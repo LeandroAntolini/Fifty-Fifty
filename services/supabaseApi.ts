@@ -503,6 +503,38 @@ export const getFollowingList = async (corretorId: string): Promise<Partial<Corr
     }));
 };
 
+export const getNewFollowers = async (followingId: string): Promise<{ follower_id: string, created_at: string, follower_name: string }[]> => {
+    const { data, error } = await supabase
+        .from('followers')
+        .select('follower_id, created_at, corretor:follower_id(nome)')
+        .eq('following_id', followingId)
+        .eq('notified_follower', false);
+
+    if (error) {
+        console.error('Error fetching new followers:', error);
+        throw error;
+    }
+
+    return data.map((item: any) => ({
+        follower_id: item.follower_id,
+        created_at: item.created_at,
+        follower_name: item.corretor.nome,
+    }));
+};
+
+export const markFollowAsNotified = async (followerId: string, followingId: string): Promise<void> => {
+    const { error } = await supabase
+        .from('followers')
+        .update({ notified_follower: true })
+        .eq('follower_id', followerId)
+        .eq('following_id', followingId);
+
+    if (error) {
+        console.error('Error marking follow as notified:', error);
+        throw error;
+    }
+};
+
 
 // --- MATCHES ---
 

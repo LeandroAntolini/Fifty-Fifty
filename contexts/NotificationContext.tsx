@@ -5,12 +5,13 @@ import { supabase } from '../src/integrations/supabase/client';
 
 export interface Notification {
   id: string;
-  type: 'new_match' | 'new_message' | 'reopen_request' | 'match_update';
+  type: 'new_match' | 'new_message' | 'reopen_request' | 'match_update' | 'new_follower';
   message: string;
   link: string;
   timestamp: string;
   isRead: boolean;
-  matchId: string;
+  matchId?: string; // Opcional, usado apenas para matches/chats
+  followerId?: string; // Novo campo para seguidores
 }
 
 interface NotificationContextType {
@@ -37,14 +38,31 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
       return;
     }
     try {
-      const [matchesData, chatsData] = await Promise.all([
+      const [matchesData, chatsData, newFollowers] = await Promise.all([
         api.getAugmentedMatchesByCorretor(user.id),
-        api.getActiveChatsByCorretor(user.id)
+        api.getActiveChatsByCorretor(user.id),
+        api.getNewFollowers(user.id), // Buscar novos seguidores
       ]);
 
       const newGeneralNotifs: Notification[] = [];
       const newChatNotifs: Notification[] = [];
 
+      // 1. Notificações de Novos Seguidores
+      if (newFollowers) {
+        newFollowers.forEach(follower => {
+            newGeneralNotifs.push({
+                id: `follower-${follower.follower_id}`,
+                type: 'new_follower',
+                message: `${follower.follower_name} começou a te seguir!`,
+                link: `/followers`,
+                timestamp: follower.created_at,
+                isRead: false,
+                followerId: follower.follower_id,
+            });
+        });
+      }
+
+      // 2. Notificações de Matches e Status
       if (matchesData) {
         matchesData.forEach((match: any) => {
           const isImovelOwner = match.imovel_id_corretor === user.id;
@@ -83,7 +101,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
                       id: `converted-${match.ID_Match}`,
                       type: 'match_update',
                       message: `Sua parceria com ${match.other_corretor_name} foi concluída com sucesso!`,
-                      link: `/parcerias`,
+                      link: `/conexoes`,
                       timestamp: new Date().toISOString(),
                       isRead: false,
                       matchId: match.ID_Match,
@@ -103,6 +121,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         });
       }
 
+      // 3. Notificações de Chat
       if (chatsData) {
         chatsData.forEach((chat: any) => {
           if (chat.Unread_Count > 0) {
@@ -168,10 +187,27 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
           fetchNotifications
         )
         .subscribe();
+        
+      // Novo canal para notificações de seguidores
+      const followersChannel = supabase
+        .channel(`notifications-followers-for-${user.id}`)
+        .on(
+            'postgres_changes',
+            {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'followers',
+                filter: `following_id=eq.${user.id}`,
+            },
+            fetchNotifications
+        )
+        .subscribe();
+
 
       return () => {
         supabase.removeChannel(matchesChannel);
         supabase.removeChannel(messagesChannel);
+        supabase.removeChannel(followersChannel);
       };
     }
   }, [user, fetchNotifications]);
@@ -187,8 +223,9 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     setGeneralNotifications([]);
     setChatNotifications([]);
 
-    const unreadChatMatchIds = new Set<string>(chatNotifications.filter(n => !n.isRead).map(n => n.matchId));
-    const unreadGeneralMatchIds = new Set<string>(generalNotifications.filter(n => !n.isRead).map(n => n.matchId));
+    const unreadChatMatchIds = new Set<string>(chatNotifications.filter(n => !n.isRead).map(n => n.matchId!));
+    const unreadGeneralMatchIds = new Set<string>(generalNotifications.filter(n => !n.isRead && n.matchId).map(n => n.matchId!));
+    const unreadFollowerIds = generalNotifications.filter(n => !n.isRead && n.type === 'new_follower').map(n => n.followerId!);
 
     try {
       if (unreadChatMatchIds.size > 0) {
@@ -203,6 +240,13 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
           [...unreadGeneralMatchIds].map(matchId =>
             api.markMatchAsViewed(matchId, user.id)
           )
+        );
+      }
+      if (unreadFollowerIds.length > 0) {
+        await Promise.all(
+            unreadFollowerIds.map(followerId =>
+                api.markFollowAsNotified(followerId, user.id)
+            )
         );
       }
     } catch (error) {

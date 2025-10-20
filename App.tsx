@@ -24,6 +24,7 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import ScrollToTop from './components/ScrollToTop';
 import SearchCorretorPage from './pages/SearchCorretorPage';
+import FollowersPage from './pages/FollowersPage'; // Importando a nova página
 
 const AppContent: React.FC = () => {
   const { isPasswordRecovery } = useAuth();
@@ -67,6 +68,7 @@ const AppContent: React.FC = () => {
         <Route path="profile/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="profile/terms-of-service" element={<TermsOfServicePage />} />
         <Route path="search-corretor" element={<SearchCorretorPage />} />
+        <Route path="followers" element={<FollowersPage />} /> {/* Nova Rota */}
       </Route>
     </Routes>
   );

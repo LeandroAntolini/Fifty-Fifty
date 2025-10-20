@@ -28,6 +28,7 @@ const pageTitles: { [key: string]: string } = {
   '/profile/terms-of-service': 'Termos de Serviço',
   '/profile/update-password': 'Atualizar Senha',
   '/search-corretor': 'Buscar Corretor',
+  '/followers': 'Meus Seguidores', // Adicionado
 };
 
 const MainLayout: React.FC = () => {
@@ -42,6 +43,7 @@ const MainLayout: React.FC = () => {
     '/profile/privacy-policy',
     '/profile/terms-of-service',
     '/profile/update-password',
+    '/followers', // Adicionado
   ];
   const hasBackButton = profileSubPages.includes(location.pathname) || isSpecificChatPage || location.pathname === '/search-corretor';
   

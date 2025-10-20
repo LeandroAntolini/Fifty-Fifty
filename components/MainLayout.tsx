@@ -54,6 +54,16 @@ const MainLayout: React.FC = () => {
     return pageTitles[path] || 'Meu Perfil';
   };
 
+  const handleProfileClick = () => {
+    if (location.pathname === '/profile') {
+      // Se estiver na página de perfil, navega para o dashboard (fecha a tela de perfil)
+      navigate('/dashboard');
+    } else {
+      // Caso contrário, navega para a página de perfil
+      navigate('/profile');
+    }
+  };
+
   const isModalOpen = isImovelModalOpen || isClienteModalOpen;
   const hideBottomNav = hasBackButton;
 
@@ -66,7 +76,7 @@ const MainLayout: React.FC = () => {
               <ChevronLeft size={28}/>
             </button>
           ) : (
-            <button onClick={() => navigate('/profile')} className="text-neutral-dark hover:text-gray-600">
+            <button onClick={handleProfileClick} className="text-neutral-dark hover:text-gray-600">
               {user?.corretorInfo.avatar_url ? (
                 <img src={user.corretorInfo.avatar_url} alt="Perfil" className="w-8 h-8 rounded-full object-cover" />
               ) : (

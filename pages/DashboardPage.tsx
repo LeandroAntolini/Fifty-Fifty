@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Button } from '../components/ui/Button';
 import Spinner from '../components/Spinner';
 import { ImovelStatus, ClienteStatus, MatchStatus } from '../types';
-import { Home, User, ThumbsUp, Handshake, PlusCircle, Users, Building, Briefcase, Award } from 'lucide-react';
+import { Home, User, ThumbsUp, Handshake, PlusCircle, Users, Building, Briefcase, Award, Heart, UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface DashboardStats {
@@ -15,6 +15,8 @@ interface DashboardStats {
   clientesAtivos: number;
   matchesAbertos: number;
   parceriasConcluidas: number;
+  seguidores: number;
+  seguindo: number;
 }
 
 const DashboardPage: React.FC = () => {
@@ -29,18 +31,24 @@ const DashboardPage: React.FC = () => {
   const fetchPersonalStats = useCallback(async () => {
     if (!user) return;
     try {
-      const [imoveis, clientes, matches, parcerias] = await Promise.all([
+      const [imoveis, clientes, matches, parcerias, metrics, following] = await Promise.all([
         api.getImoveisByCorretor(user.id),
         api.getClientesByCorretor(user.id),
         api.getAugmentedMatchesByCorretor(user.id),
         api.getAugmentedParceriasByCorretor(user.id),
+        api.getMetricas(user.corretorInfo.Cidade, user.corretorInfo.Estado, null), // Hall da Fama para Seguidores
+        api.getFollowingList(user.id),
       ]);
+
+      const userMetrics = metrics.find(m => m.ID_Corretor === user.id);
 
       setStats({
         imoveisAtivos: imoveis.filter(i => i.Status === ImovelStatus.Ativo).length,
         clientesAtivos: clientes.filter(c => c.Status === ClienteStatus.Ativo).length,
         matchesAbertos: matches.filter(m => m.Status === MatchStatus.Aberto).length,
         parceriasConcluidas: parcerias.length,
+        seguidores: userMetrics?.Seguidores || 0,
+        seguindo: following.length,
       });
     } catch (error) {
       console.error("Failed to fetch dashboard data", error);
@@ -90,7 +98,7 @@ const DashboardPage: React.FC = () => {
         <CardHeader className="p-3 pb-1">
           <CardTitle className="text-base font-semibold">Suas Métricas</CardTitle>
         </CardHeader>
-        <CardContent className="p-3 pt-1 grid grid-cols-2 gap-2 text-center">
+        <CardContent className="p-3 pt-1 grid grid-cols-3 gap-2 text-center">
           <Link to="/imoveis" className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
             <Home className="mx-auto text-[#9dba8c]" size={20} />
             <p className="text-lg font-bold">{stats?.imoveisAtivos}</p>
@@ -110,6 +118,16 @@ const DashboardPage: React.FC = () => {
             <Handshake className="mx-auto text-[#9dba8c]" size={20} />
             <p className="text-lg font-bold">{stats?.parceriasConcluidas}</p>
             <p className="text-xs text-muted-foreground">Parcerias</p>
+          </Link>
+          <Link to="/conexoes" className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
+            <Heart className="mx-auto text-[#9dba8c]" size={20} />
+            <p className="text-lg font-bold">{stats?.seguindo}</p>
+            <p className="text-xs text-muted-foreground">Seguindo</p>
+          </Link>
+          <Link to="/metricas" className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
+            <UserPlus className="mx-auto text-[#9dba8c]" size={20} />
+            <p className="text-lg font-bold">{stats?.seguidores}</p>
+            <p className="text-xs text-muted-foreground">Seguidores</p>
           </Link>
         </CardContent>
       </Card>

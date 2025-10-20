@@ -11,7 +11,7 @@ import DashboardPage from './pages/DashboardPage';
 import ImoveisPage from './pages/ImoveisPage';
 import ClientesPage from './pages/ClientesPage';
 import MatchesPage from './pages/MatchesPage';
-import ParceriasPage from './pages/ParceriasPage';
+import ConexoesPage from './pages/ConexoesPage';
 import ChatPage from './pages/ChatPage';
 import MetricasPage from './pages/MetricasPage';
 import ProfilePage from './pages/ProfilePage';
@@ -59,7 +59,7 @@ const AppContent: React.FC = () => {
         <Route path="matches" element={<MatchesPage />} />
         <Route path="matches/:matchId/chat" element={<ChatPage />} />
         <Route path="chats" element={<AllChatsPage />} />
-        <Route path="parcerias" element={<ParceriasPage />} />
+        <Route path="conexoes" element={<ConexoesPage />} />
         <Route path="metricas" element={<MetricasPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="profile/update-password" element={<UpdateProfilePasswordPage />} />

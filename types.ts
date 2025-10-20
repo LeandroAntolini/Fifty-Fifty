@@ -122,6 +122,7 @@ export interface Metric {
     Parcerias_Concluidas: number;
     Taxa_Conversao: number;
     Score: number;
+    Seguidores: number;
 }
 
 // From AuthContext

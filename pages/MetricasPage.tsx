@@ -111,21 +111,9 @@ const MetricasPage: React.FC = () => {
         return value.toString();
     };
 
-    const getMetricLabel = (criteria: SortCriteria) => {
-        const labels: { [key in SortCriteria]: string } = {
-            Score: 'Score Total',
-            Parcerias_Concluidas: 'Parceria(s) Concluída(s)',
-            Imoveis_Adicionados: 'Imóvel(is) Adicionado(s)',
-            Clientes_Adicionados: 'Cliente(s) Adicionado(s)',
-            Matches_Iniciados: 'Match(es) Iniciado(s)',
-            Conversas_Iniciadas: 'Conversa(s) Iniciada(s)',
-            Taxa_Conversao: 'de Conversão',
-        };
-        return labels[criteria];
-    };
-
     const sortOptions: { label: string; value: SortCriteria }[] = [
         { label: 'Score', value: 'Score' },
+        { label: 'Seguidores', value: 'Seguidores' },
         { label: 'Parcerias Concluídas', value: 'Parcerias_Concluidas' },
         { label: 'Imóveis Adicionados', value: 'Imoveis_Adicionados' },
         { label: 'Clientes Adicionados', value: 'Clientes_Adicionados' },
@@ -147,13 +135,13 @@ const MetricasPage: React.FC = () => {
                         </p>
                     </div>
                 </div>
-                <div className="mt-4 grid grid-cols-2 gap-2 text-sm text-neutral-dark">
+                <div className="mt-4 grid grid-cols-3 gap-2 text-sm text-neutral-dark">
                     <p>Score: <span className={`font-semibold ${sortCriteria === 'Score' ? 'text-primary' : ''}`}>{metric.Score}</span></p>
                     <p>Parcerias: <span className={`font-semibold ${sortCriteria === 'Parcerias_Concluidas' ? 'text-primary' : ''}`}>{metric.Parcerias_Concluidas}</span></p>
+                    <p>Seguidores: <span className={`font-semibold ${sortCriteria === 'Seguidores' ? 'text-primary' : ''}`}>{metric.Seguidores}</span></p>
                     <p>Imóveis: <span className={`font-semibold ${sortCriteria === 'Imoveis_Adicionados' ? 'text-primary' : ''}`}>{metric.Imoveis_Adicionados}</span></p>
                     <p>Clientes: <span className={`font-semibold ${sortCriteria === 'Clientes_Adicionados' ? 'text-primary' : ''}`}>{metric.Clientes_Adicionados}</span></p>
                     <p>Matches: <span className={`font-semibold ${sortCriteria === 'Matches_Iniciados' ? 'text-primary' : ''}`}>{metric.Matches_Iniciados}</span></p>
-                    <p>Conversas: <span className={`font-semibold ${sortCriteria === 'Conversas_Iniciadas' ? 'text-primary' : ''}`}>{metric.Conversas_Iniciadas}</span></p>
                 </div>
             </div>
         );

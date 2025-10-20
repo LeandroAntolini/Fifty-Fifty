@@ -20,7 +20,7 @@ const pageTitles: { [key: string]: string } = {
   '/imoveis': 'Meus Imóveis',
   '/clientes': 'Meus Clientes',
   '/matches': 'Matches',
-  '/parcerias': 'Parcerias',
+  '/conexoes': 'Conexões',
   '/metricas': 'Ranking e Métricas',
   '/profile': 'Meu Perfil',
   '/chats': 'Conversas',
@@ -42,7 +42,7 @@ const MainLayout: React.FC = () => {
     '/profile/terms-of-service',
     '/profile/update-password',
   ];
-  const hasBackButton = profileSubPages.includes(location.pathname) || location.pathname === '/profile';
+  const hasBackButton = profileSubPages.includes(location.pathname) || isSpecificChatPage;
   
   const getTitle = () => {
     const path = location.pathname;
@@ -106,9 +106,9 @@ const MainLayout: React.FC = () => {
               <ThumbsUp />
               <span>Matches</span>
             </NavLink>
-            <NavLink to="/parcerias" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-xs font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
+            <NavLink to="/conexoes" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-xs font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
               <Handshake />
-              <span>Parcerias</span>
+              <span>Conexões</span>
             </NavLink>
             <NavLink to="/metricas" className={({ isActive }) => `flex flex-col items-center justify-center w-full text-xs font-medium ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}>
               <BarChart2 />

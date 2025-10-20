@@ -342,6 +342,24 @@ export const deleteCliente = async (clienteId: string) => {
 
 // --- CORRETORES ---
 
+export const getCorretorById = async (corretorId: string): Promise<Partial<Corretor> | null> => {
+    const { data, error } = await supabase
+        .from('corretores')
+        .select('*')
+        .eq('id', corretorId)
+        .single();
+
+    if (error) {
+        console.error('Error fetching corretor by id:', error);
+        return null;
+    }
+    
+    return {
+        ID_Corretor: data.id,
+        Nome: data.nome,
+    };
+};
+
 export const uploadAvatar = async (userId: string, file: File): Promise<string> => {
     const filePath = `${userId}/${Date.now()}_${file.name}`;
     
@@ -396,6 +414,69 @@ export const deleteCurrentUserAccount = async (): Promise<void> => {
         throw error;
     }
 };
+
+// --- FOLLOWERS ---
+
+export const isFollowing = async (followerId: string, followingId: string): Promise<boolean> => {
+    const { data, error } = await supabase
+        .from('followers')
+        .select('*')
+        .eq('follower_id', followerId)
+        .eq('following_id', followingId)
+        .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116: No rows found
+        console.error('Error checking follow status:', error);
+        throw error;
+    }
+
+    return !!data;
+};
+
+export const followCorretor = async (followerId: string, followingId: string): Promise<void> => {
+    const { error } = await supabase
+        .from('followers')
+        .insert({ follower_id: followerId, following_id: followingId });
+
+    if (error) {
+        console.error('Error following corretor:', error);
+        throw error;
+    }
+};
+
+export const unfollowCorretor = async (followerId: string, followingId: string): Promise<void> => {
+    const { error } = await supabase
+        .from('followers')
+        .delete()
+        .eq('follower_id', followerId)
+        .eq('following_id', followingId);
+
+    if (error) {
+        console.error('Error unfollowing corretor:', error);
+        throw error;
+    }
+};
+
+export const getFollowingList = async (corretorId: string): Promise<Partial<Corretor>[]> => {
+    const { data, error } = await supabase.rpc('get_following_list', {
+        p_corretor_id: corretorId,
+    });
+
+    if (error) {
+        console.error('Error fetching following list:', error);
+        throw error;
+    }
+    return data.map((c: any) => ({
+        ID_Corretor: c.id,
+        Nome: c.nome,
+        CRECI: c.creci,
+        Telefone: c.telefone,
+        Cidade: c.cidade,
+        Estado: c.estado,
+        avatar_url: c.avatar_url,
+    }));
+};
+
 
 // --- MATCHES ---
 

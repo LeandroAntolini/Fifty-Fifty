@@ -20,6 +20,11 @@ const ChatPage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { fetchNotifications } = useNotifications();
+  const [otherCorretorName, setOtherCorretorName] = useState('');
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowLoading, setIsFollowLoading] = useState(true);
+
+  const otherCorretorId = user && matchDetails ? (user.id === matchDetails.Corretor_A_ID ? matchDetails.Corretor_B_ID : matchDetails.Corretor_A_ID) : null;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -38,6 +43,14 @@ const ChatPage: React.FC = () => {
       ]);
       setMessages(msgs);
       setMatchDetails(match || null);
+
+      if (match) {
+        const otherId = user.id === match.Corretor_A_ID ? match.Corretor_B_ID : match.Corretor_A_ID;
+        const otherUser = await api.getCorretorById(otherId);
+        if (otherUser) {
+            setOtherCorretorName(otherUser.Nome || '');
+        }
+      }
     } catch (error) {
       console.error("Failed to fetch chat data", error);
       toast.error("Não foi possível carregar o chat.");
@@ -45,6 +58,43 @@ const ChatPage: React.FC = () => {
       setLoading(false);
     }
   }, [matchId, user, fetchNotifications]);
+
+  useEffect(() => {
+    const checkFollowStatus = async () => {
+        if (!user || !otherCorretorId) return;
+        setIsFollowLoading(true);
+        try {
+            const status = await api.isFollowing(user.id, otherCorretorId);
+            setIsFollowing(status);
+        } catch (error) {
+            console.error("Failed to check follow status", error);
+        } finally {
+            setIsFollowLoading(false);
+        }
+    };
+    if (otherCorretorId) {
+        checkFollowStatus();
+    }
+  }, [user, otherCorretorId]);
+
+  const handleFollowToggle = async () => {
+    if (!user || !otherCorretorId || isFollowLoading) return;
+    setIsFollowLoading(true);
+    try {
+        if (isFollowing) {
+            await api.unfollowCorretor(user.id, otherCorretorId);
+            toast.success(`Você deixou de seguir ${otherCorretorName}.`);
+        } else {
+            await api.followCorretor(user.id, otherCorretorId);
+            toast.success(`Você está seguindo ${otherCorretorName}!`);
+        }
+        setIsFollowing(!isFollowing);
+    } catch (error) {
+        toast.error("Ocorreu um erro.");
+    } finally {
+        setIsFollowLoading(false);
+    }
+  };
 
   const refreshMatchDetails = useCallback(async () => {
     if (!matchId) return;
@@ -219,7 +269,7 @@ const ChatPage: React.FC = () => {
               {matchDetails.Status === MatchStatus.Convertido ? 'Parceria concluída com sucesso!' : 'Match fechado.'}
             </p>
             <Button onClick={handleRequestReopen} disabled={isSubmitting} variant="outline" className="w-full bg-white">{isSubmitting ? 'Enviando...' : 'Solicitar Retorno da Tratativa'}</Button>
-            {matchDetails.Status === MatchStatus.Convertido && <Link to="/parcerias"><Button variant="link" className="text-green-800">Ver na lista de Parcerias</Button></Link>}
+            {matchDetails.Status === MatchStatus.Convertido && <Link to="/conexoes"><Button variant="link" className="text-green-800">Ver na lista de Parcerias</Button></Link>}
           </div>
         );
       case MatchStatus.ReaberturaPendente:
@@ -243,6 +293,14 @@ const ChatPage: React.FC = () => {
   
   return (
     <div className="flex flex-col h-full bg-neutral-light">
+      <div className="p-3 bg-white border-b flex justify-between items-center sticky top-0 z-10">
+          <h2 className="font-bold text-lg truncate pr-2">{otherCorretorName}</h2>
+          {otherCorretorId && (
+              <Button onClick={handleFollowToggle} disabled={isFollowLoading} size="sm" variant={isFollowing ? 'outline' : 'default'}>
+                  {isFollowLoading ? <Spinner size="sm" /> : (isFollowing ? 'Seguindo' : 'Seguir')}
+              </Button>
+          )}
+      </div>
       {renderActionUI()}
       <div className="flex-grow p-4 space-y-4 overflow-y-auto">
         {messages.map(msg => (

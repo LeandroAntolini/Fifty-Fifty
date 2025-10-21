@@ -149,6 +149,8 @@ const ConexoesPage: React.FC = () => {
         }
     };
 
+    // Removendo a função handleChatClick, pois o botão de chat foi removido.
+    /*
     const handleChatClick = async (otherCorretorId: string, otherCorretorName: string) => {
         if (!user) return;
         setIsActionLoading(true);
@@ -178,6 +180,7 @@ const ConexoesPage: React.FC = () => {
             setIsActionLoading(false);
         }
     };
+    */
 
     const renderParcerias = () => (
         <div className="space-y-4">
@@ -233,14 +236,7 @@ const ConexoesPage: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex space-x-2">
-                            <Button 
-                                variant="default" 
-                                size="sm" 
-                                onClick={() => corretor.ID_Corretor && handleChatClick(corretor.ID_Corretor, corretor.Nome || corretor.username || 'este corretor')}
-                                disabled={isActionLoading}
-                            >
-                                <MessageSquare size={16} className="mr-1" /> Chat
-                            </Button>
+                            {/* Botão Chat Removido */}
                             <Button variant="outline" size="sm" onClick={() => corretor.ID_Corretor && handleUnfollow(corretor.ID_Corretor)}>
                                 Deixar de Seguir
                             </Button>
@@ -275,14 +271,7 @@ const ConexoesPage: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex space-x-2">
-                            <Button 
-                                variant="default" 
-                                size="sm" 
-                                onClick={() => handleChatClick(corretor.follower_id, corretor.nome || corretor.username || 'este corretor')}
-                                disabled={isActionLoading}
-                            >
-                                <MessageSquare size={16} className="mr-1" /> Chat
-                            </Button>
+                            {/* Botão Chat Removido */}
                             {corretor.isFollowingBack ? (
                                 <Button variant="outline" size="sm" disabled>
                                     Seguindo

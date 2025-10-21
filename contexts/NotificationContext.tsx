@@ -225,39 +225,41 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   const clearAllNotifications = async () => {
     if (!user) return;
     
+    // 1. Coletar IDs de itens não lidos
+    const unreadChatMatchIds = new Set<string>(chatNotifications.filter(n => !n.isRead).map(n => n.matchId!));
+    const unreadGeneralMatchIds = new Set<string>(generalNotifications.filter(n => !n.isRead && n.matchId).map(n => n.matchId!));
+    const unreadFollowerIds = generalNotifications.filter(n => !n.isRead && n.type === 'new_follower' && n.followerId).map(n => n.followerId!);
+
+    // 2. Limpar localmente (otimista)
     setGeneralNotifications([]);
     setChatNotifications([]);
 
-    const unreadChatMatchIds = new Set<string>(chatNotifications.filter(n => !n.isRead).map(n => n.matchId!));
-    const unreadGeneralMatchIds = new Set<string>(generalNotifications.filter(n => !n.isRead && n.matchId).map(n => n.matchId!));
-    
-    const unreadFollowerIds = generalNotifications.filter(n => !n.isRead && n.type === 'new_follower').map(n => n.followerId!);
-
+    // 3. Marcar na API
     try {
+      const apiCalls: Promise<void>[] = [];
+
       if (unreadChatMatchIds.size > 0) {
-        await Promise.all(
-          [...unreadChatMatchIds].map(matchId =>
-            api.markMessagesAsRead(matchId, user.id)
-          )
+        [...unreadChatMatchIds].forEach(matchId =>
+          apiCalls.push(api.markMessagesAsRead(matchId, user.id))
         );
       }
       if (unreadGeneralMatchIds.size > 0) {
-        await Promise.all(
-          [...unreadGeneralMatchIds].map(matchId =>
-            api.markMatchAsViewed(matchId, user.id)
-          )
+        [...unreadGeneralMatchIds].forEach(matchId =>
+          apiCalls.push(api.markMatchAsViewed(matchId, user.id))
         );
       }
       if (unreadFollowerIds.length > 0) {
-        await Promise.all(
-            unreadFollowerIds.map(followerId =>
-                api.markFollowAsNotified(followerId, user.id)
-            )
+        unreadFollowerIds.forEach(followerId =>
+            apiCalls.push(api.markFollowAsNotified(followerId, user.id))
         );
       }
+      
+      await Promise.all(apiCalls);
+
     } catch (error) {
       console.error("Failed to mark all notifications as read", error);
     } finally {
+      // 4. Refetch para garantir a sincronização
       fetchNotifications();
     }
   };

@@ -5,8 +5,8 @@ import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
 import { Button } from '../components/ui/Button';
 import { Corretor } from '../types';
-import { User as UserIcon, Heart } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { User as UserIcon, Heart, MessageSquare } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../src/integrations/supabase/client';
 import { useNotifications } from '../contexts/NotificationContext';
 
@@ -39,6 +39,7 @@ const ConexoesPage: React.FC = () => {
     const { user } = useAuth();
     const { fetchNotifications } = useNotifications();
     const location = useLocation();
+    const navigate = useNavigate();
     
     // Inicializa a aba baseada no query parameter 'tab'
     const initialTab = (new URLSearchParams(location.search).get('tab') as ActiveTab) || 'parcerias';
@@ -148,6 +149,25 @@ const ConexoesPage: React.FC = () => {
         }
     };
 
+    const handleChatClick = async (otherCorretorId: string, otherCorretorName: string) => {
+        if (!user) return;
+        setIsActionLoading(true);
+        try {
+            const activeMatch = await api.getActiveMatchBetweenCorretores(user.id, otherCorretorId);
+            
+            if (activeMatch) {
+                navigate(`/matches/${activeMatch.ID_Match}/chat`);
+            } else {
+                toast.error(`Não há um Match ativo com ${otherCorretorName}. Inicie um Match cadastrando um Imóvel ou Cliente.`);
+            }
+        } catch (error) {
+            console.error("Failed to find active match:", error);
+            toast.error("Ocorreu um erro ao buscar o chat ativo.");
+        } finally {
+            setIsActionLoading(false);
+        }
+    };
+
     const renderParcerias = () => (
         <div className="space-y-4">
             {parcerias.length === 0 ? (
@@ -201,9 +221,19 @@ const ConexoesPage: React.FC = () => {
                                 <p className="text-xs text-muted-foreground">{corretor.Cidade} - {corretor.Estado}</p>
                             </div>
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => corretor.ID_Corretor && handleUnfollow(corretor.ID_Corretor)}>
-                            Deixar de Seguir
-                        </Button>
+                        <div className="flex space-x-2">
+                            <Button 
+                                variant="default" 
+                                size="sm" 
+                                onClick={() => corretor.ID_Corretor && handleChatClick(corretor.ID_Corretor, corretor.Nome || corretor.username || 'este corretor')}
+                                disabled={isActionLoading}
+                            >
+                                <MessageSquare size={16} className="mr-1" /> Chat
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => corretor.ID_Corretor && handleUnfollow(corretor.ID_Corretor)}>
+                                Deixar de Seguir
+                            </Button>
+                        </div>
                     </div>
                 ))
             )}
@@ -233,19 +263,29 @@ const ConexoesPage: React.FC = () => {
                                 <p className="text-xs text-muted-foreground">{corretor.cidade} - {corretor.estado}</p>
                             </div>
                         </div>
-                        {corretor.isFollowingBack ? (
-                            <Button variant="outline" size="sm" disabled>
-                                Seguindo
-                            </Button>
-                        ) : (
+                        <div className="flex space-x-2">
                             <Button 
+                                variant="default" 
                                 size="sm" 
-                                onClick={() => handleFollowBack(corretor.follower_id, corretor.nome)}
+                                onClick={() => handleChatClick(corretor.follower_id, corretor.nome || corretor.username || 'este corretor')}
                                 disabled={isActionLoading}
                             >
-                                <Heart size={16} className="mr-1" /> Seguir de Volta
+                                <MessageSquare size={16} className="mr-1" /> Chat
                             </Button>
-                        )}
+                            {corretor.isFollowingBack ? (
+                                <Button variant="outline" size="sm" disabled>
+                                    Seguindo
+                                </Button>
+                            ) : (
+                                <Button 
+                                    size="sm" 
+                                    onClick={() => handleFollowBack(corretor.follower_id, corretor.nome)}
+                                    disabled={isActionLoading}
+                                >
+                                    <Heart size={16} className="mr-1" /> Seguir de Volta
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 ))
             )}

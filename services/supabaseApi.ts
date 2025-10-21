@@ -561,6 +561,25 @@ export const getAugmentedMatchesByCorretor = async (corretorId: string) => {
     return data;
 };
 
+export const getActiveMatchBetweenCorretores = async (corretorAId: string, corretorBId: string): Promise<Match | null> => {
+    // Busca matches onde A é Imovel Owner e B é Cliente Owner, OU vice-versa
+    const { data, error } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('status', MatchStatus.Aberto)
+        .or(`and(id_corretor_imovel.eq.${corretorAId},id_corretor_cliente.eq.${corretorBId}),and(id_corretor_imovel.eq.${corretorBId},id_corretor_cliente.eq.${corretorAId})`)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+    if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching active match between corretores:', error);
+        throw error;
+    }
+
+    return data ? mapSupabaseMatchToMatch(data) : null;
+};
+
 export const findMatchesForImovel = async (imovel: Imovel): Promise<Match[]> => {
     const { data, error } = await supabase.rpc('create_matches_for_imovel', {
         p_imovel_id: imovel.ID_Imovel,
@@ -724,7 +743,7 @@ export const createParceriaFromMatch = async (match: Match, initiatorId: string)
         ID_Imovel: result.ID_Imovel,
         ID_Cliente: result.ID_Cliente,
         CorretorA_ID: result.CorretorA_ID,
-        CorretorB_ID: result.CorretorB_ID,
+        CorretorB_ID: result.CorretorB_B_ID,
         DataFechamento: result.DataFechamento,
         Status: result.Status,
     };

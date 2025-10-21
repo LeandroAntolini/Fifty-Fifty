@@ -55,7 +55,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
                 id: `follower-${follower.follower_id}`,
                 type: 'new_follower',
                 message: `${follower.follower_name} começou a te seguir!`,
-                link: `/followers`,
+                link: `/conexoes?tab=seguidores`, // CORRIGIDO: Aponta para a aba correta
                 timestamp: follower.created_at,
                 isRead: false,
                 followerId: follower.follower_id,

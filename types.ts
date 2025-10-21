@@ -91,6 +91,7 @@ export interface Match {
   Match_Timestamp: string;
   Status: MatchStatus;
   status_change_requester_id?: string;
+  is_super_match?: boolean; // Adicionado
 }
 
 export interface Message {

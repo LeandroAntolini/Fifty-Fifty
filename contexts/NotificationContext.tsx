@@ -70,10 +70,11 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
           const isUnreadMatch = (isImovelOwner && !match.viewed_by_corretor_imovel) || (!isImovelOwner && !match.viewed_by_corretor_cliente);
 
           if (isUnreadMatch) {
+            const matchType = match.is_super_match ? 'Super Match' : 'Novo Match';
             newGeneralNotifs.push({
               id: `match-${match.ID_Match}`,
               type: 'new_match',
-              message: `Novo match para seu ${isImovelOwner ? 'imóvel' : 'cliente'} com ${match.other_corretor_name}.`,
+              message: `${matchType} para seu ${isImovelOwner ? 'imóvel' : 'cliente'} com ${match.other_corretor_name}.`,
               link: `/matches`,
               timestamp: match.Match_Timestamp,
               isRead: false,

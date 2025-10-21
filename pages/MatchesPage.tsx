@@ -29,6 +29,7 @@ interface AugmentedMatch {
     cliente_bairro_desejado: string;
     imovel_detalhes_privados?: string;
     cliente_detalhes_privados?: string;
+    is_super_match: boolean; // Adicionado
 }
 
 const statusTextMap: { [key in MatchStatus]: string } = {
@@ -107,6 +108,7 @@ const MatchesPage: React.FC = () => {
 
     const filteredMatches = useMemo(() => {
         if (statusFilter === MatchStatus.Aberto) {
+            // Filtra por status ativo/pendente/chat direto e ordena por is_super_match (já feito no SQL)
             return matches.filter(match => match.Status === MatchStatus.Aberto || match.Status === MatchStatus.ReaberturaPendente || match.Status === MatchStatus.ChatDireto);
         }
         return matches.filter(match => match.Status === statusFilter);
@@ -148,14 +150,19 @@ const MatchesPage: React.FC = () => {
                     const isMyImovel = match.imovel_id_corretor === user?.corretorInfo.ID_Corretor;
                     const isChatActive = match.Status === MatchStatus.Aberto || match.Status === MatchStatus.ReaberturaPendente || match.Status === MatchStatus.ChatDireto;
                     const privateDetails = isMyImovel ? match.imovel_detalhes_privados : match.cliente_detalhes_privados;
+                    const matchTypeLabel = match.is_super_match ? 'Super Match' : 'Match';
+                    const matchTypeColor = match.is_super_match ? 'bg-secondary text-primary font-bold' : 'bg-gray-100 text-gray-600';
 
                     return (
-                        <div key={match.ID_Match} className="bg-white p-4 rounded-lg shadow">
+                        <div key={match.ID_Match} className={`bg-white p-4 rounded-lg shadow ${match.is_super_match ? 'border-2 border-secondary' : ''}`}>
                             <div className="flex justify-between items-start">
                                 <div>
+                                    <span className={`text-xs px-2 py-0.5 rounded-full ${matchTypeColor} mb-1 inline-block`}>
+                                        {match.Status === MatchStatus.ChatDireto ? 'Chat Direto' : matchTypeLabel}
+                                    </span>
                                     <p className="text-sm text-gray-500">
                                         {match.Status === MatchStatus.ChatDireto ? (
-                                            <>Chat Direto com {match.other_corretor_name}</>
+                                            <>Conversa com {match.other_corretor_name}</>
                                         ) : isMyImovel ? (
                                             <>
                                                 <span onClick={() => toggleDetails(match.ID_Match)} className="font-bold text-primary underline cursor-pointer">Seu imóvel</span> com cliente de {match.other_corretor_name}
@@ -168,7 +175,7 @@ const MatchesPage: React.FC = () => {
                                     </p>
                                     <h3 className="font-bold text-lg text-primary">
                                         {match.Status === MatchStatus.ChatDireto 
-                                            ? 'Conversa Privada' 
+                                            ? 'Oportunidade de Conexão' 
                                             : `${match.imovel_tipo} - ${match.imovel_bairro}`
                                         }
                                     </h3>

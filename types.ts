@@ -129,6 +129,12 @@ export interface Metric {
     Seguindo: number; // Adicionado
 }
 
+// New interface for image handling
+export interface ImageChanges {
+  newImagesBase64: string[];
+  imagesToDelete: string[];
+}
+
 // From AuthContext
 export interface User {
   id: string;

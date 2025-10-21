@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Imovel, Finalidade, ImovelStatus } from '../types';
+import { Imovel, Finalidade, ImovelStatus, ImageChanges } from '../types';
 import toast from 'react-hot-toast';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
@@ -13,11 +13,6 @@ import { brazilianStates, citiesByState } from '../src/utils/brazilianLocations'
 import { useAuth } from '../hooks/useAuth'; // Import useAuth
 
 type ImovelFormData = Omit<Imovel, 'ID_Imovel' | 'ID_Corretor' | 'Imagens' | 'CreatedAt'>;
-
-export interface ImageChanges {
-  newImagesBase64: string[];
-  imagesToDelete: string[];
-}
 
 interface AddImovelModalProps {
   isOpen: boolean;

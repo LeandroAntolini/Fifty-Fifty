@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Imovel, ImovelStatus } from '../types';
+import { Imovel, ImovelStatus, ImageChanges } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useUI } from '../contexts/UIContext';
 import * as api from '../services/api';
 import Spinner from '../components/Spinner';
-import AddImovelModal, { ImageChanges } from '../components/AddImovelModal';
+import AddImovelModal from '../components/AddImovelModal';
 import { Edit, Trash2, Search, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../src/integrations/supabase/client';

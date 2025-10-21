@@ -1,11 +1,6 @@
 import { supabase } from '../src/integrations/supabase/client';
-import { Imovel, ImovelStatus } from '../types';
+import { Imovel, ImovelStatus, ImageChanges } from '../types';
 import { base64ToFile } from './utils';
-
-export interface ImageChanges {
-  newImagesBase64?: string[];
-  imagesToDelete?: string[];
-}
 
 const mapSupabaseImovelToImovel = (imovel: any): Imovel => ({
     ID_Imovel: imovel.id,
@@ -108,6 +103,7 @@ export const updateImovel = async (
     imovelData: Partial<Omit<Imovel, 'ID_Imovel' | 'ID_Corretor' | 'CreatedAt'>>,
     imageChanges?: ImageChanges
 ): Promise<Imovel> => {
+    // Note: imageChanges is optional here, but the interface fields are required arrays.
     const { newImagesBase64 = [], imagesToDelete = [] } = imageChanges || {};
 
     // 1. Delete marked images from storage

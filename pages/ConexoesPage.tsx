@@ -137,6 +137,7 @@ const ConexoesPage: React.FC = () => {
             toast.success(`Você começou a seguir ${followerName} de volta!`);
             
             // Marcar a notificação como lida/notificada (para fins de pontuação)
+            // CORREÇÃO: O followerId é quem seguiu, user.id é quem foi seguido (followingId)
             await api.markFollowAsNotified(followerId, user.id);
             
             // Atualização otimista e refresh

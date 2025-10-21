@@ -28,6 +28,7 @@ const NotificationList: React.FC<NotificationListProps> = ({ onClose }) => {
         markAllNotificationsForMatchAsRead(notification.matchId!);
     } else if (notification.type === 'new_follower' && notification.followerId) {
         // 1. Marcar na API para que não apareça no próximo fetch
+        // CORREÇÃO: Passar o ID do usuário logado (user.id) como followingId
         api.markFollowAsNotified(notification.followerId, user.id).catch(err => console.error("Falha ao marcar follow como notificado", err));
         // 2. Marcar localmente para que o contador atualize imediatamente
         markNotificationAsReadLocally(notification.id);

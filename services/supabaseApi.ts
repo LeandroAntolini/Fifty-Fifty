@@ -504,11 +504,12 @@ export const getFollowingList = async (corretorId: string): Promise<Partial<Corr
 };
 
 export const getNewFollowers = async (followingId: string): Promise<{ follower_id: string, created_at: string, follower_name: string }[]> => {
+    // Filtra apenas os follows que ainda não foram notificados (notified_follower = false)
     const { data, error } = await supabase
         .from('followers')
-        .select('follower_id, created_at, corretor:follower_id(nome)')
+        .select('follower_id, created_at, notified_follower, corretor:follower_id(nome)')
         .eq('following_id', followingId)
-        .eq('notified_follower', false);
+        .eq('notified_follower', false); // Adicionado filtro
 
     if (error) {
         console.error('Error fetching new followers:', error);
@@ -572,7 +573,7 @@ export const getActiveMatchBetweenCorretores = async (corretorAId: string, corre
         .limit(1)
         .single();
 
-    if (error && error.code !== 'PGRST116') {
+    if (error && error.code !== 'PGRST116') { // PGRST116: No rows found
         console.error('Error fetching active match between corretores:', error);
         throw error;
     }
@@ -732,7 +733,7 @@ export const rejectReopenMatch = async (matchId: string): Promise<void> => {
 };
 
 
-// --- MESSAGES / CHAT ---
+// --- MESSAGES ---
 
 const mapSupabaseMessageToMessage = (msg: any): Message => ({
     ID_Message: msg.id,

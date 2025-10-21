@@ -28,7 +28,7 @@ const pageTitles: { [key: string]: string } = {
   '/profile/terms-of-service': 'Termos de Serviço',
   '/profile/update-password': 'Atualizar Senha',
   '/search-corretor': 'Buscar Corretor',
-  '/followers': 'Meus Seguidores', // Adicionado
+  '/followers': 'Meus Seguidores',
 };
 
 const MainLayout: React.FC = () => {
@@ -43,9 +43,15 @@ const MainLayout: React.FC = () => {
     '/profile/privacy-policy',
     '/profile/terms-of-service',
     '/profile/update-password',
-    '/followers', // Adicionado
   ];
-  const hasBackButton = profileSubPages.includes(location.pathname) || isSpecificChatPage || location.pathname === '/search-corretor';
+  
+  // Rotas que devem ter o botão de voltar, mas manter a barra inferior (se não for chat)
+  const routesWithBackButtonButKeepNav = ['/followers', '/search-corretor'];
+
+  const hasBackButton = profileSubPages.includes(location.pathname) || isSpecificChatPage || routesWithBackButtonButKeepNav.includes(location.pathname);
+  
+  // A barra inferior só deve ser oculta se for uma subpágina de perfil ou a página de chat
+  const hideBottomNav = profileSubPages.includes(location.pathname) || isSpecificChatPage;
   
   const getTitle = () => {
     const path = location.pathname;
@@ -67,7 +73,6 @@ const MainLayout: React.FC = () => {
   };
 
   const isModalOpen = isImovelModalOpen || isClienteModalOpen;
-  const hideBottomNav = hasBackButton;
 
   return (
     <div className="flex flex-col h-screen max-w-lg mx-auto bg-neutral-light">

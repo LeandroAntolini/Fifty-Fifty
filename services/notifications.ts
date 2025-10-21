@@ -54,7 +54,7 @@ export const markFollowAsNotified = async (followerId: string, followingId: stri
         .eq('following_id', followingId);
 
     if (error) {
-        console.error('Error marking follow as notified:', error);
+        console.error(`Error marking follow as notified for follower ${followerId} and following ${followingId}:`, error);
         throw error;
     }
 };

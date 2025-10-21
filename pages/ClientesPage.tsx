@@ -211,7 +211,6 @@ const ClientesPage: React.FC = () => {
         areFiltersActive={areFiltersActive}
         onClearFilters={clearFilters}
         placeholders={{
-          cidade: 'Cidade Desejada',
           bairro: 'Bairro Desejado',
         }}
         onAddClick={openClienteModal} // Passando a função para abrir o modal de cliente

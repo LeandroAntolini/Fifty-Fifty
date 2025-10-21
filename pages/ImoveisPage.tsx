@@ -284,7 +284,6 @@ const ImoveisPage: React.FC = () => {
         areFiltersActive={areFiltersActive}
         onClearFilters={clearFilters}
         placeholders={{
-          cidade: 'Cidade',
           bairro: 'Bairro',
         }}
         onAddClick={openImovelModal} // Passando a função para abrir o modal de imóvel

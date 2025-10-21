@@ -45,6 +45,8 @@ export const getNewFollowers = async (followingId: string): Promise<{ follower_i
 };
 
 export const markFollowAsNotified = async (followerId: string, followingId: string): Promise<void> => {
+    // A chave primária da tabela 'followers' é composta por (follower_id, following_id).
+    // Precisamos usar AMBOS os IDs para garantir que o registro correto seja atualizado.
     const { error } = await supabase
         .from('followers')
         .update({ notified_follower: true })

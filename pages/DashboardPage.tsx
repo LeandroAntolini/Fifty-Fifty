@@ -128,7 +128,7 @@ const DashboardPage: React.FC = () => {
             <p className="text-lg font-bold">{stats?.seguindo}</p>
             <p className="text-xs text-muted-foreground">Seguindo</p>
           </Link>
-          <Link to="/conexoes?tab=seguindo" className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
+          <Link to="/conexoes?tab=seguidores" className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
             <UserPlus className="mx-auto text-[#9dba8c]" size={20} />
             <p className="text-lg font-bold">{stats?.seguidores}</p>
             <p className="text-xs text-muted-foreground">Seguidores</p>

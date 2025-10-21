@@ -21,6 +21,7 @@ interface NotificationContextType {
   chatUnreadCount: number;
   fetchNotifications: () => void;
   markAllNotificationsForMatchAsRead: (matchId: string) => void;
+  markNotificationAsReadLocally: (notificationId: string) => void; // Nova função
   clearAllNotifications: () => void;
 }
 
@@ -216,6 +217,10 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     setGeneralNotifications(prev => prev.map(n => (n.matchId === matchId ? { ...n, isRead: true } : n)));
     setChatNotifications(prev => prev.map(n => (n.matchId === matchId ? { ...n, isRead: true } : n)));
   };
+  
+  const markNotificationAsReadLocally = (notificationId: string) => {
+    setGeneralNotifications(prev => prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n)));
+  };
 
   const clearAllNotifications = async () => {
     if (!user) return;
@@ -226,7 +231,6 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     const unreadChatMatchIds = new Set<string>(chatNotifications.filter(n => !n.isRead).map(n => n.matchId!));
     const unreadGeneralMatchIds = new Set<string>(generalNotifications.filter(n => !n.isRead && n.matchId).map(n => n.matchId!));
     
-    // Corrigido: Usar o followerId (quem seguiu) e o user.id (quem foi seguido)
     const unreadFollowerIds = generalNotifications.filter(n => !n.isRead && n.type === 'new_follower').map(n => n.followerId!);
 
     try {
@@ -247,7 +251,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
       if (unreadFollowerIds.length > 0) {
         await Promise.all(
             unreadFollowerIds.map(followerId =>
-                api.markFollowAsNotified(followerId, user.id) // followerId é quem seguiu, user.id é quem foi seguido
+                api.markFollowAsNotified(followerId, user.id)
             )
         );
       }
@@ -265,7 +269,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     <NotificationContext.Provider value={{ 
       generalNotifications, chatNotifications, 
       generalUnreadCount, chatUnreadCount, 
-      fetchNotifications, markAllNotificationsForMatchAsRead, clearAllNotifications 
+      fetchNotifications, markAllNotificationsForMatchAsRead, markNotificationAsReadLocally, clearAllNotifications 
     }}>
       {children}
     </NotificationContext.Provider>

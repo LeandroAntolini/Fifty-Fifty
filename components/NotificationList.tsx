@@ -12,7 +12,7 @@ interface NotificationListProps {
 }
 
 const NotificationList: React.FC<NotificationListProps> = ({ onClose }) => {
-  const { generalNotifications, markAllNotificationsForMatchAsRead, clearAllNotifications } = useNotifications();
+  const { generalNotifications, markAllNotificationsForMatchAsRead, markNotificationAsReadLocally, clearAllNotifications } = useNotifications();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -22,19 +22,15 @@ const NotificationList: React.FC<NotificationListProps> = ({ onClose }) => {
     // Mark as read/viewed based on type
     if (notification.type === 'new_match') {
         notification.matchId && api.markMatchAsViewed(notification.matchId, user.id).catch(err => console.error("Falha ao marcar match como visto", err));
+        markAllNotificationsForMatchAsRead(notification.matchId!);
     } else if (notification.type === 'match_update') {
         notification.matchId && api.markMatchStatusChangeAsViewed(notification.matchId, user.id).catch(err => console.error("Falha ao marcar status do match como visto", err));
+        markAllNotificationsForMatchAsRead(notification.matchId!);
     } else if (notification.type === 'new_follower' && notification.followerId) {
-        // Corrigido: followerId é quem seguiu, user.id é quem foi seguido (followingId)
+        // 1. Marcar na API para que não apareça no próximo fetch
         api.markFollowAsNotified(notification.followerId, user.id).catch(err => console.error("Falha ao marcar follow como notificado", err));
-    }
-
-    // Mark notification locally as read
-    if (notification.matchId) {
-        markAllNotificationsForMatchAsRead(notification.matchId);
-    } else {
-        // For follower notifications, we rely on the next fetch to remove it if marked as notified
-        // For now, we just close the list and navigate.
+        // 2. Marcar localmente para que o contador atualize imediatamente
+        markNotificationAsReadLocally(notification.id);
     }
 
     navigate(notification.link);

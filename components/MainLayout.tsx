@@ -28,7 +28,6 @@ const pageTitles: { [key: string]: string } = {
   '/profile/terms-of-service': 'Termos de Serviço',
   '/profile/update-password': 'Atualizar Senha',
   '/search-corretor': 'Buscar Corretor',
-  '/followers': 'Meus Seguidores',
 };
 
 const MainLayout: React.FC = () => {
@@ -46,7 +45,7 @@ const MainLayout: React.FC = () => {
   ];
   
   // Rotas que devem ter o botão de voltar, mas manter a barra inferior (se não for chat)
-  const routesWithBackButtonButKeepNav = ['/followers', '/search-corretor'];
+  const routesWithBackButtonButKeepNav = ['/search-corretor'];
 
   const hasBackButton = profileSubPages.includes(location.pathname) || isSpecificChatPage || routesWithBackButtonButKeepNav.includes(location.pathname);
   

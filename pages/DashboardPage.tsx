@@ -144,7 +144,7 @@ const DashboardPage: React.FC = () => {
           <Button onClick={handleAddCliente} className="w-full" variant="outline">
             <PlusCircle className="mr-2" size={18} /> Cliente
           </Button>
-          <Button onClick={handleSearchCorretor} className="w-full" variant="secondary">
+          <Button onClick={handleSearchCorretor} className="w-full" variant="outline">
             <Search className="mr-2" size={18} /> Buscar @..
           </Button>
         </CardContent>

@@ -125,6 +125,7 @@ export interface Metric {
     Taxa_Conversao: number;
     Score: number;
     Seguidores: number;
+    Seguindo: number; // Adicionado
 }
 
 // From AuthContext

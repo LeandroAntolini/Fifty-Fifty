@@ -91,7 +91,11 @@ const MetricasPage: React.FC = () => {
             if (sortCriteria === 'Score') {
                 return b.Score - a.Score;
             }
-            return b[sortCriteria] - a[sortCriteria];
+            // Garantir que a comparação seja numérica
+            const aValue = a[sortCriteria] as number;
+            const bValue = b[sortCriteria] as number;
+            
+            return bValue - aValue;
         });
     }, [metrics, sortCriteria]);
 
@@ -113,12 +117,13 @@ const MetricasPage: React.FC = () => {
 
     const sortOptions: { label: string; value: SortCriteria }[] = [
         { label: 'Score', value: 'Score' },
-        { label: 'Seguidores', value: 'Seguidores' },
         { label: 'Parcerias Concluídas', value: 'Parcerias_Concluidas' },
-        { label: 'Imóveis Adicionados', value: 'Imoveis_Adicionados' },
-        { label: 'Clientes Adicionados', value: 'Clientes_Adicionados' },
         { label: 'Matches Iniciados', value: 'Matches_Iniciados' },
         { label: 'Conversas Iniciadas', value: 'Conversas_Iniciadas' },
+        { label: 'Imóveis Adicionados', value: 'Imoveis_Adicionados' },
+        { label: 'Clientes Adicionados', value: 'Clientes_Adicionados' },
+        { label: 'Seguidores', value: 'Seguidores' },
+        { label: 'Seguindo', value: 'Seguindo' },
         { label: 'Taxa de Conversão', value: 'Taxa_Conversao' },
     ];
 
@@ -139,9 +144,9 @@ const MetricasPage: React.FC = () => {
                     <p>Score: <span className={`font-semibold ${sortCriteria === 'Score' ? 'text-primary' : ''}`}>{metric.Score}</span></p>
                     <p>Parcerias: <span className={`font-semibold ${sortCriteria === 'Parcerias_Concluidas' ? 'text-primary' : ''}`}>{metric.Parcerias_Concluidas}</span></p>
                     <p>Seguidores: <span className={`font-semibold ${sortCriteria === 'Seguidores' ? 'text-primary' : ''}`}>{metric.Seguidores}</span></p>
+                    <p>Seguindo: <span className={`font-semibold ${sortCriteria === 'Seguindo' ? 'text-primary' : ''}`}>{metric.Seguindo}</span></p>
                     <p>Imóveis: <span className={`font-semibold ${sortCriteria === 'Imoveis_Adicionados' ? 'text-primary' : ''}`}>{metric.Imoveis_Adicionados}</span></p>
                     <p>Clientes: <span className={`font-semibold ${sortCriteria === 'Clientes_Adicionados' ? 'text-primary' : ''}`}>{metric.Clientes_Adicionados}</span></p>
-                    <p>Matches: <span className={`font-semibold ${sortCriteria === 'Matches_Iniciados' ? 'text-primary' : ''}`}>{metric.Matches_Iniciados}</span></p>
                 </div>
             </div>
         );

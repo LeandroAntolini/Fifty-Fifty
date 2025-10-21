@@ -25,6 +25,7 @@ const NotificationList: React.FC<NotificationListProps> = ({ onClose }) => {
     } else if (notification.type === 'match_update') {
         notification.matchId && api.markMatchStatusChangeAsViewed(notification.matchId, user.id).catch(err => console.error("Falha ao marcar status do match como visto", err));
     } else if (notification.type === 'new_follower' && notification.followerId) {
+        // Corrigido: followerId é quem seguiu, user.id é quem foi seguido (followingId)
         api.markFollowAsNotified(notification.followerId, user.id).catch(err => console.error("Falha ao marcar follow como notificado", err));
     }
 

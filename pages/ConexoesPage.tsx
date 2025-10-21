@@ -4,7 +4,7 @@ import * as api from '../services/api';
 import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
 import { Button } from '../components/ui/Button';
-import { Corretor } from '../types';
+import { Corretor, MatchStatus } from '../types';
 import { User as UserIcon, Heart, MessageSquare } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../src/integrations/supabase/client';
@@ -153,13 +153,24 @@ const ConexoesPage: React.FC = () => {
         if (!user) return;
         setIsActionLoading(true);
         try {
-            const activeMatch = await api.getActiveMatchBetweenCorretores(user.id, otherCorretorId);
+            // 1. Tenta encontrar um Match ativo (aberto)
+            let activeMatch = await api.getActiveMatchBetweenCorretores(user.id, otherCorretorId);
             
             if (activeMatch) {
                 navigate(`/matches/${activeMatch.ID_Match}/chat`);
-            } else {
-                toast.error(`Não há um Match ativo com ${otherCorretorName}. Inicie um Match cadastrando um Imóvel ou Cliente.`);
+                return;
             }
+            
+            // 2. Se não houver Match ativo, tenta encontrar ou criar um Match de Chat Direto
+            try {
+                const directChatMatch = await api.getOrCreateDirectChatMatch(user.id, otherCorretorId);
+                navigate(`/matches/${directChatMatch.ID_Match}/chat`);
+            } catch (directChatError) {
+                // Se falhar ao criar o chat direto (ex: falta Imóvel/Cliente placeholder)
+                console.error("Failed to create direct chat match:", directChatError);
+                toast.error(`Não foi possível iniciar o chat. ${directChatError instanceof Error ? directChatError.message : 'Verifique se você tem pelo menos um Imóvel e um Cliente cadastrados.'}`);
+            }
+
         } catch (error) {
             console.error("Failed to find active match:", error);
             toast.error("Ocorreu um erro ao buscar o chat ativo.");

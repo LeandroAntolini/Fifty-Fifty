@@ -74,10 +74,11 @@ const AllChatsPage: React.FC = () => {
     const getStatusDisplay = (status: string | undefined) => {
         if (!status) return null;
         const statusMap: { [key: string]: { text: string; color: string } } = {
-            aberto: { text: 'Ativa', color: 'bg-blue-500' },
+            aberto: { text: 'Match Ativo', color: 'bg-blue-500' },
             convertido: { text: 'Concluída', color: 'bg-accent' },
             fechado: { text: 'Fechada', color: 'bg-gray-500' },
             reabertura_pendente: { text: 'Pendente', color: 'bg-yellow-500' },
+            chat_direto: { text: 'Chat Direto', color: 'bg-purple-500' }, // Novo status
         };
         const display = statusMap[status];
         if (!display) return null;
@@ -116,7 +117,12 @@ const AllChatsPage: React.FC = () => {
                                 <div className="flex justify-between items-center">
                                     <div className="flex-1 min-w-0">
                                         <p className="font-bold text-primary truncate">{chat.Other_Corretor_Name}</p>
-                                        <p className="text-sm text-gray-600 truncate">{chat.Imovel_Tipo} em {chat.Imovel_Bairro}</p>
+                                        <p className="text-sm text-gray-600 truncate">
+                                            {chat.Match_Status === 'chat_direto' 
+                                                ? 'Chat Direto' 
+                                                : `${chat.Imovel_Tipo} em ${chat.Imovel_Bairro}`
+                                            }
+                                        </p>
                                     </div>
                                     <div className="text-xs text-gray-400 ml-2 flex-shrink-0">
                                         {formatTimestamp(chat.Last_Message_Timestamp)}

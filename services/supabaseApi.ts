@@ -27,7 +27,6 @@ export interface PlatformStats {
     total_corretores: number;
     total_imoveis_ativos: number;
     total_clientes_ativos: number;
-    total_parcerias: number;
 }
 
 
@@ -220,6 +219,7 @@ export const deleteImovel = async (imovelId: string, imageUrls: string[] = []) =
                 .remove(filePaths);
             if (storageError) {
                 console.error('Error deleting imovel images:', storageError);
+                // Continue even if image deletion fails, to delete the record
             }
         }
     }
@@ -578,6 +578,78 @@ export const getActiveMatchBetweenCorretores = async (corretorAId: string, corre
     }
 
     return data ? mapSupabaseMatchToMatch(data) : null;
+};
+
+/**
+ * Busca um Match de Chat Direto existente ou cria um novo se não existir.
+ * Este Match não deve ser usado para pontuação.
+ */
+export const getOrCreateDirectChatMatch = async (corretorAId: string, corretorBId: string): Promise<Match> => {
+    // 1. Tenta encontrar um Match de Chat Direto existente
+    const { data: existingMatch, error: fetchError } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('status', MatchStatus.ChatDireto)
+        .or(`and(id_corretor_imovel.eq.${corretorAId},id_corretor_cliente.eq.${corretorBId}),and(id_corretor_imovel.eq.${corretorBId},id_corretor_cliente.eq.${corretorAId})`)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+    if (existingMatch) {
+        return mapSupabaseMatchToMatch(existingMatch);
+    }
+    
+    if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('Error fetching existing direct chat match:', fetchError);
+        throw fetchError;
+    }
+
+    // 2. Se não existir, cria um novo Match de Chat Direto
+    
+    // Para satisfazer a restrição NOT NULL, precisamos de IDs de Imóvel e Cliente.
+    // Usaremos o Imóvel e Cliente mais recentes do corretor A (o iniciador).
+    const { data: imovelPlaceholder, error: imovelError } = await supabase
+        .from('imoveis')
+        .select('id')
+        .eq('id_corretor', corretorAId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+    const { data: clientePlaceholder, error: clienteError } = await supabase
+        .from('clientes')
+        .select('id')
+        .eq('id_corretor', corretorAId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+    if (imovelError || !imovelPlaceholder || clienteError || !clientePlaceholder) {
+        throw new Error("Você precisa ter pelo menos um Imóvel e um Cliente cadastrados para iniciar um chat direto.");
+    }
+
+    const newMatchData = {
+        id_imovel: imovelPlaceholder.id,
+        id_cliente: clientePlaceholder.id,
+        id_corretor_imovel: corretorAId,
+        id_corretor_cliente: corretorBId,
+        status: MatchStatus.ChatDireto,
+        viewed_by_corretor_imovel: true,
+        viewed_by_corretor_cliente: true,
+    };
+
+    const { data: newMatch, error: insertError } = await supabase
+        .from('matches')
+        .insert(newMatchData)
+        .select()
+        .single();
+
+    if (insertError) {
+        console.error('Error creating direct chat match:', insertError);
+        throw insertError;
+    }
+
+    return mapSupabaseMatchToMatch(newMatch);
 };
 
 export const findMatchesForImovel = async (imovel: Imovel): Promise<Match[]> => {

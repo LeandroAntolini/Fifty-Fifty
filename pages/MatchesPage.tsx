@@ -36,6 +36,7 @@ const statusTextMap: { [key in MatchStatus]: string } = {
     [MatchStatus.Convertido]: 'Convertido',
     [MatchStatus.Fechado]: 'Fechado',
     [MatchStatus.ReaberturaPendente]: 'Pendente',
+    [MatchStatus.ChatDireto]: 'Chat Direto', // Adicionado o novo status
 };
 
 const MatchesPage: React.FC = () => {
@@ -106,7 +107,7 @@ const MatchesPage: React.FC = () => {
 
     const filteredMatches = useMemo(() => {
         if (statusFilter === MatchStatus.Aberto) {
-            return matches.filter(match => match.Status === MatchStatus.Aberto || match.Status === MatchStatus.ReaberturaPendente);
+            return matches.filter(match => match.Status === MatchStatus.Aberto || match.Status === MatchStatus.ReaberturaPendente || match.Status === MatchStatus.ChatDireto);
         }
         return matches.filter(match => match.Status === statusFilter);
     }, [matches, statusFilter]);
@@ -117,6 +118,7 @@ const MatchesPage: React.FC = () => {
             case MatchStatus.Convertido: return 'bg-accent';
             case MatchStatus.Fechado: return 'bg-gray-500';
             case MatchStatus.ReaberturaPendente: return 'bg-yellow-500';
+            case MatchStatus.ChatDireto: return 'bg-purple-500';
             default: return 'bg-gray-500';
         }
     };
@@ -132,7 +134,7 @@ const MatchesPage: React.FC = () => {
     return (
         <div className="space-y-4">
             <div className="flex justify-center space-x-2 mb-4 bg-white p-2 rounded-lg shadow">
-                <Button size="sm" variant={statusFilter === MatchStatus.Aberto ? 'default' : 'ghost'} onClick={() => setStatusFilter(MatchStatus.Aberto)}>Abertos</Button>
+                <Button size="sm" variant={statusFilter === MatchStatus.Aberto ? 'default' : 'ghost'} onClick={() => setStatusFilter(MatchStatus.Aberto)}>Ativos</Button>
                 <Button size="sm" variant={statusFilter === MatchStatus.Convertido ? 'default' : 'ghost'} onClick={() => setStatusFilter(MatchStatus.Convertido)}>Convertidos</Button>
                 <Button size="sm" variant={statusFilter === MatchStatus.Fechado ? 'default' : 'ghost'} onClick={() => setStatusFilter(MatchStatus.Fechado)}>Fechados</Button>
             </div>
@@ -144,7 +146,7 @@ const MatchesPage: React.FC = () => {
             ) : (
                 filteredMatches.map(match => {
                     const isMyImovel = match.imovel_id_corretor === user?.corretorInfo.ID_Corretor;
-                    const isChatActive = match.Status === MatchStatus.Aberto || match.Status === MatchStatus.ReaberturaPendente;
+                    const isChatActive = match.Status === MatchStatus.Aberto || match.Status === MatchStatus.ReaberturaPendente || match.Status === MatchStatus.ChatDireto;
                     const privateDetails = isMyImovel ? match.imovel_detalhes_privados : match.cliente_detalhes_privados;
 
                     return (
@@ -152,7 +154,9 @@ const MatchesPage: React.FC = () => {
                             <div className="flex justify-between items-start">
                                 <div>
                                     <p className="text-sm text-gray-500">
-                                        {isMyImovel ? (
+                                        {match.Status === MatchStatus.ChatDireto ? (
+                                            <>Chat Direto com {match.other_corretor_name}</>
+                                        ) : isMyImovel ? (
                                             <>
                                                 <span onClick={() => toggleDetails(match.ID_Match)} className="font-bold text-primary underline cursor-pointer">Seu imóvel</span> com cliente de {match.other_corretor_name}
                                             </>
@@ -162,7 +166,12 @@ const MatchesPage: React.FC = () => {
                                             </>
                                         )}
                                     </p>
-                                    <h3 className="font-bold text-lg text-primary">{match.imovel_tipo} - {match.imovel_bairro}</h3>
+                                    <h3 className="font-bold text-lg text-primary">
+                                        {match.Status === MatchStatus.ChatDireto 
+                                            ? 'Conversa Privada' 
+                                            : `${match.imovel_tipo} - ${match.imovel_bairro}`
+                                        }
+                                    </h3>
                                 </div>
                                 <span className={`text-xs font-bold px-2 py-1 rounded-full text-white capitalize ${getStatusColor(match.Status)}`}>{statusTextMap[match.Status]}</span>
                             </div>
@@ -176,11 +185,14 @@ const MatchesPage: React.FC = () => {
                                     </div>
                                 </div>
                             )}
-
-                            <div className="mt-2 text-sm text-neutral-dark space-y-1">
-                                <p><span className="font-semibold">Imóvel:</span> {match.imovel_dormitorios} dorms, {formatCurrency(match.imovel_valor)}</p>
-                                <p><span className="font-semibold">Cliente busca:</span> {match.cliente_bairro_desejado && `${match.cliente_bairro_desejado}, `}{match.cliente_dormitorios_minimos}+ dorms, até {formatCurrency(match.cliente_faixa_valor_max)}</p>
-                            </div>
+                            
+                            {match.Status !== MatchStatus.ChatDireto && (
+                                <div className="mt-2 text-sm text-neutral-dark space-y-1">
+                                    <p><span className="font-semibold">Imóvel:</span> {match.imovel_dormitorios} dorms, {formatCurrency(match.imovel_valor)}</p>
+                                    <p><span className="font-semibold">Cliente busca:</span> {match.cliente_bairro_desejado && `${match.cliente_bairro_desejado}, `}{match.cliente_dormitorios_minimos}+ dorms, até {formatCurrency(match.cliente_faixa_valor_max)}</p>
+                                </div>
+                            )}
+                            
                             <Link to={`/matches/${match.ID_Match}/chat`}>
                                 <Button variant="secondary" className="mt-4 w-full">
                                     {isChatActive ? (match.has_messages ? 'Continuar Chat' : 'Abrir Chat') : 'Ver Histórico'}

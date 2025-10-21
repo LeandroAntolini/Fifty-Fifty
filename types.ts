@@ -21,6 +21,7 @@ export enum MatchStatus {
   Convertido = 'convertido',
   Fechado = 'fechado',
   ReaberturaPendente = 'reabertura_pendente',
+  ChatDireto = 'chat_direto', // Novo status para chats iniciados fora do Matchmaking
 }
 
 export enum ReadStatus {

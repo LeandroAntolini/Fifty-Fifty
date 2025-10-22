@@ -73,21 +73,23 @@ export const getOrCreateDirectChatMatch = async (corretorAId: string, corretorBI
     let imovelId = null;
     let clienteId = null;
 
-    // Tenta buscar Imóvel do Corretor A
+    // Tenta buscar Imóvel ATIVO do Corretor A
     const { data: imovelA } = await supabase
         .from('imoveis')
         .select('id')
         .eq('id_corretor', corretorAId)
+        .eq('status', 'Ativo') // Garante que o placeholder é ativo
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
     if (imovelA) imovelId = imovelA.id;
 
-    // Tenta buscar Cliente do Corretor A
+    // Tenta buscar Cliente ATIVO do Corretor A
     const { data: clienteA } = await supabase
         .from('clientes')
         .select('id')
         .eq('id_corretor', corretorAId)
+        .eq('status', 'Ativo') // Garante que o placeholder é ativo
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
@@ -99,6 +101,7 @@ export const getOrCreateDirectChatMatch = async (corretorAId: string, corretorBI
             .from('imoveis')
             .select('id')
             .eq('id_corretor', corretorBId)
+            .eq('status', 'Ativo') // Garante que o placeholder é ativo
             .order('created_at', { ascending: false })
             .limit(1)
             .single();
@@ -110,6 +113,7 @@ export const getOrCreateDirectChatMatch = async (corretorAId: string, corretorBI
             .from('clientes')
             .select('id')
             .eq('id_corretor', corretorBId)
+            .eq('status', 'Ativo') // Garante que o placeholder é ativo
             .order('created_at', { ascending: false })
             .limit(1)
             .single();
@@ -118,7 +122,7 @@ export const getOrCreateDirectChatMatch = async (corretorAId: string, corretorBI
 
     // Se ainda não tivermos IDs, falha com a mensagem de erro
     if (!imovelId || !clienteId) {
-        throw new Error("Você precisa ter pelo menos um Imóvel e um Cliente cadastrados para iniciar um chat direto.");
+        throw new Error("Para iniciar um Chat Direto, você (ou o outro corretor) precisa ter pelo menos um Imóvel ATIVO e um Cliente ATIVO cadastrados na plataforma.");
     }
 
     // 3. Cria o novo Match de Chat Direto

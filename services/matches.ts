@@ -52,6 +52,7 @@ export const getOrCreateDirectChatMatch = async (corretorAId: string, corretorBI
         .from('matches')
         .select('*')
         .eq('status', MatchStatus.ChatDireto)
+        // A ordem dos IDs não importa para o chat direto, então verificamos ambas as combinações
         .or(`and(id_corretor_imovel.eq.${corretorAId},id_corretor_cliente.eq.${corretorBId}),and(id_corretor_imovel.eq.${corretorBId},id_corretor_cliente.eq.${corretorAId})`)
         .order('created_at', { ascending: false })
         .limit(1)
@@ -68,33 +69,64 @@ export const getOrCreateDirectChatMatch = async (corretorAId: string, corretorBI
 
     // 2. Se não existir, cria um novo Match de Chat Direto
     
-    // Para satisfazer a restrição NOT NULL, precisamos de IDs de Imóvel e Cliente.
-    // Usaremos o Imóvel e Cliente mais recentes do corretor A (o iniciador).
-    const { data: imovelPlaceholder, error: imovelError } = await supabase
+    // Tenta usar o Imóvel e Cliente mais recentes do corretor A (o iniciador)
+    let imovelId = null;
+    let clienteId = null;
+
+    // Tenta buscar Imóvel do Corretor A
+    const { data: imovelA } = await supabase
         .from('imoveis')
         .select('id')
         .eq('id_corretor', corretorAId)
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
+    if (imovelA) imovelId = imovelA.id;
 
-    const { data: clientePlaceholder, error: clienteError } = await supabase
+    // Tenta buscar Cliente do Corretor A
+    const { data: clienteA } = await supabase
         .from('clientes')
         .select('id')
         .eq('id_corretor', corretorAId)
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
+    if (clienteA) clienteId = clienteA.id;
 
-    if (imovelError || !imovelPlaceholder || clienteError || !clientePlaceholder) {
+    // Se o Corretor A não tiver, tenta buscar do Corretor B (o destinatário)
+    if (!imovelId) {
+        const { data: imovelB } = await supabase
+            .from('imoveis')
+            .select('id')
+            .eq('id_corretor', corretorBId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+        if (imovelB) imovelId = imovelB.id;
+    }
+
+    if (!clienteId) {
+        const { data: clienteB } = await supabase
+            .from('clientes')
+            .select('id')
+            .eq('id_corretor', corretorBId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+        if (clienteB) clienteId = clienteB.id;
+    }
+
+    // Se ainda não tivermos IDs, falha com a mensagem de erro
+    if (!imovelId || !clienteId) {
         throw new Error("Você precisa ter pelo menos um Imóvel e um Cliente cadastrados para iniciar um chat direto.");
     }
 
+    // 3. Cria o novo Match de Chat Direto
     const newMatchData = {
-        id_imovel: imovelPlaceholder.id,
-        id_cliente: clientePlaceholder.id,
-        id_corretor_imovel: corretorAId,
-        id_corretor_cliente: corretorBId,
+        id_imovel: imovelId, // Placeholder
+        id_cliente: clienteId, // Placeholder
+        id_corretor_imovel: corretorAId, // Corretor A é o iniciador (arbitrário)
+        id_corretor_cliente: corretorBId, // Corretor B é o destinatário (arbitrário)
         status: MatchStatus.ChatDireto,
         viewed_by_corretor_imovel: true,
         viewed_by_corretor_cliente: true,

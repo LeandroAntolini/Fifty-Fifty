@@ -6,16 +6,13 @@ import toast from 'react-hot-toast';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Corretor } from '../types';
-import { User as UserIcon, Search, MessageSquare } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { User as UserIcon, Search } from 'lucide-react';
 
 const SearchCorretorPage: React.FC = () => {
     const { user } = useAuth();
-    const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [results, setResults] = useState<Partial<Corretor>[]>([]);
     const [loading, setLoading] = useState(false);
-    const [isActionLoading, setIsActionLoading] = useState(false);
     const [followedStatus, setFollowedStatus] = useState<{ [key: string]: boolean }>({});
 
     const handleSearch = useCallback(async (term: string) => {
@@ -83,33 +80,6 @@ const SearchCorretorPage: React.FC = () => {
         }
     };
 
-    const handleChatClick = async (otherCorretorId: string, otherCorretorName: string) => {
-        if (!user || isActionLoading) return;
-        setIsActionLoading(true);
-        try {
-            let activeMatch = await api.getActiveMatchBetweenCorretores(user.id, otherCorretorId);
-            
-            if (activeMatch) {
-                navigate(`/matches/${activeMatch.ID_Match}/chat`);
-                return;
-            }
-            
-            try {
-                const directChatMatch = await api.getOrCreateDirectChatMatch(user.id, otherCorretorId);
-                navigate(`/matches/${directChatMatch.ID_Match}/chat`);
-            } catch (directChatError) {
-                console.error("Failed to create direct chat match:", directChatError);
-                toast.error(`Não foi possível iniciar o chat. ${directChatError instanceof Error ? directChatError.message : 'Verifique se você tem pelo menos um Imóvel e um Cliente cadastrados.'}`);
-            }
-
-        } catch (error) {
-            console.error("Failed to find active match:", error);
-            toast.error("Ocorreu um erro ao buscar o chat ativo.");
-        } finally {
-            setIsActionLoading(false);
-        }
-    };
-
     return (
         <div className="space-y-4">
             <div className="flex items-center space-x-2 bg-white p-3 rounded-lg shadow">
@@ -150,19 +120,14 @@ const SearchCorretorPage: React.FC = () => {
                                 <p className="text-xs text-muted-foreground">{corretor.Cidade} - {corretor.Estado}</p>
                             </div>
                         </div>
-                        <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
-                            <Button variant="secondary" size="sm" onClick={() => corretor.ID_Corretor && corretor.Nome && handleChatClick(corretor.ID_Corretor, corretor.Nome)} disabled={isActionLoading}>
-                                <MessageSquare size={16} className="mr-1" /> Chat
-                            </Button>
-                            <Button 
-                                size="sm" 
-                                variant={followedStatus[corretor.ID_Corretor!] ? 'outline' : 'default'} 
-                                onClick={() => handleFollowToggle(corretor)}
-                                disabled={loading || isActionLoading}
-                            >
-                                {followedStatus[corretor.ID_Corretor!] ? 'Seguindo' : 'Seguir'}
-                            </Button>
-                        </div>
+                        <Button 
+                            size="sm" 
+                            variant={followedStatus[corretor.ID_Corretor!] ? 'outline' : 'default'} 
+                            onClick={() => handleFollowToggle(corretor)}
+                            disabled={loading}
+                        >
+                            {followedStatus[corretor.ID_Corretor!] ? 'Seguindo' : 'Seguir'}
+                        </Button>
                     </div>
                 ))}
             </div>

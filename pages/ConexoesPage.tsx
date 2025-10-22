@@ -150,10 +150,8 @@ const ConexoesPage: React.FC = () => {
         }
     };
 
-    // Removendo a função handleChatClick, pois o botão de chat foi removido.
-    /*
     const handleChatClick = async (otherCorretorId: string, otherCorretorName: string) => {
-        if (!user) return;
+        if (!user || isActionLoading) return;
         setIsActionLoading(true);
         try {
             // 1. Tenta encontrar um Match ativo (aberto)
@@ -181,7 +179,6 @@ const ConexoesPage: React.FC = () => {
             setIsActionLoading(false);
         }
     };
-    */
 
     const renderParcerias = () => (
         <div className="space-y-4">
@@ -237,7 +234,9 @@ const ConexoesPage: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex space-x-2">
-                            {/* Botão Chat Removido */}
+                            <Button variant="secondary" size="sm" onClick={() => corretor.ID_Corretor && corretor.Nome && handleChatClick(corretor.ID_Corretor, corretor.Nome)} disabled={isActionLoading}>
+                                <MessageSquare size={16} className="mr-1" /> Chat
+                            </Button>
                             <Button variant="outline" size="sm" onClick={() => corretor.ID_Corretor && handleUnfollow(corretor.ID_Corretor)}>
                                 Deixar de Seguir
                             </Button>
@@ -272,7 +271,9 @@ const ConexoesPage: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex space-x-2">
-                            {/* Botão Chat Removido */}
+                            <Button variant="secondary" size="sm" onClick={() => handleChatClick(corretor.follower_id, corretor.nome)} disabled={isActionLoading}>
+                                <MessageSquare size={16} className="mr-1" /> Chat
+                            </Button>
                             {corretor.isFollowingBack ? (
                                 <Button variant="outline" size="sm" disabled>
                                     Seguindo

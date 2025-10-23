@@ -129,6 +129,65 @@ export interface Metric {
     Seguindo: number; // Adicionado
 }
 
+// --- RPC Return Types ---
+
+export interface AugmentedMatchResult {
+    ID_Match: string;
+    Status: MatchStatus;
+    Match_Timestamp: string;
+    imovel_tipo: string;
+    imovel_bairro: string;
+    imovel_valor: number;
+    imovel_dormitorios: number;
+    imovel_id_corretor: string;
+    cliente_dormitorios_minimos: number;
+    cliente_faixa_valor_max: number;
+    other_corretor_name: string;
+    viewed_by_corretor_imovel: boolean;
+    viewed_by_corretor_cliente: boolean;
+    status_change_requester_id: string | null;
+    has_messages: boolean;
+    status_change_viewed_by_imovel: boolean;
+    status_change_viewed_by_cliente: boolean;
+    cliente_bairro_desejado: string;
+    imovel_detalhes_privados?: string;
+    cliente_detalhes_privados?: string;
+    is_super_match: boolean;
+}
+
+export interface AugmentedParceriaResult {
+    ID_Parceria: string;
+    ID_Imovel: string;
+    ID_Cliente: string;
+    CorretorA_ID: string;
+    CorretorB_ID: string;
+    DataFechamento: string;
+    Status: string;
+    imovel_tipo: string;
+    imovel_bairro: string;
+    imovel_valor: number;
+    imovel_dormitorios: number;
+    cliente_tipo_imovel_desejado: string;
+    other_corretor_name: string;
+}
+
+export interface ChatResult {
+    ID_Match: string;
+    Other_Corretor_Name: string;
+    Imovel_Tipo: string;
+    Imovel_Bairro: string;
+    Last_Message_Text: string;
+    Last_Message_Timestamp: string;
+    Unread_Count: number;
+    Match_Status: string;
+}
+
+export interface FollowerResult {
+    follower_id: string;
+    created_at: string;
+    follower_name: string;
+}
+
 // New interface for image handling
 export interface ImageChanges {
   newImagesBase64: string[];

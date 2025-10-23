@@ -8,21 +8,11 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { supabase } from '../src/integrations/supabase/client';
 import { Button } from '../components/ui/Button';
-
-interface Chat {
-    ID_Match: string;
-    Other_Corretor_Name: string;
-    Imovel_Tipo: string;
-    Imovel_Bairro: string;
-    Last_Message_Text: string;
-    Last_Message_Timestamp: string;
-    Unread_Count: number;
-    Match_Status?: string;
-}
+import { ChatResult } from '../types';
 
 const AllChatsPage: React.FC = () => {
     const { user } = useAuth();
-    const [chats, setChats] = useState<Chat[]>([]);
+    const [chats, setChats] = useState<ChatResult[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'ativas' | 'arquivadas'>('ativas');
 

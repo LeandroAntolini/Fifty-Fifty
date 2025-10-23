@@ -8,6 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/Card
 import toast from 'react-hot-toast';
 import { Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../src/integrations/supabase/client';
+import { mapSupabaseError } from '../src/utils/supabaseErrors';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -22,11 +23,7 @@ const LoginPage: React.FC = () => {
     try {
       await login(email, password);
     } catch (err: any) {
-      if (err.message && err.message.includes('Email not confirmed')) {
-        toast.error('Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada (e spam) para o link de confirmação.', { duration: 6000 });
-      } else {
-        toast.error('Falha ao fazer login. Verifique suas credenciais.');
-      }
+      toast.error(mapSupabaseError(err));
     } finally {
       setLoading(false);
     }

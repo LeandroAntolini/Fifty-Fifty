@@ -1,7 +1,7 @@
 import { supabase } from '../src/integrations/supabase/client';
-import { Match, Parceria } from '../types';
+import { Match, Parceria, AugmentedParceriaResult } from '../types';
 
-export const getAugmentedParceriasByCorretor = async (corretorId: string) => {
+export const getAugmentedParceriasByCorretor = async (corretorId: string): Promise<AugmentedParceriaResult[]> => {
     const { data, error } = await supabase.rpc('get_augmented_parcerias_for_corretor', {
         p_corretor_id: corretorId,
     });
@@ -10,7 +10,7 @@ export const getAugmentedParceriasByCorretor = async (corretorId: string) => {
         console.error('Error fetching augmented parcerias:', error);
         throw error;
     }
-    return data;
+    return data as AugmentedParceriaResult[];
 };
 
 export const createParceriaFromMatch = async (match: Match, initiatorId: string): Promise<Parceria> => {
@@ -34,7 +34,7 @@ export const createParceriaFromMatch = async (match: Match, initiatorId: string)
         ID_Imovel: result.ID_Imovel,
         ID_Cliente: result.ID_Cliente,
         CorretorA_ID: result.CorretorA_ID,
-        CorretorB_ID: result.CorretorB_B_ID,
+        CorretorB_ID: result.CorretorB_ID, // Corrigido para usar CorretorB_ID
         DataFechamento: result.DataFechamento,
         Status: result.Status,
     };

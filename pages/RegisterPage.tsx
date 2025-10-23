@@ -7,9 +7,10 @@ import { Label } from '../components/ui/Label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/Card';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff } from 'lucide-react';
-import { toTitleCase } from '../src/utils/formatters';
+import { toTitleCase, formatPhoneNumber } from '../src/utils/formatters';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/Select';
 import { brazilianStates, citiesByState } from '../src/utils/brazilianLocations';
+import { mapSupabaseError } from '../src/utils/supabaseErrors';
 
 const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -34,11 +35,11 @@ const RegisterPage: React.FC = () => {
         const { name, value } = e.target;
         let finalValue = value;
 
-        if (name === 'Nome') {
+        if (name === 'Telefone') {
+            finalValue = formatPhoneNumber(value);
+        } else if (name === 'Nome') {
             finalValue = toTitleCase(value);
-        }
-        
-        if (name === 'username') {
+        } else if (name === 'username') {
             // Only allow alphanumeric characters and underscores, and convert to lowercase
             finalValue = value.toLowerCase().replace(/[^a-z0-9_]/g, '');
         }
@@ -84,12 +85,8 @@ const RegisterPage: React.FC = () => {
                 setRegistrationComplete(true);
             }
         } catch (err) {
-            const errorMessage = (err as Error).message;
-            if (errorMessage.includes('duplicate key value violates unique constraint')) {
-                 toast.error('Nome de usuário já está em uso. Por favor, escolha outro.');
-            } else {
-                 toast.error(errorMessage || 'Falha ao registrar. Tente novamente.');
-            }
+            const errorMessage = mapSupabaseError(err);
+            toast.error(errorMessage || 'Falha ao registrar. Tente novamente.');
         } finally {
             setLoading(false);
         }
@@ -192,7 +189,7 @@ const RegisterPage: React.FC = () => {
                         </div>
                         <div className="space-y-1.5">
                             <Label htmlFor="Telefone">Telefone / WhatsApp</Label>
-                            <Input id="Telefone" name="Telefone" value={formData.Telefone} placeholder="(XX) XXXXX-XXXX" onChange={handleChange} required />
+                            <Input id="Telefone" name="Telefone" value={formData.Telefone} placeholder="(XX) XXXXX-XXXX" onChange={handleChange} required maxLength={15} />
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                             <div className="space-y-1.5">

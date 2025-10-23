@@ -12,6 +12,7 @@ import ConfirmationModal from '../components/ConfirmationModal';
 import { Switch } from '../components/ui/Switch';
 import * as api from '../services/api';
 import { formatPhoneNumber, toTitleCase } from '../src/utils/formatters';
+import { mapSupabaseError } from '../src/utils/supabaseErrors';
 
 const ProfilePage: React.FC = () => {
     const { user, updateProfile, loading: authLoading, deleteAccount, logout } = useAuth();
@@ -109,12 +110,8 @@ const ProfilePage: React.FC = () => {
             toast.success('Perfil atualizado com sucesso!');
             setAvatarFile(null);
         } catch (err) {
-            const errorMessage = (err as Error).message;
-            if (errorMessage.includes('duplicate key value violates unique constraint')) {
-                 toast.error('Nome de usuário já está em uso. Por favor, escolha outro.');
-            } else {
-                 toast.error('Falha ao atualizar o perfil. Tente novamente.');
-            }
+            const errorMessage = mapSupabaseError(err);
+            toast.error(errorMessage || 'Falha ao atualizar o perfil. Tente novamente.');
             console.error(err);
         } finally {
             setLoading(false);

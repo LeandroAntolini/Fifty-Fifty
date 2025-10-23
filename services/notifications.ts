@@ -1,6 +1,7 @@
 import { supabase } from '../src/integrations/supabase/client';
+import { ChatResult, FollowerResult } from '../types';
 
-export const getActiveChatsByCorretor = async (corretorId: string) => {
+export const getActiveChatsByCorretor = async (corretorId: string): Promise<ChatResult[]> => {
     const { data, error } = await supabase.rpc('get_active_chats_for_corretor', {
         p_corretor_id: corretorId,
     });
@@ -9,10 +10,10 @@ export const getActiveChatsByCorretor = async (corretorId: string) => {
         console.error('Error fetching active chats:', error);
         throw error;
     }
-    return data;
+    return data as ChatResult[];
 };
 
-export const getArchivedChatsByCorretor = async (corretorId: string) => {
+export const getArchivedChatsByCorretor = async (corretorId: string): Promise<ChatResult[]> => {
     const { data, error } = await supabase.rpc('get_archived_chats_for_corretor', {
         p_corretor_id: corretorId,
     });
@@ -21,10 +22,10 @@ export const getArchivedChatsByCorretor = async (corretorId: string) => {
         console.error('Error fetching archived chats:', error);
         throw error;
     }
-    return data;
+    return data as ChatResult[];
 };
 
-export const getNewFollowers = async (followingId: string): Promise<{ follower_id: string, created_at: string, follower_name: string }[]> => {
+export const getNewFollowers = async (followingId: string): Promise<FollowerResult[]> => {
     // Filtra apenas os follows que ainda não foram notificados (notified_follower = false)
     const { data, error } = await supabase
         .from('followers')
@@ -41,7 +42,7 @@ export const getNewFollowers = async (followingId: string): Promise<{ follower_i
         follower_id: item.follower_id,
         created_at: item.created_at,
         follower_name: item.corretor.nome,
-    }));
+    })) as FollowerResult[];
 };
 
 export const markFollowAsNotified = async (followerId: string, followingId: string): Promise<void> => {
@@ -129,5 +130,5 @@ export const checkWhatsAppConfig = async (): Promise<{ isConfigured: boolean }> 
         // Assume not configured if there's an error to be safe
         return { isConfigured: false };
     }
-    return data;
+    return data as { isConfigured: boolean };
 };

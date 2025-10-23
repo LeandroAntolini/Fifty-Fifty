@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, ReactNode, useCallback, use
 import { useAuth } from '../hooks/useAuth';
 import * as api from '../services/api';
 import { supabase } from '../src/integrations/supabase/client';
+import { AugmentedMatchResult, ChatResult, FollowerResult } from '../types';
 
 export interface Notification {
   id: string;
@@ -50,7 +51,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
       // 1. Notificações de Novos Seguidores
       if (newFollowers) {
-        newFollowers.forEach(follower => {
+        (newFollowers as FollowerResult[]).forEach(follower => {
             newGeneralNotifs.push({
                 id: `follower-${follower.follower_id}`,
                 type: 'new_follower',
@@ -65,7 +66,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
       // 2. Notificações de Matches e Status
       if (matchesData) {
-        matchesData.forEach((match: any) => {
+        (matchesData as AugmentedMatchResult[]).forEach((match) => {
           const isImovelOwner = match.imovel_id_corretor === user.id;
           const isUnreadMatch = (isImovelOwner && !match.viewed_by_corretor_imovel) || (!isImovelOwner && !match.viewed_by_corretor_cliente);
 
@@ -125,7 +126,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
       // 3. Notificações de Chat
       if (chatsData) {
-        chatsData.forEach((chat: any) => {
+        (chatsData as ChatResult[]).forEach((chat) => {
           if (chat.Unread_Count > 0) {
             newChatNotifs.push({
               id: `chat-${chat.ID_Match}`,

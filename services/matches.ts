@@ -1,5 +1,5 @@
 import { supabase } from '../src/integrations/supabase/client';
-import { Match, MatchStatus, Imovel, Cliente } from '../types';
+import { Match, MatchStatus, Imovel, Cliente, AugmentedMatchResult } from '../types';
 
 const mapSupabaseMatchToMatch = (match: any): Match => ({
     ID_Match: match.id,
@@ -12,7 +12,7 @@ const mapSupabaseMatchToMatch = (match: any): Match => ({
     status_change_requester_id: match.status_change_requester_id,
 });
 
-export const getAugmentedMatchesByCorretor = async (corretorId: string) => {
+export const getAugmentedMatchesByCorretor = async (corretorId: string): Promise<AugmentedMatchResult[]> => {
     const { data, error } = await supabase.rpc('get_augmented_matches_for_corretor', {
         p_corretor_id: corretorId,
     });
@@ -21,7 +21,7 @@ export const getAugmentedMatchesByCorretor = async (corretorId: string) => {
         console.error('Error fetching augmented matches:', error);
         throw error;
     }
-    return data;
+    return data as AugmentedMatchResult[];
 };
 
 export const getActiveMatchBetweenCorretores = async (corretorAId: string, corretorBId: string): Promise<Match | null> => {

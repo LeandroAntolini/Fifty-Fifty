@@ -4,6 +4,7 @@ import { User, Corretor } from '../types';
 import { supabase } from '../src/integrations/supabase/client';
 import * as api from '../services/api';
 import toast from 'react-hot-toast';
+import { mapSupabaseError } from '../src/utils/supabaseErrors';
 
 interface RegisterResult {
   needsConfirmation: boolean;
@@ -59,13 +60,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
         console.error('Error fetching corretor profile:', error);
-        throw new Error("Ocorreu um erro ao carregar seu perfil.");
+        throw error;
       }
       
       await new Promise(resolve => setTimeout(resolve, 500));
     }
 
-    throw new Error("Seu perfil de corretor não foi encontrado. O cadastro pode não ter sido finalizado corretamente. Por favor, entre em contato com o suporte.");
+    throw new Error(mapSupabaseError({ code: 'PGRST116' }));
   };
 
   useEffect(() => {
@@ -82,7 +83,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setIsPasswordRecovery(false);
         }
       } catch (e) {
-        toast.error((e as Error).message);
+        toast.error(mapSupabaseError(e));
         await supabase.auth.signOut();
         setUser(null);
       }
@@ -112,7 +113,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (email: string, pass: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
-    if (error) throw error;
+    if (error) throw new Error(mapSupabaseError(error));
   };
 
   const register = async (formData: Omit<Corretor, 'ID_Corretor' | 'Email' | 'username'> & {Email: string, password: string, username: string}): Promise<RegisterResult> => {
@@ -131,7 +132,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         },
       },
     });
-    if (error) throw error;
+    if (error) throw new Error(mapSupabaseError(error));
     const needsConfirmation = !data.session;
     return { needsConfirmation };
   };
@@ -165,7 +166,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updatePassword = async (password: string) => {
     const { error } = await supabase.auth.updateUser({ password });
-    if (error) throw error;
+    if (error) throw new Error(mapSupabaseError(error));
     setIsPasswordRecovery(false);
     await supabase.auth.signOut();
     setUser(null);
@@ -173,7 +174,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updateUserPassword = async (password: string) => {
     const { error } = await supabase.auth.updateUser({ password });
-    if (error) throw error;
+    if (error) throw new Error(mapSupabaseError(error));
   };
 
   const deleteAccount = async () => {

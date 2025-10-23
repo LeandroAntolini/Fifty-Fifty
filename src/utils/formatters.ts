@@ -13,7 +13,13 @@ export const formatPhoneNumber = (value: string): string => {
     formatted = `(${limitedDigits.slice(0, 2)}) ${limitedDigits.slice(2)}`;
   }
   if (limitedDigits.length > 7) {
-    formatted = `(${limitedDigits.slice(0, 2)}) ${limitedDigits.slice(2, 7)}-${limitedDigits.slice(7)}`;
+    // Se for 9 dígitos após o DDD (celular)
+    if (limitedDigits.length === 11) {
+        formatted = `(${limitedDigits.slice(0, 2)}) ${limitedDigits.slice(2, 7)}-${limitedDigits.slice(7)}`;
+    } else {
+        // Se for 8 dígitos após o DDD (telefone fixo)
+        formatted = `(${limitedDigits.slice(0, 2)}) ${limitedDigits.slice(2, 6)}-${limitedDigits.slice(6)}`;
+    }
   }
 
   return formatted;

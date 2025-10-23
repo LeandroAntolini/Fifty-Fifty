@@ -5,32 +5,10 @@ import * as api from '../services/api';
 import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
 import { Button } from '../components/ui/Button';
-import { MatchStatus } from '../types';
+import { MatchStatus, AugmentedMatchResult } from '../types';
 import { supabase } from '../src/integrations/supabase/client';
 import { useNotifications } from '../contexts/NotificationContext';
 import { Lock } from 'lucide-react';
-
-interface AugmentedMatch {
-    ID_Match: string;
-    Status: MatchStatus;
-    Match_Timestamp: string;
-    imovel_tipo: string;
-    imovel_bairro: string;
-    imovel_valor: number;
-    imovel_dormitorios: number;
-    imovel_id_corretor: string;
-    cliente_dormitorios_minimos: number;
-    cliente_faixa_valor_max: number;
-    other_corretor_name: string;
-    viewed_by_corretor_imovel: boolean;
-    viewed_by_corretor_cliente: boolean;
-    status_change_requester_id: string | null;
-    has_messages: boolean;
-    cliente_bairro_desejado: string;
-    imovel_detalhes_privados?: string;
-    cliente_detalhes_privados?: string;
-    is_super_match: boolean; // Adicionado
-}
 
 const statusTextMap: { [key in MatchStatus]: string } = {
     [MatchStatus.Aberto]: 'Aberto',
@@ -43,7 +21,7 @@ const statusTextMap: { [key in MatchStatus]: string } = {
 const MatchesPage: React.FC = () => {
     const { user } = useAuth();
     const { fetchNotifications } = useNotifications();
-    const [matches, setMatches] = useState<AugmentedMatch[]>([]);
+    const [matches, setMatches] = useState<AugmentedMatchResult[]>([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<MatchStatus>(MatchStatus.Aberto);
     const [expandedMatchId, setExpandedMatchId] = useState<string | null>(null);
@@ -59,14 +37,14 @@ const MatchesPage: React.FC = () => {
             const matchesData = await api.getAugmentedMatchesByCorretor(user.corretorInfo.ID_Corretor);
             setMatches(matchesData || []);
 
-            const unviewedMatches = matchesData.filter((match: AugmentedMatch) => {
+            const unviewedMatches = matchesData.filter((match: AugmentedMatchResult) => {
                 const isMyImovel = match.imovel_id_corretor === user.corretorInfo.ID_Corretor;
                 return (isMyImovel && !match.viewed_by_corretor_imovel) || (!isMyImovel && !match.viewed_by_corretor_cliente);
             });
 
             if (unviewedMatches.length > 0) {
                 await Promise.all(
-                    unviewedMatches.map((match: AugmentedMatch) => api.markMatchAsViewed(match.ID_Match, user.id))
+                    unviewedMatches.map((match: AugmentedMatchResult) => api.markMatchAsViewed(match.ID_Match, user.id))
                 );
                 fetchNotifications();
             }

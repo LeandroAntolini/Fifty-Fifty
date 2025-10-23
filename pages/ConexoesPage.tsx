@@ -4,33 +4,17 @@ import * as api from '../services/api';
 import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
 import { Button } from '../components/ui/Button';
-import { Corretor, MatchStatus } from '../types';
-import { User as UserIcon, Heart, MessageSquare } from 'lucide-react';
+import { Corretor, AugmentedParceriaResult } from '../types';
+import { User as UserIcon, Heart } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../src/integrations/supabase/client';
 import { useNotifications } from '../contexts/NotificationContext';
 
-interface AugmentedParceria {
-    ID_Parceria: string;
-    DataFechamento: string;
-    Status: string;
-    imovel_tipo: string;
-    imovel_bairro: string;
-    imovel_valor: number;
-    imovel_dormitorios: number;
-    other_corretor_name: string;
-}
-
-interface Follower {
+interface Follower extends Partial<Corretor> {
     follower_id: string;
     follower_name: string;
     created_at: string;
     isFollowingBack: boolean;
-    nome: string;
-    cidade: string;
-    estado: string;
-    avatar_url: string;
-    username: string;
 }
 
 type ActiveTab = 'parcerias' | 'seguindo' | 'seguidores';
@@ -45,7 +29,7 @@ const ConexoesPage: React.FC = () => {
     const initialTab = (new URLSearchParams(location.search).get('tab') as ActiveTab) || 'parcerias';
     
     const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab);
-    const [parcerias, setParcerias] = useState<AugmentedParceria[]>([]);
+    const [parcerias, setParcerias] = useState<AugmentedParceriaResult[]>([]);
     const [seguindo, setSeguindo] = useState<Partial<Corretor>[]>([]);
     const [followers, setFollowers] = useState<Follower[]>([]);
     const [loading, setLoading] = useState(true);
@@ -75,7 +59,12 @@ const ConexoesPage: React.FC = () => {
                 follower_name: f.corretor.nome,
                 created_at: f.created_at,
                 isFollowingBack: followingIds.has(f.follower_id),
-                ...f.corretor, // Inclui outros detalhes do corretor
+                ID_Corretor: f.corretor.id,
+                Nome: f.corretor.nome,
+                Cidade: f.corretor.cidade,
+                Estado: f.corretor.estado,
+                avatar_url: f.corretor.avatar_url,
+                username: f.corretor.username,
             }));
 
             setFollowers(mappedFollowers);
@@ -150,39 +139,6 @@ const ConexoesPage: React.FC = () => {
         }
     };
 
-    // Removendo a função handleChatClick, pois o botão de chat foi removido.
-    /*
-    const handleChatClick = async (otherCorretorId: string, otherCorretorName: string) => {
-        if (!user) return;
-        setIsActionLoading(true);
-        try {
-            // 1. Tenta encontrar um Match ativo (aberto)
-            let activeMatch = await api.getActiveMatchBetweenCorretores(user.id, otherCorretorId);
-            
-            if (activeMatch) {
-                navigate(`/matches/${activeMatch.ID_Match}/chat`);
-                return;
-            }
-            
-            // 2. Se não houver Match ativo, tenta encontrar ou criar um Match de Chat Direto
-            try {
-                const directChatMatch = await api.getOrCreateDirectChatMatch(user.id, otherCorretorId);
-                navigate(`/matches/${directChatMatch.ID_Match}/chat`);
-            } catch (directChatError) {
-                // Se falhar ao criar o chat direto (ex: falta Imóvel/Cliente placeholder)
-                console.error("Failed to create direct chat match:", directChatError);
-                toast.error(`Não foi possível iniciar o chat. ${directChatError instanceof Error ? directChatError.message : 'Verifique se você tem pelo menos um Imóvel e um Cliente cadastrados.'}`);
-            }
-
-        } catch (error) {
-            console.error("Failed to find active match:", error);
-            toast.error("Ocorreu um erro ao buscar o chat ativo.");
-        } finally {
-            setIsActionLoading(false);
-        }
-    };
-    */
-
     const renderParcerias = () => (
         <div className="space-y-4">
             {parcerias.length === 0 ? (
@@ -237,7 +193,6 @@ const ConexoesPage: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex space-x-2">
-                            {/* Botão Chat Removido */}
                             <Button variant="outline" size="sm" onClick={() => corretor.ID_Corretor && handleUnfollow(corretor.ID_Corretor)}>
                                 Deixar de Seguir
                             </Button>
@@ -259,20 +214,19 @@ const ConexoesPage: React.FC = () => {
                     <div key={corretor.follower_id} className="bg-white p-4 rounded-lg shadow flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                             {corretor.avatar_url ? (
-                                <img src={corretor.avatar_url} alt={corretor.nome} className="w-12 h-12 rounded-full object-cover" />
+                                <img src={corretor.avatar_url} alt={corretor.Nome} className="w-12 h-12 rounded-full object-cover" />
                             ) : (
                                 <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
                                     <UserIcon className="w-6 h-6 text-gray-500" />
                                 </div>
                             )}
                             <div>
-                                <p className="font-bold text-primary">{corretor.nome}</p>
+                                <p className="font-bold text-primary">{corretor.Nome}</p>
                                 <p className="text-sm text-gray-500">@{corretor.username}</p>
-                                <p className="text-xs text-muted-foreground">{corretor.cidade} - {corretor.estado}</p>
+                                <p className="text-xs text-muted-foreground">{corretor.Cidade} - {corretor.Estado}</p>
                             </div>
                         </div>
                         <div className="flex space-x-2">
-                            {/* Botão Chat Removido */}
                             {corretor.isFollowingBack ? (
                                 <Button variant="outline" size="sm" disabled>
                                     Seguindo
@@ -280,7 +234,7 @@ const ConexoesPage: React.FC = () => {
                             ) : (
                                 <Button 
                                     size="sm" 
-                                    onClick={() => handleFollowBack(corretor.follower_id, corretor.nome)}
+                                    onClick={() => handleFollowBack(corretor.follower_id, corretor.Nome || 'Corretor')}
                                     disabled={isActionLoading}
                                 >
                                     <Heart size={16} className="mr-1" /> Seguir de Volta

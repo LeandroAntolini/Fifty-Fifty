@@ -19,16 +19,16 @@ export const getCorretorById = async (corretorId: string): Promise<Partial<Corre
     };
 };
 
-export const searchCorretoresByUsername = async (username: string, currentUserId: string): Promise<Partial<Corretor>[]> => {
+export const searchCorretores = async (searchTerm: string, currentUserId: string): Promise<Partial<Corretor>[]> => {
     const { data, error } = await supabase
         .from('corretores')
         .select('id, nome, creci, cidade, estado, avatar_url, username')
-        .ilike('username', `%${username}%`)
         .neq('id', currentUserId) // Exclude current user
+        .or(`username.ilike.%${searchTerm}%,nome.ilike.%${searchTerm}%`) // Search by username OR nome
         .limit(10);
 
     if (error) {
-        console.error('Error searching corretores by username:', error);
+        console.error('Error searching corretores:', error);
         throw error;
     }
     

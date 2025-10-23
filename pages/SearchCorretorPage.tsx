@@ -25,7 +25,7 @@ const SearchCorretorPage: React.FC = () => {
         }
         setLoading(true);
         try {
-            const searchResults = await api.searchCorretoresByUsername(term, user.id);
+            const searchResults = await api.searchCorretores(term, user.id);
             setResults(searchResults);
 
             // Check follow status for all results
@@ -104,7 +104,7 @@ const SearchCorretorPage: React.FC = () => {
                 <Search size={20} className="text-gray-500 flex-shrink-0" />
                 <Input
                     type="text"
-                    placeholder="Buscar corretor por @nome_de_usuario"
+                    placeholder="Buscar corretor por nome ou @usuário"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="border-none focus-visible:ring-0 h-8 p-0"
@@ -118,7 +118,7 @@ const SearchCorretorPage: React.FC = () => {
             )}
 
             {!loading && searchTerm.length >= 3 && results.length === 0 && (
-                <p className="text-center text-sm text-gray-500">Nenhum corretor encontrado com este nome de usuário.</p>
+                <p className="text-center text-sm text-gray-500">Nenhum corretor encontrado com este nome ou usuário.</p>
             )}
 
             <div className="space-y-2">

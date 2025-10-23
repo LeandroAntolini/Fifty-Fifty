@@ -4,7 +4,7 @@ import { useNotifications, Notification } from '../contexts/NotificationContext'
 import * as api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from './ui/Button';
-import { formatDistanceToNow } => 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface NotificationListProps {

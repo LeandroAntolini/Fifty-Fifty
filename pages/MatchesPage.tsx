@@ -39,12 +39,36 @@ const MatchesPage: React.FC = () => {
 
             const unviewedMatches = matchesData.filter((match: AugmentedMatchResult) => {
                 const isMyImovel = match.imovel_id_corretor === user.corretorInfo.ID_Corretor;
-                return (isMyImovel && !match.viewed_by_corretor_imovel) || (!isMyImovel && !match.viewed_by_corretor_cliente);
+                
+                // 1. Marcar novos matches como vistos
+                const isUnviewedMatch = (isMyImovel && !match.viewed_by_corretor_imovel) || (!isMyImovel && !match.viewed_by_corretor_cliente);
+                
+                // 2. Marcar mudanças de status como vistas (fechado/convertido/reabertura)
+                const isUnviewedStatusChange = (isMyImovel && !match.status_change_viewed_by_imovel) || (!isMyImovel && !match.status_change_viewed_by_cliente);
+                
+                return isUnviewedMatch || isUnviewedStatusChange;
             });
 
             if (unviewedMatches.length > 0) {
                 await Promise.all(
-                    unviewedMatches.map((match: AugmentedMatchResult) => api.markMatchAsViewed(match.ID_Match, user.id))
+                    unviewedMatches.map((match: AugmentedMatchResult) => {
+                        const promises: Promise<void>[] = [];
+                        
+                        // Se for um novo match não visto, marca como visto
+                        const isMyImovel = match.imovel_id_corretor === user.corretorInfo.ID_Corretor;
+                        const isUnviewedMatch = (isMyImovel && !match.viewed_by_corretor_imovel) || (!isMyImovel && !match.viewed_by_corretor_cliente);
+                        if (isUnviewedMatch) {
+                            promises.push(api.markMatchAsViewed(match.ID_Match, user.id));
+                        }
+
+                        // Se for uma mudança de status não vista, marca como vista
+                        const isUnviewedStatusChange = (isMyImovel && !match.status_change_viewed_by_imovel) || (!isMyImovel && !match.status_change_viewed_by_cliente);
+                        if (isUnviewedStatusChange) {
+                            promises.push(api.markMatchStatusChangeAsViewed(match.ID_Match, user.id));
+                        }
+
+                        return Promise.all(promises);
+                    })
                 );
                 fetchNotifications();
             }

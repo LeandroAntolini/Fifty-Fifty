@@ -152,17 +152,18 @@ const ImoveisPage: React.FC = () => {
     }
 
     const filtered = sourceList.filter(imovel => {
-      const valorMin = parseFloat(filters.valorMin);
-      const valorMax = parseFloat(filters.valorMax);
-      const dormitorios = parseInt(filters.dormitorios, 10);
+      // Conversão segura de filtros numéricos
+      const valorMin = parseFloat(filters.valorMin.replace(',', '.')) || 0;
+      const valorMax = parseFloat(filters.valorMax.replace(',', '.')) || Infinity;
+      const dormitorios = parseInt(filters.dormitorios, 10) || 0;
 
       return (
         (filters.cidade === '' || imovel.Cidade.toLowerCase().includes(filters.cidade.toLowerCase())) &&
         (filters.bairro === '' || imovel.Bairro.toLowerCase().includes(filters.bairro.toLowerCase())) &&
         (filters.estado === '' || (imovel.Estado && imovel.Estado.toLowerCase().includes(filters.estado.toLowerCase()))) &&
-        (isNaN(valorMin) || imovel.Valor >= valorMin) &&
-        (isNaN(valorMax) || imovel.Valor <= valorMax) &&
-        (isNaN(dormitorios) || imovel.Dormitorios >= dormitorios)
+        (imovel.Valor >= valorMin) &&
+        (imovel.Valor <= valorMax) &&
+        (imovel.Dormitorios >= dormitorios)
       );
     });
 

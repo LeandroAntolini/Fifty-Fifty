@@ -91,11 +91,20 @@ const ClientesPage: React.FC = () => {
     }
 
     const filtered = sourceList.filter(cliente => {
-      const valorMin = parseFloat(filters.valorMin);
-      const valorMax = parseFloat(filters.valorMax);
-      const dormitorios = parseInt(filters.dormitorios, 10);
-      const valorOverlap = (isNaN(valorMin) || cliente.FaixaValorMax >= valorMin) && (isNaN(valorMax) || cliente.FaixaValorMin <= valorMax);
-      return ((filters.cidade === '' || cliente.CidadeDesejada.toLowerCase().includes(filters.cidade.toLowerCase())) && (filters.bairro === '' || cliente.BairroRegiaoDesejada.toLowerCase().includes(filters.bairro.toLowerCase())) && (filters.estado === '' || (cliente.EstadoDesejado && cliente.EstadoDesejado.toLowerCase().includes(filters.estado.toLowerCase()))) && valorOverlap && (isNaN(dormitorios) || cliente.DormitoriosMinimos >= dormitorios));
+      // Conversão segura de filtros numéricos
+      const valorMin = parseFloat(filters.valorMin.replace(',', '.')) || 0;
+      const valorMax = parseFloat(filters.valorMax.replace(',', '.')) || Infinity;
+      const dormitorios = parseInt(filters.dormitorios, 10) || 0;
+      
+      const valorOverlap = (cliente.FaixaValorMax >= valorMin) && (cliente.FaixaValorMin <= valorMax);
+      
+      return (
+        (filters.cidade === '' || cliente.CidadeDesejada.toLowerCase().includes(filters.cidade.toLowerCase())) && 
+        (filters.bairro === '' || cliente.BairroRegiaoDesejada.toLowerCase().includes(filters.bairro.toLowerCase())) && 
+        (filters.estado === '' || (cliente.EstadoDesejado && cliente.EstadoDesejado.toLowerCase().includes(filters.estado.toLowerCase()))) && 
+        valorOverlap && 
+        (cliente.DormitoriosMinimos >= dormitorios)
+      );
     });
 
     if (sortCriteria === 'archived') return filtered;

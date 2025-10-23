@@ -21,7 +21,7 @@ type ActiveTab = 'parcerias' | 'seguindo' | 'seguidores';
 
 const ConexoesPage: React.FC = () => {
     const { user } = useAuth();
-    const { fetchNotifications } = useNotifications();
+    const { fetchNotifications, generalNotifications } = useNotifications();
     const location = useLocation();
     const navigate = useNavigate();
     
@@ -81,6 +81,20 @@ const ConexoesPage: React.FC = () => {
             if (currentTab === 'parcerias') {
                 const augmentedData = await api.getAugmentedParceriasByCorretor(user.id);
                 setParcerias(augmentedData || []);
+                
+                // Marcar notificações de status 'convertido' como vistas ao entrar na aba Parcerias
+                const convertedMatchIds = generalNotifications
+                    .filter(n => n.type === 'match_update' && n.message.includes('concluída com sucesso'))
+                    .map(n => n.matchId)
+                    .filter((id): id is string => !!id);
+                
+                if (convertedMatchIds.length > 0) {
+                    await Promise.all(convertedMatchIds.map(matchId => 
+                        api.markMatchStatusChangeAsViewed(matchId, user.id)
+                    ));
+                    fetchNotifications();
+                }
+
             } else if (currentTab === 'seguindo') {
                 const followingData = await api.getFollowingList(user.id);
                 setSeguindo(followingData || []);
@@ -93,7 +107,7 @@ const ConexoesPage: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [user, fetchFollowers]);
+    }, [user, fetchFollowers, generalNotifications, fetchNotifications]);
 
     useEffect(() => {
         // Quando o componente monta ou o location.search muda (navegação externa), atualiza a aba

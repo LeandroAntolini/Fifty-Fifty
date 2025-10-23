@@ -100,6 +100,18 @@ const ConexoesPage: React.FC = () => {
                 setSeguindo(followingData || []);
             } else if (currentTab === 'seguidores') {
                 await fetchFollowers(user.id);
+                
+                // Marcar notificações de novos seguidores como vistas
+                const unnotifiedFollowers = generalNotifications
+                    .filter(n => n.type === 'new_follower' && !n.isRead && n.followerId)
+                    .map(n => n.followerId!);
+                
+                if (unnotifiedFollowers.length > 0) {
+                    await Promise.all(unnotifiedFollowers.map(followerId => 
+                        api.markFollowAsNotified(followerId, user.id)
+                    ));
+                    fetchNotifications(); // Atualiza o contador
+                }
             }
         } catch (error) {
             console.error(`Failed to fetch ${currentTab}`, error);

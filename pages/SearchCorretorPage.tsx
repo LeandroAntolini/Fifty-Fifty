@@ -6,14 +6,17 @@ import toast from 'react-hot-toast';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Corretor } from '../types';
-import { User as UserIcon, Search } from 'lucide-react';
+import { User as UserIcon, Search, MessageSquare } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const SearchCorretorPage: React.FC = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [results, setResults] = useState<Partial<Corretor>[]>([]);
     const [loading, setLoading] = useState(false);
     const [followedStatus, setFollowedStatus] = useState<{ [key: string]: boolean }>({});
+    const [isChatLoading, setIsChatLoading] = useState<string | null>(null);
 
     const handleSearch = useCallback(async (term: string) => {
         if (!user || term.length < 3) {
@@ -79,6 +82,21 @@ const SearchCorretorPage: React.FC = () => {
             setFollowedStatus(prev => ({ ...prev, [corretor.ID_Corretor!]: isCurrentlyFollowing }));
         }
     };
+    
+    const handleStartDirectChat = async (corretor: Partial<Corretor>) => {
+        if (!user || !corretor.ID_Corretor) return;
+        setIsChatLoading(corretor.ID_Corretor);
+        try {
+            const match = await api.getOrCreateDirectChatMatch(user.id, corretor.ID_Corretor);
+            toast.success(`Chat direto com ${corretor.Nome} iniciado!`);
+            navigate(`/matches/${match.ID_Match}/chat`);
+        } catch (error) {
+            console.error("Failed to start direct chat", error);
+            toast.error((error as Error).message || "Falha ao iniciar chat direto. Verifique se você tem pelo menos um imóvel e um cliente cadastrados.");
+        } finally {
+            setIsChatLoading(null);
+        }
+    };
 
     return (
         <div className="space-y-4">
@@ -120,14 +138,24 @@ const SearchCorretorPage: React.FC = () => {
                                 <p className="text-xs text-muted-foreground">{corretor.Cidade} - {corretor.Estado}</p>
                             </div>
                         </div>
-                        <Button 
-                            size="sm" 
-                            variant={followedStatus[corretor.ID_Corretor!] ? 'outline' : 'default'} 
-                            onClick={() => handleFollowToggle(corretor)}
-                            disabled={loading}
-                        >
-                            {followedStatus[corretor.ID_Corretor!] ? 'Seguindo' : 'Seguir'}
-                        </Button>
+                        <div className="flex space-x-2 flex-shrink-0">
+                            <Button 
+                                size="sm" 
+                                variant="secondary"
+                                onClick={() => handleStartDirectChat(corretor)}
+                                disabled={isChatLoading === corretor.ID_Corretor}
+                            >
+                                {isChatLoading === corretor.ID_Corretor ? <Spinner size="sm" /> : <MessageSquare size={16} />}
+                            </Button>
+                            <Button 
+                                size="sm" 
+                                variant={followedStatus[corretor.ID_Corretor!] ? 'outline' : 'default'} 
+                                onClick={() => handleFollowToggle(corretor)}
+                                disabled={loading}
+                            >
+                                {followedStatus[corretor.ID_Corretor!] ? 'Seguindo' : 'Seguir'}
+                            </Button>
+                        </div>
                     </div>
                 ))}
             </div>

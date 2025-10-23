@@ -30,7 +30,7 @@ const ChatNotificationList: React.FC<ChatNotificationListProps> = ({ onClose }) 
   });
 
   return (
-    <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border z-30">
+    <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border z-50">
       <div className="p-3 border-b flex justify-between items-center">
         <h3 className="font-semibold text-primary">Conversas</h3>
         {chatNotifications.length > 0 && (

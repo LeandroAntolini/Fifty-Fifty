@@ -4,7 +4,7 @@ import { useNotifications, Notification } from '../contexts/NotificationContext'
 import * as api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from './ui/Button';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } => 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface NotificationListProps {
@@ -44,7 +44,7 @@ const NotificationList: React.FC<NotificationListProps> = ({ onClose }) => {
   });
 
   return (
-    <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border z-30">
+    <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border z-50">
       <div className="p-3 border-b flex justify-between items-center">
         <h3 className="font-semibold text-primary">Notificações</h3>
         {generalNotifications.length > 0 && (

@@ -75,7 +75,7 @@ const MainLayout: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen max-w-lg mx-auto bg-neutral-light">
-      <header className="bg-white text-neutral-dark p-4 flex items-center justify-between shadow-md sticky top-0 z-10 border-b">
+      <header className="bg-white text-neutral-dark p-4 flex items-center justify-between shadow-md sticky top-0 z-20 border-b">
         <div className="flex-1 flex justify-start">
           {hasBackButton ? (
             <button onClick={() => navigate(-1)} className="text-neutral-dark p-1 -ml-1">

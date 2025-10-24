@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import * as api from '../services/api';
+import * as api from '../../services/api';
 import Spinner from '../../components/Spinner';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Users, Building, Briefcase, Award } from 'lucide-react';

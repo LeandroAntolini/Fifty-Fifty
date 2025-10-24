@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import { useUI } from '../contexts/UIContext';
+import { useAuth } from '../../hooks/useAuth';
+import { useUI } from '../../contexts/UIContext';
 import * as api from '../services/api';
 import { Link, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import Spinner from '../components/Spinner';
-import { ImovelStatus, ClienteStatus, MatchStatus } from '../types';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
+import Spinner from '../../components/Spinner';
+import { ImovelStatus, ClienteStatus, MatchStatus } from '../../types';
 import { Home, User, ThumbsUp, Handshake, PlusCircle, Users, Building, Briefcase, Award, Heart, UserPlus, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 

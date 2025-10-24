@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { useUI } from '../contexts/UIContext';
+import { useAuth } from '../../hooks/useAuth';
+import { useUI } from '../../contexts/UIContext';
 import {
   LayoutDashboard,
   Home,
@@ -12,8 +12,8 @@ import {
   User,
   BarChart2,
 } from 'lucide-react';
-import NotificationBell from './NotificationBell';
-import ChatNotificationBell from './ChatNotificationBell';
+import NotificationBell from '../../components/NotificationBell';
+import ChatNotificationBell from '../../components/ChatNotificationBell';
 
 const pageTitles: { [key: string]: string } = {
   '/dashboard': 'Início',

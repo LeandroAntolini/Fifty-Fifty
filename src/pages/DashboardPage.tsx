@@ -3,11 +3,11 @@ import { useAuth } from '../../hooks/useAuth';
 import { useUI } from '../../contexts/UIContext';
 import * as api from '../../services/api';
 import { Link, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import Spinner from '../../components/Spinner';
 import { ImovelStatus, ClienteStatus, MatchStatus } from '../../types';
-import { Home, User, ThumbsUp, Handshake, PlusCircle, Users, Building, Briefcase, Award, Heart, UserPlus, Search } from 'lucide-react';
+import { Home, User, ThumbsUp, Handshake, PlusCircle, Users, Building, Briefcase, Award, Heart, UserPlus, Search, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface DashboardStats {
@@ -158,46 +158,48 @@ const DashboardPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      <div className="relative"> {/* Adiciona relative ao container do card */}
-        <Link to="/platform-stats" className="absolute inset-0 block cursor-pointer z-10" aria-label="Ver Estatísticas da Plataforma">
-          {/* O Link agora cobre toda a área do card */}
-        </Link>
-        <Card>
-          <CardHeader className="p-3 pb-1">
-            <CardTitle className="text-base font-semibold">Estatísticas da Plataforma</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 pt-1 grid grid-cols-2 gap-2 text-center">
-            {loadingPlatformStats || !platformStats ? (
-              <div className="col-span-2 flex justify-center items-center h-24">
-                <Spinner />
+      <Card>
+        <CardHeader className="p-3 pb-1">
+          <CardTitle className="text-base font-semibold">Estatísticas da Plataforma</CardTitle>
+        </CardHeader>
+        <CardContent className="p-3 pt-1 grid grid-cols-2 gap-2 text-center">
+          {loadingPlatformStats || !platformStats ? (
+            <div className="col-span-2 flex justify-center items-center h-24">
+              <Spinner />
+            </div>
+          ) : (
+            <>
+              <div className="p-1 rounded-lg bg-neutral-light">
+                <Users className="mx-auto text-secondary" size={20} />
+                <p className="text-lg font-bold">{platformStats.total_corretores}</p>
+                <p className="text-xs text-muted-foreground">Corretores</p>
               </div>
-            ) : (
-              <>
-                <div className="p-1 rounded-lg bg-neutral-light">
-                  <Users className="mx-auto text-secondary" size={20} />
-                  <p className="text-lg font-bold">{platformStats.total_corretores}</p>
-                  <p className="text-xs text-muted-foreground">Corretores</p>
-                </div>
-                <div className="p-1 rounded-lg bg-neutral-light">
-                  <Building className="mx-auto text-secondary" size={20} />
-                  <p className="text-lg font-bold">{platformStats.total_imoveis_ativos}</p>
-                  <p className="text-xs text-muted-foreground">Imóveis Ativos</p>
-                </div>
-                <div className="p-1 rounded-lg bg-neutral-light">
-                  <Briefcase className="mx-auto text-secondary" size={20} />
-                  <p className="text-lg font-bold">{platformStats.total_clientes_ativos}</p>
-                  <p className="text-xs text-muted-foreground">Clientes Ativos</p>
-                </div>
-                <div className="p-1 rounded-lg bg-neutral-light">
-                  <Award className="mx-auto text-secondary" size={20} />
-                  <p className="text-lg font-bold">{platformStats.total_parcerias}</p>
-                  <p className="text-xs text-muted-foreground">Parcerias</p>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              <div className="p-1 rounded-lg bg-neutral-light">
+                <Building className="mx-auto text-secondary" size={20} />
+                <p className="text-lg font-bold">{platformStats.total_imoveis_ativos}</p>
+                <p className="text-xs text-muted-foreground">Imóveis Ativos</p>
+              </div>
+              <div className="p-1 rounded-lg bg-neutral-light">
+                <Briefcase className="mx-auto text-secondary" size={20} />
+                <p className="text-lg font-bold">{platformStats.total_clientes_ativos}</p>
+                <p className="text-xs text-muted-foreground">Clientes Ativos</p>
+              </div>
+              <div className="p-1 rounded-lg bg-neutral-light">
+                <Award className="mx-auto text-secondary" size={20} />
+                <p className="text-lg font-bold">{platformStats.total_parcerias}</p>
+                <p className="text-xs text-muted-foreground">Parcerias</p>
+              </div>
+            </>
+          )}
+        </CardContent>
+        <CardFooter className="p-3 pt-0">
+            <Link to="/platform-stats" className="w-full">
+                <Button variant="outline" className="w-full">
+                    Ver Detalhes <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+            </Link>
+        </CardFooter>
+      </Card>
     </div>
   );
 };

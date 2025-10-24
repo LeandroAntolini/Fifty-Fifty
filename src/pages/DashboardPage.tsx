@@ -158,7 +158,10 @@ const DashboardPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      <Link to="/platform-stats" className="block hover:opacity-90 transition-opacity">
+      <div className="relative"> {/* Adiciona relative ao container do card */}
+        <Link to="/platform-stats" className="absolute inset-0 block cursor-pointer z-10" aria-label="Ver Estatísticas da Plataforma">
+          {/* O Link agora cobre toda a área do card */}
+        </Link>
         <Card>
           <CardHeader className="p-3 pb-1">
             <CardTitle className="text-base font-semibold">Estatísticas da Plataforma</CardTitle>
@@ -194,7 +197,7 @@ const DashboardPage: React.FC = () => {
             )}
           </CardContent>
         </Card>
-      </Link>
+      </div>
     </div>
   );
 };

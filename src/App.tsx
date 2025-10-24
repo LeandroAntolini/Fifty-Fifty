@@ -24,7 +24,7 @@ import PrivacyPolicyPage from '../pages/PrivacyPolicyPage';
 import TermsOfServicePage from '../pages/TermsOfServicePage';
 import ScrollToTop from '../components/ScrollToTop';
 import SearchCorretorPage from '../pages/SearchCorretorPage';
-import PlatformStatsPage from '../pages/PlatformStatsPage';
+import PlatformStatsPage from './pages/PlatformStatsPage'; // Caminho corrigido
 
 const AppContent: React.FC = () => {
   const { isPasswordRecovery } = useAuth();

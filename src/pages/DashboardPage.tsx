@@ -3,11 +3,11 @@ import { useAuth } from '../../hooks/useAuth';
 import { useUI } from '../../contexts/UIContext';
 import * as api from '../../services/api';
 import { Link, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../../components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import Spinner from '../../components/Spinner';
 import { ImovelStatus, ClienteStatus, MatchStatus } from '../../types';
-import { Home, User, ThumbsUp, Handshake, PlusCircle, Users, Building, Briefcase, Award, Heart, UserPlus, Search, ArrowRight } from 'lucide-react';
+import { Home, User, ThumbsUp, Handshake, PlusCircle, Users, Building, Briefcase, Award, Heart, UserPlus, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface DashboardStats {
@@ -169,36 +169,29 @@ const DashboardPage: React.FC = () => {
             </div>
           ) : (
             <>
-              <div className="p-1 rounded-lg bg-neutral-light">
+              <Link to="/platform-stats" className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
                 <Users className="mx-auto text-secondary" size={20} />
                 <p className="text-lg font-bold">{platformStats.total_corretores}</p>
                 <p className="text-xs text-muted-foreground">Corretores</p>
-              </div>
-              <div className="p-1 rounded-lg bg-neutral-light">
+              </Link>
+              <Link to="/platform-stats" className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
                 <Building className="mx-auto text-secondary" size={20} />
                 <p className="text-lg font-bold">{platformStats.total_imoveis_ativos}</p>
                 <p className="text-xs text-muted-foreground">Imóveis Ativos</p>
-              </div>
-              <div className="p-1 rounded-lg bg-neutral-light">
+              </Link>
+              <Link to="/platform-stats" className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
                 <Briefcase className="mx-auto text-secondary" size={20} />
                 <p className="text-lg font-bold">{platformStats.total_clientes_ativos}</p>
                 <p className="text-xs text-muted-foreground">Clientes Ativos</p>
-              </div>
-              <div className="p-1 rounded-lg bg-neutral-light">
+              </Link>
+              <Link to="/platform-stats" className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
                 <Award className="mx-auto text-secondary" size={20} />
                 <p className="text-lg font-bold">{platformStats.total_parcerias}</p>
                 <p className="text-xs text-muted-foreground">Parcerias</p>
-              </div>
+              </Link>
             </>
           )}
         </CardContent>
-        <CardFooter className="p-3 pt-0">
-            <Link to="/platform-stats" className="w-full">
-                <Button variant="outline" className="w-full">
-                    Ver Detalhes <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-            </Link>
-        </CardFooter>
       </Card>
     </div>
   );

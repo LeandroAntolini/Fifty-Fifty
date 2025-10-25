@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Ca
 import { Button } from '../../components/ui/Button';
 import Spinner from '../../components/Spinner';
 import { ImovelStatus, ClienteStatus, MatchStatus } from '../../types';
-import { Home, User, ThumbsUp, Handshake, PlusCircle, Users, Building, Briefcase, Award, Heart, UserPlus, Search } from 'lucide-react';
+import { Home, User, ThumbsUp, Handshake, PlusCircle, Users, Building, Briefcase, Award, Heart, UserPlus, Search, BarChart2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface DashboardStats {
@@ -91,6 +91,10 @@ const DashboardPage: React.FC = () => {
   const handleSearchCorretor = () => {
     navigate('/search-corretor');
   };
+  
+  const handleViewPlatformStats = () => {
+    navigate('/platform-stats');
+  };
 
   if (loading) {
     return <div className="flex justify-center mt-8"><Spinner /></div>;
@@ -147,6 +151,14 @@ const DashboardPage: React.FC = () => {
           <Button onClick={handleSearchCorretor} className="w-full" variant="outline">
             <Search className="mr-2" size={18} /> Buscar @..
           </Button>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardContent className="p-3">
+            <Button onClick={handleViewPlatformStats} className="w-full bg-secondary hover:bg-secondary/80 text-primary">
+                <BarChart2 className="mr-2" size={18} /> Estatísticas da Plataforma
+            </Button>
         </CardContent>
       </Card>
 

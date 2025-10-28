@@ -1,10 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  throw new Error("Supabase URL and Anon Key must be defined in environment variables.");
-}
+const SUPABASE_URL = 'https://sfurxnwnmiiimadghohq.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmdXJ4bndubWlpaW1hZGdob2hxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3NDQ0NjQsImV4cCI6MjA3NDMyMDQ2NH0.QNYBLfItv3Hla709XpPBm4rnfJ-WK_dTZu4YxojvnRY';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);

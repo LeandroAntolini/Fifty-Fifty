@@ -141,13 +141,13 @@ const DashboardPage: React.FC = () => {
 
       <Card>
         <CardContent className="p-3 grid grid-cols-3 gap-2">
-          <Button onClick={handleAddImovel} className="w-full" variant="outline">
+          <Button onClick={handleAddImovel} className="w-full" variant="lightOutline">
             <PlusCircle className="mr-2" size={18} /> Imóvel
           </Button>
-          <Button onClick={handleAddCliente} className="w-full" variant="outline">
+          <Button onClick={handleAddCliente} className="w-full" variant="lightOutline">
             <PlusCircle className="mr-2" size={18} /> Cliente
           </Button>
-          <Button onClick={handleSearchCorretor} className="w-full" variant="outline">
+          <Button onClick={handleSearchCorretor} className="w-full" variant="lightOutline">
             <Search className="mr-2" size={18} /> Buscar @..
           </Button>
         </CardContent>

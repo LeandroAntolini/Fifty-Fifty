@@ -19,6 +19,9 @@ interface DashboardStats {
   seguindo: number;
 }
 
+const AD_LINK = "https://www.instagram.com/vanessatapias.corretora/";
+const AD_IMAGE_PATH = "/ad_image.jpg";
+
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { openImovelModal, openClienteModal } = useUI();
@@ -152,9 +155,13 @@ const DashboardPage: React.FC = () => {
 
       <Card>
         <CardContent className="p-2">
-          <div className="bg-neutral-light rounded-lg flex items-center justify-center min-h-[120px]">
-            <p className="text-sm text-gray-500 text-center p-2">Espaço Publicitário</p>
-          </div>
+          <a href={AD_LINK} target="_blank" rel="noopener noreferrer" className="block">
+            <img 
+              src={AD_IMAGE_PATH} 
+              alt="Anúncio Publicitário" 
+              className="w-full h-auto rounded-lg object-cover"
+            />
+          </a>
         </CardContent>
       </Card>
 

@@ -152,9 +152,20 @@ const DashboardPage: React.FC = () => {
 
       <Card>
         <CardContent className="p-2">
-          <div className="bg-neutral-light rounded-lg flex items-center justify-center min-h-[120px]">
-            <p className="text-sm text-gray-500 text-center p-2">Espaço Publicitário</p>
-          </div>
+          <a 
+            href="https://www.instagram.com/osteopatia.leandro.antolini/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="block"
+          >
+            <div className="bg-neutral-light rounded-lg flex items-center justify-center min-h-[120px] overflow-hidden">
+              <img 
+                src="/ad_osteopatia.webp" 
+                alt="Espaço Publicitário: Osteopatia Leandro Antolini" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </a>
         </CardContent>
       </Card>
 

@@ -158,41 +158,43 @@ const DashboardPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="p-3 pb-1">
-          <CardTitle className="text-base font-semibold">Estatísticas da Plataforma</CardTitle>
-        </CardHeader>
-        <CardContent className="p-3 pt-1 grid grid-cols-2 gap-2 text-center">
-          {loadingPlatformStats || !platformStats ? (
-            <div className="col-span-2 flex justify-center items-center h-24">
-              <Spinner />
-            </div>
-          ) : (
-            <>
-              <Link to="/platform-stats" className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
-                <Users className="mx-auto text-secondary" size={20} />
-                <p className="text-lg font-bold">{platformStats.total_corretores}</p>
-                <p className="text-xs text-muted-foreground">Corretores</p>
-              </Link>
-              <Link to="/platform-stats" className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
-                <Building className="mx-auto text-secondary" size={20} />
-                <p className="text-lg font-bold">{platformStats.total_imoveis_ativos}</p>
-                <p className="text-xs text-muted-foreground">Imóveis Ativos</p>
-              </Link>
-              <Link to="/platform-stats" className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
-                <Briefcase className="mx-auto text-secondary" size={20} />
-                <p className="text-lg font-bold">{platformStats.total_clientes_ativos}</p>
-                <p className="text-xs text-muted-foreground">Clientes Ativos</p>
-              </Link>
-              <Link to="/platform-stats" className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
-                <Award className="mx-auto text-secondary" size={20} />
-                <p className="text-lg font-bold">{platformStats.total_parcerias}</p>
-                <p className="text-xs text-muted-foreground">Parcerias</p>
-              </Link>
-            </>
-          )}
-        </CardContent>
-      </Card>
+      <Link to="/platform-stats" className="block hover:shadow-lg transition-shadow">
+        <Card>
+          <CardHeader className="p-3 pb-1">
+            <CardTitle className="text-base font-semibold">Estatísticas da Plataforma</CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 pt-1 grid grid-cols-2 gap-2 text-center">
+            {loadingPlatformStats || !platformStats ? (
+              <div className="col-span-2 flex justify-center items-center h-24">
+                <Spinner />
+              </div>
+            ) : (
+              <>
+                <div className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
+                  <Users className="mx-auto text-secondary" size={20} />
+                  <p className="text-lg font-bold">{platformStats.total_corretores}</p>
+                  <p className="text-xs text-muted-foreground">Corretores</p>
+                </div>
+                <div className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
+                  <Building className="mx-auto text-secondary" size={20} />
+                  <p className="text-lg font-bold">{platformStats.total_imoveis_ativos}</p>
+                  <p className="text-xs text-muted-foreground">Imóveis Ativos</p>
+                </div>
+                <div className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
+                  <Briefcase className="mx-auto text-secondary" size={20} />
+                  <p className="text-lg font-bold">{platformStats.total_clientes_ativos}</p>
+                  <p className="text-xs text-muted-foreground">Clientes Ativos</p>
+                </div>
+                <div className="p-1 rounded-lg bg-neutral-light hover:bg-gray-200 transition-colors">
+                  <Award className="mx-auto text-secondary" size={20} />
+                  <p className="text-lg font-bold">{platformStats.total_parcerias}</p>
+                  <p className="text-xs text-muted-foreground">Parcerias</p>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </Link>
     </div>
   );
 };

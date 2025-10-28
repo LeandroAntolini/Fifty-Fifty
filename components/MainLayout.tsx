@@ -28,6 +28,7 @@ const pageTitles: { [key: string]: string } = {
   '/profile/terms-of-service': 'Termos de Serviço',
   '/profile/update-password': 'Atualizar Senha',
   '/search-corretor': 'Buscar Corretor',
+  '/platform-stats': 'Estatísticas da Plataforma', // Novo título
 };
 
 const MainLayout: React.FC = () => {
@@ -45,7 +46,7 @@ const MainLayout: React.FC = () => {
   ];
   
   // Rotas que devem ter o botão de voltar, mas manter a barra inferior (se não for chat)
-  const routesWithBackButtonButKeepNav = ['/search-corretor'];
+  const routesWithBackButtonButKeepNav = ['/search-corretor', '/platform-stats'];
 
   const hasBackButton = profileSubPages.includes(location.pathname) || isSpecificChatPage || routesWithBackButtonButKeepNav.includes(location.pathname);
   
@@ -55,7 +56,7 @@ const MainLayout: React.FC = () => {
   const getTitle = () => {
     const path = location.pathname;
     if (path === '/dashboard' && user) {
-      return `Olá, ${user.corretorInfo.Nome.split(' ')[0]}!`;
+      return `Olá, ${user.corretorInfo.Nome.split(' ')[0]}`;
     }
     if (isSpecificChatPage) return "Chat da Parceria";
     return pageTitles[path] || 'Meu Perfil';

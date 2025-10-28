@@ -41,28 +41,28 @@ const PlatformStatsPage: React.FC = () => {
         if (!stats) return null;
         return (
             <Card>
-                <CardHeader className="p-4 pb-2">
-                    <CardTitle className="text-lg font-bold text-primary">{title}</CardTitle>
+                <CardHeader className="p-3 pb-1">
+                    <CardTitle className="text-base font-bold text-primary">{title}</CardTitle>
                 </CardHeader>
-                <CardContent className="p-4 pt-2 grid grid-cols-2 gap-3 text-center">
-                    <div className="p-2 rounded-lg bg-neutral-light">
-                        <Users className="mx-auto text-secondary" size={24} />
-                        <p className="text-2xl font-bold mt-1">{stats.total_corretores}</p>
+                <CardContent className="p-3 pt-1 grid grid-cols-2 gap-2 text-center">
+                    <div className="p-1 rounded-lg bg-neutral-light">
+                        <Users className="mx-auto text-secondary" size={20} />
+                        <p className="text-lg font-bold">{stats.total_corretores}</p>
                         <p className="text-xs text-muted-foreground">Corretores</p>
                     </div>
-                    <div className="p-2 rounded-lg bg-neutral-light">
-                        <Building className="mx-auto text-secondary" size={24} />
-                        <p className="text-2xl font-bold mt-1">{stats.total_imoveis_ativos}</p>
+                    <div className="p-1 rounded-lg bg-neutral-light">
+                        <Building className="mx-auto text-secondary" size={20} />
+                        <p className="text-lg font-bold">{stats.total_imoveis_ativos}</p>
                         <p className="text-xs text-muted-foreground">Imóveis Ativos</p>
                     </div>
-                    <div className="p-2 rounded-lg bg-neutral-light">
-                        <Briefcase className="mx-auto text-secondary" size={24} />
-                        <p className="text-2xl font-bold mt-1">{stats.total_clientes_ativos}</p>
+                    <div className="p-1 rounded-lg bg-neutral-light">
+                        <Briefcase className="mx-auto text-secondary" size={20} />
+                        <p className="text-lg font-bold">{stats.total_clientes_ativos}</p>
                         <p className="text-xs text-muted-foreground">Clientes Ativos</p>
                     </div>
-                    <div className="p-2 rounded-lg bg-neutral-light">
-                        <Award className="mx-auto text-secondary" size={24} />
-                        <p className="text-2xl font-bold mt-1">{stats.total_parcerias}</p>
+                    <div className="p-1 rounded-lg bg-neutral-light">
+                        <Award className="mx-auto text-secondary" size={20} />
+                        <p className="text-lg font-bold">{stats.total_parcerias}</p>
                         <p className="text-xs text-muted-foreground">Parcerias</p>
                     </div>
                 </CardContent>

@@ -151,10 +151,7 @@ const DashboardPage: React.FC = () => {
       </Card>
 
       <Card>
-        <CardHeader className="p-3 pb-1">
-          <CardTitle className="text-base font-semibold">Osteopatia - Leandro Antolini</CardTitle>
-        </CardHeader>
-        <CardContent className="p-2 pt-0">
+        <CardContent className="p-2">
           <a 
             href="https://www.instagram.com/osteopatia.leandro.antolini/" 
             target="_blank" 

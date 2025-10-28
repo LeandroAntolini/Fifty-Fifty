@@ -80,9 +80,9 @@ const PlatformStatsPage: React.FC = () => {
 
     return (
         <div className="space-y-4">
-            {renderStatsCard("Estatísticas Globais da Fifty-Fifty", globalStats)}
-            {renderStatsCard(`Estatísticas de ${user.corretorInfo.Estado}`, stateStats)}
-            {renderStatsCard(`Estatísticas de ${user.corretorInfo.Cidade}`, cityStats)}
+            {renderStatsCard("Estatísticas Globais - Fifty-Fifty", globalStats)}
+            {renderStatsCard(`Estatísticas - ${user.corretorInfo.Estado}`, stateStats)}
+            {renderStatsCard(`Estatísticas - ${user.corretorInfo.Cidade}`, cityStats)}
         </div>
     );
 };

@@ -5,7 +5,7 @@ import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
 import { Button } from '../components/ui/Button';
 import { Corretor, AugmentedParceriaResult } from '../types';
-import { User as UserIcon, Heart } from 'lucide-react';
+import { User as UserIcon, Heart, Plus } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../src/integrations/supabase/client';
 import { useNotifications } from '../contexts/NotificationContext';
@@ -165,6 +165,10 @@ const ConexoesPage: React.FC = () => {
         }
     };
 
+    const handleSearchCorretor = () => {
+        navigate('/search-corretor');
+    };
+
     const renderParcerias = () => (
         <div className="space-y-4">
             {parcerias.length === 0 ? (
@@ -275,10 +279,17 @@ const ConexoesPage: React.FC = () => {
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-center space-x-2 bg-white p-2 rounded-lg shadow">
-                <Button size="sm" variant={activeTab === 'parcerias' ? 'default' : 'ghost'} onClick={() => setActiveTab('parcerias')}>Parcerias</Button>
-                <Button size="sm" variant={activeTab === 'seguindo' ? 'default' : 'ghost'} onClick={() => setActiveTab('seguindo')}>Seguindo</Button>
-                <Button size="sm" variant={activeTab === 'seguidores' ? 'default' : 'ghost'} onClick={() => setActiveTab('seguidores')}>Seguidores</Button>
+            <div className="flex items-center space-x-2 bg-white p-2 rounded-lg shadow">
+                {/* Tab buttons container */}
+                <div className="flex justify-center space-x-2 flex-grow">
+                    <Button size="sm" variant={activeTab === 'parcerias' ? 'default' : 'ghost'} onClick={() => setActiveTab('parcerias')}>Parcerias</Button>
+                    <Button size="sm" variant={activeTab === 'seguindo' ? 'default' : 'ghost'} onClick={() => setActiveTab('seguindo')}>Seguindo</Button>
+                    <Button size="sm" variant={activeTab === 'seguidores' ? 'default' : 'ghost'} onClick={() => setActiveTab('seguidores')}>Seguidores</Button>
+                </div>
+                {/* New button */}
+                <Button onClick={handleSearchCorretor} className="w-10 h-10 p-0 flex-shrink-0">
+                    <Plus size={24} />
+                </Button>
             </div>
             {loading ? (
                 <div className="flex justify-center mt-8"><Spinner /></div>
